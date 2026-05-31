@@ -1,0 +1,9 @@
+name = "rowspire-main"
+compatibility_date = "2025-06-14"
+
+[assets]
+directory = "./out"
+
+[[routes]]
+pattern = "rowspire.tre.systems/*"
+zone_name = "tre.systems"

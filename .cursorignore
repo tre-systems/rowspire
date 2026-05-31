@@ -1,0 +1,46 @@
+# Large model files
+training_data_cache.json
+ml_ai_weights*.json
+test_ml_weights*.json
+debug_ml_weights.json
+public/ml-weights.json
+public/ml/
+ml_ai_weights*.json.gz
+test_ml_weights*.json.gz
+public/ml-weights.json.gz
+
+# Rust and WASM build artifacts
+worker/target/
+src/lib/wasm/
+public/wasm/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+worker/build/
+worker/dist/
+.open-next/
+
+# Test results and coverage
+coverage/
+test-results/
+playwright-report/
+
+# Local database and cache
+local.db
+*.sqlite
+*.db
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+
+# Environment and misc
+.venv/
+.wrangler/
+.vercel/
+
+# Design source art (large, not referenced by the build)
+design/
