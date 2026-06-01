@@ -28,10 +28,10 @@ jobs:
       - name: Install Rust tools
         uses: jetli/wasm-pack-action@v0.4.0
         with:
-          version: 'v0.13.1'
+          version: 'v0.15.0'
 
       - name: Install Wrangler
-        run: npm install -g wrangler
+        run: npm install -g wrangler@4.95.0
 
       - name: Verify Wrangler installation
         run: |

@@ -12,6 +12,7 @@ export default tseslint.config(
       '.open-next/**',
       '.wrangler/**',
       'node_modules/**',
+      'next-env.d.ts',
       '*.config.mjs',
       'public/**',
       'src/lib/wasm/**',

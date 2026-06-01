@@ -56,7 +56,7 @@ Run `npm run brand:audit` before shipping brand-facing changes.
 
 ## Deployment
 
-Pushing to `main` runs the deploy workflow. The Wrangler target is configured for `rowspire.tre.systems`; final domain setup is handled outside this repository.
+Pushing to `main` runs the deploy workflow. Wrangler provisions custom domains for `rowspire.com`, `rowspire.net`, `rowspire.org`, their `www` hosts, and `rowspire.tre.systems`.
 
 ## Documentation
 

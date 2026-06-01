@@ -64,5 +64,22 @@ describe('Utils', () => {
       expect(isProduction()).toBe(false);
       expect(isDevelopment()).toBe(true);
     });
+
+    it('should detect rowspire domains as production', () => {
+      const hostnames = [
+        'rowspire.tre.systems',
+        'rowspire.com',
+        'www.rowspire.com',
+        'rowspire.net',
+        'www.rowspire.net',
+        'rowspire.org',
+        'www.rowspire.org',
+      ];
+
+      for (const hostname of hostnames) {
+        vi.stubGlobal('window', { location: { hostname } });
+        expect(isProduction()).toBe(true);
+      }
+    });
   });
 });

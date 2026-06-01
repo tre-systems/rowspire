@@ -7,6 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const PLAYER_ID_KEY = 'rowspire-player-id';
+const PRODUCTION_HOSTNAMES = new Set([
+  'rowspire.tre.systems',
+  'rowspire.com',
+  'www.rowspire.com',
+  'rowspire.net',
+  'www.rowspire.net',
+  'rowspire.org',
+  'www.rowspire.org',
+]);
 
 export function getPlayerId(): string {
   if (typeof window === 'undefined') {
@@ -28,12 +37,7 @@ export const isProduction = () => {
     return process.env.NODE_ENV === 'production';
   }
 
-  const hostname = window.location.hostname;
-  return (
-    hostname === 'rowspire.tre.systems' ||
-    hostname === 'rowspire.com' ||
-    hostname === 'www.rowspire.com'
-  );
+  return PRODUCTION_HOSTNAMES.has(window.location.hostname);
 };
 
 export const isDevelopment = () => {

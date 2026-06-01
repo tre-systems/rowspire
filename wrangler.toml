@@ -5,5 +5,29 @@ compatibility_date = "2025-06-14"
 directory = "./out"
 
 [[routes]]
-pattern = "rowspire.tre.systems/*"
-zone_name = "tre.systems"
+pattern = "rowspire.tre.systems"
+custom_domain = true
+
+[[routes]]
+pattern = "rowspire.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.rowspire.com"
+custom_domain = true
+
+[[routes]]
+pattern = "rowspire.net"
+custom_domain = true
+
+[[routes]]
+pattern = "www.rowspire.net"
+custom_domain = true
+
+[[routes]]
+pattern = "rowspire.org"
+custom_domain = true
+
+[[routes]]
+pattern = "www.rowspire.org"
+custom_domain = true

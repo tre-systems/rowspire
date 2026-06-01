@@ -1,7 +1,7 @@
 import { GameState, Player, AIType, Board } from '../schemas';
 import { MLMoveEvaluation, MoveEvaluationWasm } from '../bindings';
 import { SEARCH_AI_DEPTH } from '../constants';
-import { getWASMAIService } from '../wasm-ai-service';
+import { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
 import { getValidMoves, printBoard, checkWin } from './board-logic';
 
 export function otherPlayer(player: Player): Player {
@@ -58,14 +58,18 @@ async function fallbackMove(gameState: GameState): Promise<number | null> {
   return null;
 }
 
-export async function makeAIMove(gameState: GameState, aiType: AIType = 'search'): Promise<number> {
+async function loadWasmAI() {
   const wasmAI = getWASMAIService();
-
   if (!wasmAI.isReady) {
-    throw new Error('WASM AI not loaded. Please refresh the page and try again.');
+    await initializeWASMAI();
   }
+  return wasmAI;
+}
 
+export async function makeAIMove(gameState: GameState, aiType: AIType = 'search'): Promise<number> {
   try {
+    const wasmAI = await loadWasmAI();
+
     console.log(`\n🤖 ${aiType.toUpperCase()} AI thinking...`);
     printBoard(gameState.board, 'Current board before AI move');
 

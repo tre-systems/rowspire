@@ -41,6 +41,7 @@ local.db
 .venv/
 .wrangler/
 .vercel/
+next-env.d.ts
 
 # Design source art (large, not referenced by the build)
 design/
