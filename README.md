@@ -22,7 +22,7 @@ npm run build:wasm-assets
 npm run dev
 ```
 
-The dev server runs at [http://localhost:3000](http://localhost:3000). Requires Node 20+, Rust + Cargo, and `wasm-pack`.
+The dev server runs at [http://localhost:3000](http://localhost:3000). Requires Node 22+, Rust + Cargo, and `wasm-pack`.
 
 ## Commands
 
