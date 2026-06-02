@@ -67,7 +67,7 @@ export default defineConfig({
         '**/setup.ts',
         'src/app/**',
         'src/components/**',
-        // AI service files depend on browser/worker APIs and cannot be reliably tested in Node
+        'src/lib/ai.worker.ts',
         'src/lib/wasm-ai-service.ts',
         'src/lib/__tests__/wasm-ai-service.test.ts',
       ],

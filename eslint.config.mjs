@@ -18,6 +18,8 @@ export default tseslint.config(
       'src/lib/wasm/**',
       'out/**',
       'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
       'worker/target/**',
     ],
   },

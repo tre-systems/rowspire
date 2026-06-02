@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GameStateSchema, MoveRecordSchema } from '../schemas';
+import { GameStateSchema, MoveRecordSchema, PendingMoveSchema } from '../schemas';
 
 describe('Schemas', () => {
   describe('GameStateSchema', () => {
@@ -18,7 +18,7 @@ describe('Schemas', () => {
 
     it('should reject invalid board size', () => {
       const invalidGameState = {
-        board: Array.from({ length: 6 }, () => Array(6).fill(null)), // Wrong size (6 columns instead of 7)
+        board: Array.from({ length: 6 }, () => Array(6).fill(null)),
         currentPlayer: 'player1',
         gameStatus: 'playing',
         winner: null,
@@ -70,6 +70,24 @@ describe('Schemas', () => {
       };
 
       expect(() => MoveRecordSchema.parse(player2Move)).not.toThrow();
+    });
+  });
+
+  describe('PendingMoveSchema', () => {
+    it('should validate human and AI pending moves', () => {
+      expect(() =>
+        PendingMoveSchema.parse({ player: 'player1', column: 3, source: 'human' }),
+      ).not.toThrow();
+
+      expect(() =>
+        PendingMoveSchema.parse({ player: 'player2', column: 4, source: 'ai' }),
+      ).not.toThrow();
+    });
+
+    it('should reject invalid columns', () => {
+      expect(() =>
+        PendingMoveSchema.parse({ player: 'player1', column: 7, source: 'human' }),
+      ).toThrow();
     });
   });
 });

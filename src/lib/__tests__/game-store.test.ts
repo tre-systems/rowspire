@@ -43,6 +43,7 @@ describe('Game Store', () => {
       expect(newState.pendingMove).toEqual({
         column: 3,
         player: initialPlayer,
+        source: 'human',
       });
     });
 
@@ -133,7 +134,7 @@ describe('Game Store', () => {
         state.gameState.gameStatus = 'finished';
         state.gameState.winner = 'player1';
         state.aiThinking = true;
-        state.pendingMove = { column: 3, player: 'player1' };
+        state.pendingMove = { column: 3, player: 'player1', source: 'human' };
         state.showWinnerModal = true;
       });
 

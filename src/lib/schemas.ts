@@ -9,18 +9,34 @@ export type GameStatus = z.infer<typeof GameStatusSchema>;
 export const BoardSchema = z.array(z.array(PlayerSchema.nullable()).length(6)).length(7);
 export type Board = z.infer<typeof BoardSchema>;
 
+export const ColumnIndexSchema = z.number().int().min(0).max(6);
+export type ColumnIndex = z.infer<typeof ColumnIndexSchema>;
+
+export const RowIndexSchema = z.number().int().min(0).max(5);
+export type RowIndex = z.infer<typeof RowIndexSchema>;
+
 export const MoveRecordSchema = z.object({
   player: PlayerSchema,
-  column: z.number(),
-  row: z.number(),
+  column: ColumnIndexSchema,
+  row: RowIndexSchema,
 });
 export type MoveRecord = z.infer<typeof MoveRecordSchema>;
+
+export const MoveSourceSchema = z.enum(['human', 'ai']);
+export type MoveSource = z.infer<typeof MoveSourceSchema>;
+
+export const PendingMoveSchema = z.object({
+  player: PlayerSchema,
+  column: ColumnIndexSchema,
+  source: MoveSourceSchema,
+});
+export type PendingMove = z.infer<typeof PendingMoveSchema>;
 
 export const WinningLineSchema = z.object({
   positions: z.array(
     z.object({
-      column: z.number(),
-      row: z.number(),
+      column: ColumnIndexSchema,
+      row: RowIndexSchema,
     }),
   ),
   direction: z.enum(['horizontal', 'vertical', 'diagonal']),

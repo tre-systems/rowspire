@@ -30,26 +30,43 @@ export function useGameAnimations(
     if (gameState.gameStatus === 'finished' && gameState.winner) {
       const winner = gameState.winner;
       const boardRect = boardRef.current?.getBoundingClientRect();
+      const timers: number[] = [];
+
       if (boardRect) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCelebrations(prevCelebrations => [
-          ...prevCelebrations,
-          {
-            id: `celebration-${Date.now()}-${winner}`,
-            position: {
-              x: boardRect.left + boardRect.width / 2,
-              y: boardRect.top + boardRect.height / 2,
-            },
-            player: winner,
-          },
-        ]);
+        timers.push(
+          window.setTimeout(() => {
+            setCelebrations(prevCelebrations => [
+              ...prevCelebrations,
+              {
+                id: `celebration-${Date.now()}-${winner}`,
+                position: {
+                  x: boardRect.left + boardRect.width / 2,
+                  y: boardRect.top + boardRect.height / 2,
+                },
+                player: winner,
+              },
+            ]);
+          }, 0),
+        );
       }
 
       if (gameState.winningLine) {
-        setShowWinAnimation(true);
+        timers.push(
+          window.setTimeout(() => {
+            setShowWinAnimation(true);
+          }, 0),
+        );
         soundEffects.winAnimation();
       }
+
+      return () => {
+        timers.forEach(timer => {
+          window.clearTimeout(timer);
+        });
+      };
     }
+
+    return undefined;
   }, [gameState.gameStatus, gameState.winner, gameState.winningLine, boardRef]);
 
   useEffect(() => {
@@ -64,31 +81,40 @@ export function useGameAnimations(
     if (pendingMove) {
       const { column, player } = pendingMove;
 
-      void soundEffects.pieceMove();
+      if (pendingMove.source === 'ai') {
+        void soundEffects.pieceMove();
+      }
 
       const col = gameState.board[column];
       const row = col.lastIndexOf(null);
       if (row === -1) return;
 
       const dropId = `drop-${Date.now()}-${column}-${row}`;
+      const addDropTimer = window.setTimeout(() => {
+        setDroppingPieces(prev => [
+          ...prev,
+          {
+            id: dropId,
+            column,
+            row,
+            player,
+          },
+        ]);
+      }, 0);
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDroppingPieces(prev => [
-        ...prev,
-        {
-          id: dropId,
-          column,
-          row,
-          player,
-        },
-      ]);
-
-      setTimeout(() => {
+      const completeMoveTimer = window.setTimeout(() => {
         setDroppingPieces(prev => prev.filter(p => p.id !== dropId));
         actions.completeMove();
       }, 800);
+
+      return () => {
+        window.clearTimeout(addDropTimer);
+        window.clearTimeout(completeMoveTimer);
+      };
     }
-  }, [pendingMove, gameState, actions]);
+
+    return undefined;
+  }, [pendingMove, gameState.board, actions]);
 
   const handleWinAnimationComplete = () => {
     setShowWinAnimation(false);

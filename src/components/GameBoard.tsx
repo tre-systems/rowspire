@@ -14,6 +14,7 @@ import GameStatus from './game/GameStatus';
 import GamePiece from './game/GamePiece';
 import { useGameAnimations } from '@/hooks/useGameAnimations';
 import { useHydrated } from '@/hooks/useHydrated';
+import { soundEffects } from '@/lib/sound-effects';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -45,6 +46,7 @@ export default function GameBoard({
 
   const handleColumnClick = (column: number) => {
     if (gameState.gameStatus === 'playing' && gameState.currentPlayer === 'player1' && !watchMode) {
+      void soundEffects.pieceMove();
       actions.makeMove(column);
     }
   };
