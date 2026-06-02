@@ -22,6 +22,8 @@ flowchart LR
 - Immer keeps store updates concise without direct mutation.
 - Domain types live in `src/lib/schemas.ts` and are re-exported through `src/lib/types.ts`.
 - Brand identity lives in `src/lib/brand.ts` and feeds metadata, UI copy, and manifest generation.
+- Procedural Web Audio effects live in `src/lib/sound-effects.ts`; move sounds run from the shared pending-move animation path so human and AI turns behave consistently.
+- Animated background state lives in `src/lib/visuals/background-effects.ts`; rendering and entity creation are split into focused modules so long-running sessions keep respawning visible effects.
 
 ## Game State
 

@@ -64,6 +64,8 @@ export function useGameAnimations(
     if (pendingMove) {
       const { column, player } = pendingMove;
 
+      void soundEffects.pieceMove();
+
       const col = gameState.board[column];
       const row = col.lastIndexOf(null);
       if (row === -1) return;

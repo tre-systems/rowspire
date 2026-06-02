@@ -92,6 +92,10 @@ export default function RowspireGame() {
   const toggleSound = () => {
     const newState = soundEffects.toggle();
     setSoundEnabled(newState);
+
+    if (newState) {
+      void soundEffects.unlock();
+    }
   };
 
   const handleShowHowToPlay = () => {
@@ -103,6 +107,10 @@ export default function RowspireGame() {
   };
 
   const handleStartGame = () => {
+    if (soundEnabled) {
+      void soundEffects.unlock();
+    }
+
     startGame();
     setShowAISelection(false);
   };

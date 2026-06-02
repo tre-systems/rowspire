@@ -1,25 +1,64 @@
-class SoundEffects {
+type AudioWindow = Window & {
+  AudioContext?: typeof AudioContext;
+  webkitAudioContext?: typeof AudioContext;
+};
+
+export class SoundEffects {
   private audioContext: AudioContext | null = null;
   private enabled = true;
+  private hasWarned = false;
 
-  constructor() {
-    if (typeof window !== 'undefined' && window.AudioContext) {
-      try {
-        this.audioContext = new window.AudioContext();
-      } catch (error) {
-        console.warn('Web Audio API not supported:', error);
-      }
+  async unlock() {
+    await this.ensureAudioContext();
+  }
+
+  private getAudioContextConstructor() {
+    if (typeof window === 'undefined') return null;
+
+    const audioWindow = window as AudioWindow;
+    return audioWindow.AudioContext ?? audioWindow.webkitAudioContext ?? null;
+  }
+
+  private createAudioContext() {
+    if (this.audioContext) return this.audioContext;
+
+    const AudioContextConstructor = this.getAudioContextConstructor();
+    if (!AudioContextConstructor) return null;
+
+    try {
+      this.audioContext = new AudioContextConstructor();
+      return this.audioContext;
+    } catch (error) {
+      this.warn('Web Audio API is not available:', error);
+      return null;
     }
   }
 
-  private async ensureAudioContext() {
-    if (!this.audioContext) return null;
+  private warn(message: string, error: unknown) {
+    if (this.hasWarned) return;
 
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+    console.warn(message, error);
+    this.hasWarned = true;
+  }
+
+  private async ensureAudioContext() {
+    const ctx = this.createAudioContext();
+    if (!ctx) return null;
+
+    if (ctx.state === 'closed') {
+      this.audioContext = null;
+      return this.createAudioContext();
     }
 
-    return this.audioContext;
+    if (ctx.state !== 'suspended') return ctx;
+
+    try {
+      await ctx.resume();
+      return ctx;
+    } catch (error) {
+      this.warn('Unable to unlock audio:', error);
+      return null;
+    }
   }
 
   private async playTone(
@@ -33,21 +72,25 @@ class SoundEffects {
     const ctx = await this.ensureAudioContext();
     if (!ctx) return;
 
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    try {
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
 
-    oscillator.frequency.value = frequency;
-    oscillator.type = type;
+      oscillator.frequency.value = frequency;
+      oscillator.type = type;
 
-    gainNode.gain.setValueAtTime(0, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
 
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + duration);
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + duration);
+    } catch (error) {
+      this.warn('Unable to play sound:', error);
+    }
   }
 
   private async playChord(
@@ -56,7 +99,7 @@ class SoundEffects {
     type: OscillatorType = 'sine',
     volume = 0.05,
   ) {
-    frequencies.forEach(freq => this.playTone(freq, duration, type, volume));
+    await Promise.all(frequencies.map(freq => this.playTone(freq, duration, type, volume)));
   }
 
   async columnSelect() {
@@ -68,16 +111,16 @@ class SoundEffects {
   }
 
   async pieceMove() {
-    await this.playTone(523.25, 0.2, 'sine', 0.08); // C5
+    await this.playTone(523.25, 0.2, 'sine', 0.08);
   }
 
   async specialLanding() {
-    const frequencies = [523.25, 659.25, 783.99]; // C5-E5-G5 chord
+    const frequencies = [523.25, 659.25, 783.99];
     await this.playChord(frequencies, 0.5, 'sine', 0.06);
   }
 
   async gameWin() {
-    const melody = [523.25, 659.25, 783.99, 1046.5]; // C5-E5-G5-C6
+    const melody = [523.25, 659.25, 783.99, 1046.5];
     melody.forEach((freq, i) => {
       setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.1), i * 200);
     });
@@ -85,12 +128,12 @@ class SoundEffects {
 
   async winAnimation() {
     const sequence = [
-      { freq: 523.25, duration: 0.2, type: 'sine' as OscillatorType }, // C5
-      { freq: 659.25, duration: 0.2, type: 'sine' as OscillatorType }, // E5
-      { freq: 783.99, duration: 0.2, type: 'sine' as OscillatorType }, // G5
-      { freq: 1046.5, duration: 0.3, type: 'sine' as OscillatorType }, // C6
-      { freq: 1318.5, duration: 0.3, type: 'sine' as OscillatorType }, // E6
-      { freq: 1567.98, duration: 0.4, type: 'sine' as OscillatorType }, // G6
+      { freq: 523.25, duration: 0.2, type: 'sine' as OscillatorType },
+      { freq: 659.25, duration: 0.2, type: 'sine' as OscillatorType },
+      { freq: 783.99, duration: 0.2, type: 'sine' as OscillatorType },
+      { freq: 1046.5, duration: 0.3, type: 'sine' as OscillatorType },
+      { freq: 1318.5, duration: 0.3, type: 'sine' as OscillatorType },
+      { freq: 1567.98, duration: 0.4, type: 'sine' as OscillatorType },
     ];
 
     sequence.forEach((note, i) => {
@@ -110,7 +153,7 @@ class SoundEffects {
   }
 
   async gameLoss() {
-    const melody = [523.25, 493.88, 440, 392]; // C5-B4-A4-G4 descending
+    const melody = [523.25, 493.88, 440, 392];
     melody.forEach((freq, i) => {
       setTimeout(() => this.playTone(freq, 0.4, 'sine', 0.08), i * 150);
     });

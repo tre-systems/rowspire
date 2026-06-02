@@ -12,7 +12,6 @@ import GameCompletionOverlay from './game/GameCompletionOverlay';
 import GameControls from './game/GameControls';
 import GameStatus from './game/GameStatus';
 import GamePiece from './game/GamePiece';
-import { soundEffects } from '@/lib/sound-effects';
 import { useGameAnimations } from '@/hooks/useGameAnimations';
 import { useHydrated } from '@/hooks/useHydrated';
 
@@ -47,7 +46,6 @@ export default function GameBoard({
   const handleColumnClick = (column: number) => {
     if (gameState.gameStatus === 'playing' && gameState.currentPlayer === 'player1' && !watchMode) {
       actions.makeMove(column);
-      soundEffects.pieceMove();
     }
   };
 
