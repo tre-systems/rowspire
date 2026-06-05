@@ -141,19 +141,18 @@ export default function GameBoard({
                 className="absolute z-20"
                 style={{
                   left: `${(drop.column / 7) * 100}%`,
-                  top: '0%',
                   width: 'calc(100% / 7 - 8px)',
                   height: 'calc(100% / 6 - 4px)',
                 }}
-                initial={{ y: 0, opacity: 0.8 }}
+                initial={{ top: '0%', opacity: 0.8 }}
                 animate={{
-                  y: `${(drop.row / 6) * 100}%`,
+                  top: `${(drop.row / 6) * 100}%`,
                   opacity: 1,
                 }}
                 transition={{
-                  y: {
+                  top: {
                     type: 'tween',
-                    ease: 'easeInOut',
+                    ease: 'easeIn',
                     duration: 0.8,
                   },
                   opacity: {

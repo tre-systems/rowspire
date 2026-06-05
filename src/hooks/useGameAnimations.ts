@@ -21,7 +21,6 @@ export function useGameAnimations(
   boardRef: React.RefObject<HTMLDivElement | null>,
 ) {
   const [celebrations, setCelebrations] = useState<Celebration[]>([]);
-  const [droppingPieces, setDroppingPieces] = useState<DroppingPiece[]>([]);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
 
   const { actions, pendingMove } = useGameStore();
@@ -77,44 +76,43 @@ export function useGameAnimations(
     });
   }, [celebrations]);
 
+  // The piece currently dropping is derived directly from the pending move, so it
+  // appears the moment a move starts and disappears the instant the move is
+  // committed (pendingMove clears). Deriving it — rather than mirroring it into
+  // separate state driven by timers — means an AI move committed by the store can
+  // never leave a ghost piece stranded at the top of the board.
+  const droppingPieces: DroppingPiece[] = (() => {
+    if (!pendingMove) return [];
+    const row = gameState.board[pendingMove.column].lastIndexOf(null);
+    if (row === -1) return [];
+    return [
+      {
+        id: `drop-${pendingMove.player}-${pendingMove.column}-${row}`,
+        column: pendingMove.column,
+        row,
+        player: pendingMove.player,
+      },
+    ];
+  })();
+
+  // Play the drop sound for AI moves, and commit human moves once the drop
+  // animation has played. AI moves are committed by the store on its own timer.
   useEffect(() => {
-    if (pendingMove) {
-      const { column, player } = pendingMove;
+    if (!pendingMove) return undefined;
 
-      if (pendingMove.source === 'ai') {
-        void soundEffects.pieceMove();
-      }
-
-      const col = gameState.board[column];
-      const row = col.lastIndexOf(null);
-      if (row === -1) return;
-
-      const dropId = `drop-${Date.now()}-${column}-${row}`;
-      const addDropTimer = window.setTimeout(() => {
-        setDroppingPieces(prev => [
-          ...prev,
-          {
-            id: dropId,
-            column,
-            row,
-            player,
-          },
-        ]);
-      }, 0);
-
-      const completeMoveTimer = window.setTimeout(() => {
-        setDroppingPieces(prev => prev.filter(p => p.id !== dropId));
-        actions.completeMove();
-      }, 800);
-
-      return () => {
-        window.clearTimeout(addDropTimer);
-        window.clearTimeout(completeMoveTimer);
-      };
+    if (pendingMove.source === 'ai') {
+      void soundEffects.pieceMove();
+      return undefined;
     }
 
-    return undefined;
-  }, [pendingMove, gameState.board, actions]);
+    const completeMoveTimer = window.setTimeout(() => {
+      actions.completeMove();
+    }, 800);
+
+    return () => {
+      window.clearTimeout(completeMoveTimer);
+    };
+  }, [pendingMove, actions]);
 
   const handleWinAnimationComplete = () => {
     setShowWinAnimation(false);
