@@ -1,7 +1,6 @@
 'use client';
 
 import { Github } from 'lucide-react';
-import Image from 'next/image';
 import { APP_NAME, REPOSITORY_URL, SUPPORT_URL } from '@/lib/brand';
 
 interface AppLinksProps {
@@ -14,6 +13,8 @@ export default function AppLinks({ mode }: AppLinksProps) {
     ? 'hidden sm:flex fixed bottom-5 left-1/2 z-50 -translate-x-1/2 items-center gap-5'
     : 'sm:hidden relative z-20 mt-6 mb-2 flex items-center justify-center gap-5';
   const linkClass = 'opacity-60 hover:opacity-100 transition-opacity';
+  const supportLinkClass =
+    'inline-flex items-center gap-1.5 rounded-full border border-cyan-200/20 bg-black/25 px-3.5 py-1.5 text-[13px] font-semibold text-white/60 no-underline backdrop-blur-sm transition-colors hover:border-cyan-300/50 hover:bg-cyan-300/10 hover:text-white';
 
   return (
     <div className={containerClass} data-testid={`app-links-${mode}`}>
@@ -21,17 +22,11 @@ export default function AppLinks({ mode }: AppLinksProps) {
         href={SUPPORT_URL}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Support ${APP_NAME}`}
-        className={linkClass}
+        className={supportLinkClass}
         data-testid={`ko-fi-link-${mode}`}
       >
-        <Image
-          height={36}
-          width={120}
-          style={{ border: '0px', height: '36px' }}
-          src="https://storage.ko-fi.com/cdn/kofi2.png?v=6"
-          alt={`Support ${APP_NAME} development on Ko-fi`}
-        />
+        <span aria-hidden="true">☕</span>
+        Buy me a coffee
       </a>
 
       <a
