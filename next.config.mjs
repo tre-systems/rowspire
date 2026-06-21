@@ -1,5 +1,16 @@
 import { withSentryConfig } from '@sentry/nextjs';
 
+const sentryRelease =
+  process.env.NEXT_PUBLIC_SENTRY_RELEASE ??
+  process.env.SENTRY_RELEASE ??
+  process.env.CF_PAGES_COMMIT_SHA ??
+  process.env.GITHUB_SHA;
+
+if (sentryRelease) {
+  process.env.NEXT_PUBLIC_SENTRY_RELEASE ??= sentryRelease;
+  process.env.SENTRY_RELEASE ??= sentryRelease;
+}
+
 const nextConfig = {
   output: 'export',
   eslint: {
@@ -34,5 +45,10 @@ export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
-  disableLogger: true,
+  telemetry: false,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });
