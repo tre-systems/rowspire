@@ -77,6 +77,21 @@ const bannedTerms = [
   regex: new RegExp(term.pattern, 'i'),
 }));
 
+const allowedInfrastructureReferences = [
+  {
+    file: 'wrangler.toml',
+    text: 'connect-4.tre.systems',
+  },
+  {
+    file: 'src/lib/canonical-host.ts',
+    text: 'connect-4.tre.systems',
+  },
+  {
+    file: 'src/lib/__tests__/canonical-host.test.ts',
+    text: 'connect-4.tre.systems',
+  },
+];
+
 function shouldSkip(path) {
   const parts = path.split('/');
   return parts.some(part => skipDirs.has(part)) || binaryExtensions.has(extname(path));
@@ -95,6 +110,7 @@ function listFiles(path) {
 function findMatches(file) {
   if (relative(process.cwd(), file) === 'scripts/check-branding.mjs') return [];
 
+  const relativeFile = relative(process.cwd(), file);
   const text = readFileSync(file, 'utf8');
   const lines = text.split(/\r?\n/);
   const matches = [];
@@ -102,8 +118,16 @@ function findMatches(file) {
   lines.forEach((line, index) => {
     for (const term of bannedTerms) {
       if (term.regex.test(line)) {
+        const isAllowedInfrastructureReference = allowedInfrastructureReferences.some(
+          reference => reference.file === relativeFile && line.includes(reference.text),
+        );
+
+        if (isAllowedInfrastructureReference) {
+          continue;
+        }
+
         matches.push({
-          file: relative(process.cwd(), file),
+          file: relativeFile,
           line: index + 1,
           label: term.label,
           snippet: line.trim(),

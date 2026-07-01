@@ -13,6 +13,7 @@ if (sentryRelease) {
 
 const nextConfig = {
   output: 'export',
+  productionBrowserSourceMaps: Boolean(process.env.SENTRY_AUTH_TOKEN),
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -42,9 +43,13 @@ const nextConfig = {
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG ?? 'total-reality-engineering',
   project: process.env.SENTRY_PROJECT ?? 'rowspire',
+  sentryUrl: process.env.SENTRY_URL ?? 'https://de.sentry.io',
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
   telemetry: false,
   webpack: {
     treeshake: {
