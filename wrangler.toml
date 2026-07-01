@@ -1,8 +1,11 @@
 name = "rowspire-main"
+main = "src/worker.ts"
 compatibility_date = "2025-06-14"
 
 [assets]
 directory = "./out"
+binding = "ASSETS"
+run_worker_first = true
 
 [[routes]]
 pattern = "rowspire.tre.systems"
@@ -30,4 +33,8 @@ custom_domain = true
 
 [[routes]]
 pattern = "www.rowspire.org"
+custom_domain = true
+
+[[routes]]
+pattern = "connect-4.tre.systems"
 custom_domain = true
