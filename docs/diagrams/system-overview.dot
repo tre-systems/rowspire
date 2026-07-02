@@ -62,9 +62,9 @@ digraph SystemOverview {
       margin=22
     ];
 
-    B1 [label=<<B>wasm-pack</B><BR/><FONT POINT-SIZE="15">Rust &rarr; /public/wasm/*</FONT>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-    B2 [label=<<B>ts-rs</B><BR/><FONT POINT-SIZE="15">Rust types &rarr; src/lib/bindings.ts</FONT>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-    B3 [label=<<B>Model assets</B><BR/><FONT POINT-SIZE="15">evolved.json &middot; ML weights &rarr; /public/ml</FONT>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
+    B1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>wasm-pack</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust &rarr; /public/wasm/*</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
+    B2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ts-rs</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust types &rarr; src/lib/bindings.ts</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
+    B3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Model assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">evolved.json &middot; ML weights &rarr; /public/ml</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
 
     B1 -> B2 [style=invis];
     B2 -> B3 [style=invis];
@@ -87,7 +87,7 @@ digraph SystemOverview {
       margin=22
     ];
 
-    C2 [label=<<B>Workers Static Assets</B><BR/><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; model JSON</FONT>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+    C2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Workers Static Assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; model JSON</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
   }
 
   subgraph cluster_browser {
@@ -107,12 +107,12 @@ digraph SystemOverview {
       margin=22
     ];
 
-    R1 [label=<<B>React UI</B><BR/><FONT POINT-SIZE="15">components &middot; data-testid &middot; framer-motion</FONT>>, fillcolor="#edf7ff:#ffffff", color="#2f80ed"];
-    R2 [label=<<B>game-store</B><BR/><FONT POINT-SIZE="15">Zustand + Immer &middot; persisted</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R3 [label=<<B>ui-store</B><BR/><FONT POINT-SIZE="15">Zustand &middot; ephemeral UI state</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R4 [label=<<B>Pure core</B><BR/><FONT POINT-SIZE="15">game-logic + logic/* &middot; rules, win check</FONT>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
-    R5 [label=<<B>WASM AI facade</B><BR/><FONT POINT-SIZE="15">WASMAIService singleton &middot; ACL</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R6 [label=<<B>localStorage</B><BR/><FONT POINT-SIZE="15">current game state</FONT>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+    R1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>React UI</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">components &middot; data-testid &middot; framer-motion</FONT></TD></TR></TABLE>>, fillcolor="#edf7ff:#ffffff", color="#2f80ed"];
+    R2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>game-store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand + Immer &middot; persisted</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    R3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ui-store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand &middot; ephemeral UI state</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    R4 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Pure core</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">game-logic + logic/* &middot; rules, win check</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
+    R5 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>WASM AI facade</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">WASMAIService singleton &middot; ACL</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    R6 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>localStorage</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">current game state</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
 
     R1 -> R2 [style=invis];
     R2 -> R4 [style=invis];
@@ -137,28 +137,28 @@ digraph SystemOverview {
       margin=22
     ];
 
-    G1 [label=<<B>Bitboard solver</B><BR/><FONT POINT-SIZE="15">Negamax + &alpha;-&beta; pruning</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    G2 [label=<<B>ML-MCTS</B><BR/><FONT POINT-SIZE="15">AlphaZero-style &middot; 4000 sims</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    G3 [label=<<B>Neural network</B><BR/><FONT POINT-SIZE="15">4&times;128 value + policy</FONT>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    G1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Bitboard solver</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Negamax + &alpha;-&beta; pruning</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    G2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML-MCTS</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">AlphaZero-style &middot; 4000 sims</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    G3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Neural network</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">4&times;128 value + policy</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 
     G1 -> G2 [style=invis];
     G2 -> G3 [style=invis];
   }
 
-  B1 -> C2 [label="bundled into assets"];
-  B3 -> C2 [label="bundled into assets"];
-  B2 -> R5 [label="generates bindings.ts", style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
-  B1 -> G1 [label="compiles to WASM", style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
+  B1 -> C2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">bundled into assets</FONT></TD></TR></TABLE>>];
+  B3 -> C2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">bundled into assets</FONT></TD></TR></TABLE>>];
+  B2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">generates bindings.ts</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
+  B1 -> G1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">compiles to WASM</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
 
-  C2 -> R1 [label="serves the static site", lhead=cluster_browser];
-  C2 -> R5 [label="fetch /wasm + /ml", constraint=false];
+  C2 -> R1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">serves the static site</FONT></TD></TR></TABLE>>, lhead=cluster_browser];
+  C2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">fetch /wasm + /ml</FONT></TD></TR></TABLE>>, constraint=false];
 
-  R1 -> R2 [label="dispatch actions", constraint=false];
-  R1 -> R3 [label="toggle panels / errors", constraint=false];
-  R2 -> R4 [label="makeMove (pure)", constraint=false];
-  R2 -> R6 [label="persist", constraint=false];
-  R2 -> R5 [label="makeAIMove"];
-  R5 -> G1 [label="get_best_move", lhead=cluster_wasm];
-  R5 -> G2 [label="get_ml_move"];
-  G2 -> G3 [label="value / policy", constraint=false];
+  R1 -> R2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">dispatch actions</FONT></TD></TR></TABLE>>, constraint=false];
+  R1 -> R3 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">toggle panels / errors</FONT></TD></TR></TABLE>>, constraint=false];
+  R2 -> R4 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">makeMove (pure)</FONT></TD></TR></TABLE>>, constraint=false];
+  R2 -> R6 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">persist</FONT></TD></TR></TABLE>>, constraint=false];
+  R2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">makeAIMove</FONT></TD></TR></TABLE>>];
+  R5 -> G1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">get_best_move</FONT></TD></TR></TABLE>>, lhead=cluster_wasm];
+  R5 -> G2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">get_ml_move</FONT></TD></TR></TABLE>>];
+  G2 -> G3 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">value / policy</FONT></TD></TR></TABLE>>, constraint=false];
 }
