@@ -42,7 +42,7 @@ The dev server runs at [http://localhost:3000](http://localhost:3000). Requires 
 | `npm run test:rust`     | Run Rust tests                                                                      |
 | `npm run diagrams`      | Render architecture diagrams                                                        |
 | `npm run train`         | Run model training under `caffeinate`                                               |
-| `npm run deploy`        | Build and deploy the static site with Wrangler                                      |
+| `npm run deploy`        | Build, commit-version the PWA cache, and deploy the static site with Wrangler       |
 
 ## Architecture
 
