@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
           project: env.SENTRY_PROJECT || 'rowspire',
           url: env.SENTRY_URL || 'https://de.sentry.io',
           release: { name: release! },
-          sourcemaps: { filesToDeleteAfterUpload: ['out/**/*.map'] },
+          sourcemaps: { filesToDeleteAfterUpload: ['out/client/**/*.map'] },
           telemetry: false,
         }),
     ],
