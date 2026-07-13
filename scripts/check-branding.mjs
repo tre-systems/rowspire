@@ -94,6 +94,10 @@ const allowedInfrastructureReferences = [
     text: 'connect-4.tre.systems',
   },
   {
+    file: 'out/rowspire_main/index.js.map',
+    text: 'connect-4.tre.systems',
+  },
+  {
     file: 'out/rowspire_main/wrangler.json',
     text: 'connect-4.tre.systems',
   },

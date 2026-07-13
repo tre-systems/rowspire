@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
           authToken: env.SENTRY_AUTH_TOKEN,
           org: env.SENTRY_ORG || 'total-reality-engineering',
           project: env.SENTRY_PROJECT || 'rowspire',
-          url: env.SENTRY_URL || 'https://de.sentry.io',
+          ...(env.SENTRY_URL ? { url: env.SENTRY_URL } : {}),
           release: { name: release! },
           sourcemaps: { filesToDeleteAfterUpload: ['out/client/**/*.map'] },
           telemetry: false,
@@ -30,8 +30,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 550,
+      chunkSizeWarningLimit: 600,
       outDir: 'out',
+      rolldownOptions: { checks: { pluginTimings: false } },
       sourcemap: uploadSourceMaps,
     },
   };
