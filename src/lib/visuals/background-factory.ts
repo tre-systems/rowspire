@@ -1,7 +1,7 @@
 import { COLORS, SHAPE_TYPES, type Line, type Particle, type Shape } from './background-types';
 
-function randomItem<T>(items: T[]) {
-  return items[Math.floor(Math.random() * items.length)];
+function randomItem<T>(items: readonly [T, ...T[]]): T {
+  return items[Math.floor(Math.random() * items.length)] ?? items[0];
 }
 
 export function createShape(width: number, height: number): Shape {

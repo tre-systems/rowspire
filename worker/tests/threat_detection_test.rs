@@ -1,5 +1,4 @@
 use rowspire_ai_core::{genetic_params::GeneticParams, ml_ai::MLAI, GameState};
-use serde_json;
 
 #[test]
 fn test_ml_ai_threat_detection() {

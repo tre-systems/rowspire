@@ -52,7 +52,7 @@ describe('WASM AI Service - Player Value Conversion', () => {
 
     const wasmState = convertGameStateToWASM(gameState);
 
-    expect(wasmState.board[0][5]).toBe('player1');
+    expect(wasmState.board[0]?.[5]).toBe('player1');
     expect(wasmState.current_player).toBe('player2');
   });
 
@@ -76,7 +76,7 @@ describe('WASM AI Service - Player Value Conversion', () => {
 
     const wasmState = convertGameStateToWASM(gameState);
 
-    expect(wasmState.board[0][0]).toBe('empty');
+    expect(wasmState.board[0]?.[0]).toBe('empty');
     expect(wasmState.current_player).toBe('player1');
   });
 
@@ -100,8 +100,8 @@ describe('WASM AI Service - Player Value Conversion', () => {
 
     const wasmState = convertGameStateToWASM(gameState);
 
-    expect(wasmState.board[0][5]).toBe('player1');
-    expect(wasmState.board[1][5]).toBe('player2');
+    expect(wasmState.board[0]?.[5]).toBe('player1');
+    expect(wasmState.board[1]?.[5]).toBe('player2');
     expect(wasmState.current_player).toBe('player1');
   });
 });

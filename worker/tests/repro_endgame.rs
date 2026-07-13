@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use rowspire_ai_core::{ml_ai::MLAI, Cell, GameState, Player};
-    use serde_json;
     use std::fs;
     use std::path::PathBuf;
 

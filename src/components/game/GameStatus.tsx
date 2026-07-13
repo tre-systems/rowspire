@@ -102,7 +102,7 @@ export default function GameStatus({
 
   if (!isMounted) {
     return (
-      <div className="text-center mb-3">
+      <div className="text-center mb-3" data-testid="game-status-loading">
         <div className="mt-2 h-10 flex flex-col justify-start relative pt-1">
           <div className="flex items-center justify-center space-x-2 h-6">
             <span className="font-bold text-lg text-gray-400">Loading...</span>
@@ -113,7 +113,7 @@ export default function GameStatus({
   }
 
   return (
-    <div className="text-center mb-3">
+    <div className="text-center mb-3" data-testid="game-status">
       <div className="mt-2 h-10 flex flex-col justify-start relative pt-1">
         <motion.div
           className="flex items-center justify-center space-x-2 h-6"

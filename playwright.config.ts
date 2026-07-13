@@ -2,13 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 const e2ePort = 3100;
 const baseURL = `http://localhost:${e2ePort}`;
+const isCI = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  ...(isCI ? { workers: 1 } : {}),
   reporter: 'html',
   use: {
     baseURL,

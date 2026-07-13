@@ -15,6 +15,8 @@ export default function PWAInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
+    let showTimer: ReturnType<typeof setTimeout> | undefined;
+
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = (window.navigator as { standalone?: boolean }).standalone === true;
@@ -27,7 +29,8 @@ export default function PWAInstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e);
 
-      setTimeout(() => {
+      if (showTimer) clearTimeout(showTimer);
+      showTimer = setTimeout(() => {
         if (!window.localStorage.getItem('pwa-install-dismissed')) {
           setShowPrompt(true);
         }
@@ -46,6 +49,7 @@ export default function PWAInstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
       window.removeEventListener('appinstalled', handleAppInstalled);
+      if (showTimer) clearTimeout(showTimer);
     };
   }, []);
 
@@ -79,7 +83,10 @@ export default function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm">
+    <div
+      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm"
+      data-testid="pwa-install-prompt"
+    >
       <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">

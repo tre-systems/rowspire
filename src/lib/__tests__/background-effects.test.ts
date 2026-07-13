@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   BackgroundEffects,
   type Line,
   type Particle,
   type Shape,
 } from '../visuals/background-effects';
+import { drawBackground } from '../visuals/background-renderer';
+import { createLine, createParticle, createShape } from '../visuals/background-factory';
 
 function expireEntity(entity: Shape | Line | Particle) {
   entity.opacity = 0.01;
@@ -34,5 +36,36 @@ describe('BackgroundEffects', () => {
     expect(effects.shapes.some(shape => shape.opacity > 0)).toBe(true);
     expect(effects.lines.some(line => line.opacity > 0)).toBe(true);
     expect(effects.particles.some(particle => particle.opacity > 0)).toBe(true);
+  });
+
+  it('renders every background entity and shape type', () => {
+    const gradient = { addColorStop: vi.fn() };
+    const context = {
+      fillRect: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      translate: vi.fn(),
+      rotate: vi.fn(),
+      scale: vi.fn(),
+      strokeRect: vi.fn(),
+      closePath: vi.fn(),
+      createRadialGradient: vi.fn(() => gradient),
+    } as unknown as CanvasRenderingContext2D;
+    const shapeTypes = ['circle', 'square', 'triangle', 'line', 'star'] as const;
+    const shapes = shapeTypes.map(type => ({ ...createShape(800, 600), type }));
+
+    drawBackground(context, 800, 600, [createParticle(800, 600)], [createLine(800, 600)], shapes);
+
+    expect(context.fillRect).toHaveBeenCalledTimes(2);
+    expect(context.createRadialGradient).toHaveBeenCalledOnce();
+    expect(context.stroke).toHaveBeenCalled();
+    expect(context.strokeRect).toHaveBeenCalledOnce();
+    expect(gradient.addColorStop).toHaveBeenCalledTimes(2);
   });
 });

@@ -5,7 +5,10 @@ import { APP_NAME, SHORT_DESCRIPTION } from '@/lib/brand';
 
 export default function OfflinePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4"
+      data-testid="offline-page"
+    >
       <div className="max-w-md mx-auto text-center">
         <div className="mb-8">
           <WifiOff className="h-24 w-24 text-slate-400 mx-auto mb-4" />
@@ -20,19 +23,20 @@ export default function OfflinePage() {
           </p>
           <div className="flex items-center justify-center space-x-2 text-sm text-slate-400">
             <Wifi className="h-4 w-4" />
-            <span>Reconnect to sync your progress</span>
+            <span>Reconnect for updates</span>
           </div>
         </div>
 
         <button
           onClick={() => window.location.reload()}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+          data-testid="offline-retry"
         >
           Try Again
         </button>
 
         <div className="mt-6 text-sm text-slate-400">
-          <p>Game data is stored locally and will sync when you&apos;re back online.</p>
+          <p>Game data stays on this device, ready for your next visit.</p>
         </div>
       </div>
     </div>

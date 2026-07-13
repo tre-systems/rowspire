@@ -60,6 +60,13 @@ pub struct RowspireAI {
 }
 
 #[cfg(feature = "wasm")]
+impl Default for RowspireAI {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(feature = "wasm")]
 #[wasm_bindgen]
 impl RowspireAI {
     #[wasm_bindgen(constructor)]
@@ -92,8 +99,7 @@ impl RowspireAI {
             transposition_hits: self.ai.transposition_hits,
         };
 
-        Ok(serde_wasm_bindgen::to_value(&response)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&response).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn get_heuristic_move(&mut self, board_state: &JsValue) -> Result<JsValue, JsValue> {
@@ -117,8 +123,7 @@ impl RowspireAI {
             nodes_evaluated: self.heuristic_ai.nodes_evaluated,
         };
 
-        Ok(serde_wasm_bindgen::to_value(&response)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&response).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn get_ml_move(&mut self, board_state: &JsValue) -> Result<JsValue, JsValue> {
@@ -148,8 +153,7 @@ impl RowspireAI {
             diagnostics: ml_response.diagnostics,
         };
 
-        Ok(serde_wasm_bindgen::to_value(&response)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&response).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn evaluate_position(&self, board_state: &JsValue) -> Result<f32, JsValue> {
@@ -168,7 +172,7 @@ impl RowspireAI {
         let state: GameState = serde_wasm_bindgen::from_value(board_state.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         let moves = state.get_valid_moves();
-        Ok(serde_wasm_bindgen::to_value(&moves).map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&moves).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn make_move(&self, board_state: &JsValue, column: u8) -> Result<JsValue, JsValue> {
@@ -205,19 +209,19 @@ impl RowspireAI {
         let state: GameState = serde_wasm_bindgen::from_value(board_state.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         let winner = state.get_winner();
-        Ok(serde_wasm_bindgen::to_value(&winner).map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&winner).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn create_new_game(&self) -> Result<JsValue, JsValue> {
         let state = GameState::new();
-        Ok(serde_wasm_bindgen::to_value(&state).map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&state).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn create_game_with_params(&self, params: &JsValue) -> Result<JsValue, JsValue> {
         let genetic_params: GeneticParams = serde_wasm_bindgen::from_value(params.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         let state = GameState::with_genetic_params(genetic_params);
-        Ok(serde_wasm_bindgen::to_value(&state).map_err(|e| JsValue::from_str(&e.to_string()))?)
+        serde_wasm_bindgen::to_value(&state).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn clear_transposition_table(&mut self) {

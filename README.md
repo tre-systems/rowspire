@@ -12,6 +12,7 @@ Rowspire is an independent browser strategy game with Rust/WebAssembly AI oppone
 - Human vs AI and AI vs AI watch mode.
 - Procedural Web Audio effects for moves, wins, losses, and watch-mode AI turns.
 - Persistent animated canvas background effects across setup, play, and completed games.
+- Validated game persistence that resumes the board, mode, and selected opponents after navigation.
 - Offline-first PWA with service worker caching.
 - Responsive React 19 UI with Zustand, Immer, Tailwind, and Framer Motion.
 - Brand audit that blocks legacy or third-party naming in source, docs, generated worker code, and exported pages.
@@ -24,28 +25,31 @@ npm run build:wasm-assets
 npm run dev
 ```
 
-The dev server runs at [http://localhost:3000](http://localhost:3000). Requires Node 22+, Rust + Cargo, and `wasm-pack`.
+The dev server runs at [http://localhost:3000](http://localhost:3000). Requires Node 22.12+, Rust + Cargo, and `wasm-pack`.
 
 ## Commands
 
-| Command               | Description                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------- |
-| `npm run dev`         | Generate the service worker and start the dev server                                |
-| `npm run build`       | Generate assets, export the static app, and run the brand audit                     |
-| `npm run brand:audit` | Scan source, docs, generated public assets, and exported pages for blocked branding |
-| `npm run check`       | Lint, type-check, Rust AI matrix test, coverage, brand audit, and Playwright        |
-| `npm run test`        | Run Vitest unit tests                                                               |
-| `npm run test:e2e`    | Run Playwright end-to-end tests                                                     |
-| `npm run test:rust`   | Run Rust tests                                                                      |
-| `npm run diagrams`    | Render architecture diagrams                                                        |
-| `npm run deploy`      | Build and deploy the static site with Wrangler                                      |
+| Command                 | Description                                                                         |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `npm run dev`           | Generate the service worker and start the dev server                                |
+| `npm run build`         | Generate assets, export the static app, and run the brand audit                     |
+| `npm run brand:audit`   | Scan source, docs, generated public assets, and exported pages for blocked branding |
+| `npm run check`         | Lint, Clippy, type-check, Rust AI matrix, coverage, brand audit, and Playwright     |
+| `npm run lint:rust`     | Run strict Clippy checks across every Rust target and feature                       |
+| `npm run test`          | Run Vitest unit tests                                                               |
+| `npm run test:coverage` | Run unit tests with enforced coverage thresholds                                    |
+| `npm run test:e2e`      | Run Playwright end-to-end tests                                                     |
+| `npm run test:rust`     | Run Rust tests                                                                      |
+| `npm run diagrams`      | Render architecture diagrams                                                        |
+| `npm run train`         | Run model training under `caffeinate`                                               |
+| `npm run deploy`        | Build and deploy the static site with Wrangler                                      |
 
 ## Architecture
 
 - Frontend: Next.js 15 / React 19 with state in Zustand + Immer.
 - AI: Rust in `worker/`, compiled to WebAssembly in `public/wasm/`.
 - ML worker: `src/lib/ai.worker.ts` runs slow ML searches away from the main thread.
-- Persistence: current game state in `localStorage` under `rowspire-game-storage`.
+- Persistence: validated game state and opponent configuration in `localStorage` under `rowspire-game-storage`.
 - Hosting: static export served by Cloudflare Workers Static Assets.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md).

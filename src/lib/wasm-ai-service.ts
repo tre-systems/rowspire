@@ -1,6 +1,7 @@
 import { GameState } from './schemas';
 import type { WasmBestMoveResponse, WasmHeuristicResponse, WasmMLResponse } from './bindings';
 import { DEFAULT_GENETIC_PARAMS } from './constants';
+import { MLAIWorkerClient } from './ml-ai-worker-client';
 
 interface WASMAIInstance {
   get_best_move: (state: unknown, depth: number) => WasmBestMoveResponse;
@@ -19,21 +20,18 @@ class WASMAIService {
   private ai: WASMAIInstance | null = null;
   private isLoaded = false;
   private loadPromise: Promise<void> | null = null;
-
-  private mlWorker: Worker | null = null;
-  private mlReqId = 0;
-  private mlPending = new Map<
-    number,
-    { resolve: (r: WasmMLResponse) => void; reject: (e: Error) => void }
-  >();
+  private readonly mlClient = new MLAIWorkerClient();
 
   async initialize(): Promise<void> {
-    if (this.loadPromise) {
-      return this.loadPromise;
-    }
+    if (this.isLoaded) return;
+    if (this.loadPromise) return this.loadPromise;
 
     this.loadPromise = this._initialize();
-    return this.loadPromise;
+    try {
+      await this.loadPromise;
+    } finally {
+      this.loadPromise = null;
+    }
   }
 
   private async _initialize(): Promise<void> {
@@ -44,7 +42,6 @@ class WASMAIService {
 
     try {
       const wasmModulePath = '/wasm/rowspire_ai_core.js';
-
       const wasmModule = (await import(/* webpackIgnore: true */ wasmModulePath)) as WASMModule;
 
       await wasmModule.default();
@@ -52,16 +49,8 @@ class WASMAIService {
       this.isLoaded = true;
       console.log('✅ WASM AI loaded successfully');
     } catch (error) {
-      console.error('❌ Failed to load WASM AI:', error);
-      console.error('❌ Error details:', error instanceof Error ? error.stack : error);
-
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        console.error(
-          '❌ This might be a network issue - check if the WASM files are being served correctly',
-        );
-      }
-
-      throw new Error(`Failed to load WASM AI: ${error}`);
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load WASM AI: ${detail}`, { cause: error });
     }
   }
 
@@ -80,9 +69,8 @@ class WASMAIService {
   private async loadGeneticParams(): Promise<Record<string, string | number | string[]>> {
     try {
       const response = await fetch('/ml/data/genetic_params/evolved.json');
-      if (response.ok) {
-        return await response.json();
-      }
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+      return await response.json();
     } catch (error) {
       console.warn('Failed to load evolved genetic parameters, using defaults:', error);
     }
@@ -98,8 +86,7 @@ class WASMAIService {
       const wasmState = await this.convertGameStateToWASM(gameState);
       return this.ai.get_best_move(wasmState, depth);
     } catch (error) {
-      console.error('WASM AI error:', error);
-      throw new Error(`WASM AI failed: ${error}`);
+      throw new Error(`WASM AI failed: ${String(error)}`, { cause: error });
     }
   }
 
@@ -112,42 +99,13 @@ class WASMAIService {
       const wasmState = await this.convertGameStateToWASM(gameState);
       return this.ai.get_heuristic_move(wasmState);
     } catch (error) {
-      throw new Error(`WASM heuristic AI failed: ${error}`);
+      throw new Error(`WASM heuristic AI failed: ${String(error)}`, { cause: error });
     }
-  }
-
-  private getMLWorker(): Worker {
-    if (!this.mlWorker) {
-      this.mlWorker = new Worker(new URL('./ai.worker.ts', import.meta.url), { type: 'module' });
-      this.mlWorker.addEventListener('message', (event: MessageEvent) => {
-        const { id, response, error } = event.data as {
-          id: number;
-          response?: WasmMLResponse;
-          error?: string;
-        };
-        const pending = this.mlPending.get(id);
-        if (!pending) return;
-        this.mlPending.delete(id);
-        if (error) pending.reject(new Error(error));
-        else pending.resolve(response as WasmMLResponse);
-      });
-      this.mlWorker.addEventListener('error', (event: ErrorEvent) => {
-        const err = new Error(`ML worker error: ${event.message}`);
-        this.mlPending.forEach(pending => pending.reject(err));
-        this.mlPending.clear();
-      });
-    }
-    return this.mlWorker;
   }
 
   async getMLMove(gameState: GameState): Promise<WasmMLResponse> {
     const wasmState = await this.convertGameStateToWASM(gameState);
-    const worker = this.getMLWorker();
-    const id = ++this.mlReqId;
-    return new Promise<WasmMLResponse>((resolve, reject) => {
-      this.mlPending.set(id, { resolve, reject });
-      worker.postMessage({ id, state: wasmState });
-    });
+    return this.mlClient.request(wasmState);
   }
 
   async evaluatePosition(gameState: GameState): Promise<number> {
@@ -159,7 +117,7 @@ class WASMAIService {
       const wasmState = await this.convertGameStateToWASM(gameState);
       return this.ai.evaluate_position(wasmState);
     } catch (error) {
-      throw new Error(`WASM position evaluation failed: ${error}`);
+      throw new Error(`WASM position evaluation failed: ${String(error)}`, { cause: error });
     }
   }
 

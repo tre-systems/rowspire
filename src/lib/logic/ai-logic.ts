@@ -13,7 +13,7 @@ function isValidColumn(move: number | null | undefined): move is number {
 }
 
 function wouldWin(board: Board, col: number, player: Player): boolean {
-  const row = board[col].lastIndexOf(null);
+  const row = board[col]?.lastIndexOf(null) ?? -1;
   if (row === -1) return false;
   const newBoard = board.map((c, i) =>
     i === col ? [...c.slice(0, row), player, ...c.slice(row + 1)] : c,
@@ -51,6 +51,8 @@ async function fallbackMove(gameState: GameState): Promise<number | null> {
   const validMoves = getValidMoves(gameState.board);
   if (validMoves.length > 0) {
     const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+    if (randomMove === undefined) return null;
+
     console.log(`🤖 Random fallback chose column ${randomMove}`);
     return randomMove;
   }

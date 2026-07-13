@@ -1,17 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
-async function dismissErrorModalIfPresent(page: Page) {
-  try {
-    const errorModal = page.getByTestId('error-modal');
-    if (await errorModal.isVisible()) {
-      console.log('Dismissing error modal...');
-      await page.getByTestId('error-close-bottom').click();
-      await page.waitForTimeout(200);
-      await expect(errorModal).not.toBeVisible();
-    }
-  } catch {
-    return;
-  }
+async function expectNoError(page: Page) {
+  await expect(page.getByTestId('error-modal')).not.toBeVisible();
 }
 
 async function startGame(page: Page) {
@@ -20,16 +10,21 @@ async function startGame(page: Page) {
   const aiSelectionPanel = page.getByTestId('ai-selection-search');
   if (await aiSelectionPanel.isVisible()) {
     await aiSelectionPanel.click();
-    await page.waitForTimeout(600);
   }
 
   await expect(page.getByTestId('game-board')).toBeVisible();
-  await page.waitForTimeout(600);
+  await expectNoError(page);
+  await expect(page.getByTestId('column-3')).toBeEnabled({ timeout: 15_000 });
+}
 
-  await dismissErrorModalIfPresent(page);
-
-  const errorModal = page.getByTestId('error-modal');
-  await expect(errorModal).not.toBeVisible();
+async function playColumn(page: Page, column: number) {
+  const target = page.getByTestId(`column-${column}`);
+  const pieces = page.locator(`[data-testid^="piece-${column}-"]`);
+  await expect(target).toBeEnabled({ timeout: 15_000 });
+  const initialPieceCount = await pieces.count();
+  await target.click();
+  await expect.poll(() => pieces.count()).toBeGreaterThan(initialPieceCount);
+  await expectNoError(page);
 }
 
 test.describe('Core Game Functionality', () => {
@@ -50,33 +45,22 @@ test.describe('Game Interactions', () => {
     const gameBoard = page.getByTestId('game-board');
     await expect(gameBoard).toBeVisible();
 
-    await dismissErrorModalIfPresent(page);
-
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
 
     await expect(gameBoard).toBeVisible();
   });
 
   test('can make a move by clicking on a column', async ({ page }) => {
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
 
     await expect(page.getByTestId('game-status-text')).not.toBeEmpty();
   });
 
   test('can toggle sound settings', async ({ page }) => {
-    await dismissErrorModalIfPresent(page);
-
     const soundToggle = page.getByTestId('toggle-sound');
     await expect(soundToggle).toBeVisible();
 
     await soundToggle.click();
-    await page.waitForTimeout(100);
 
     await expect(soundToggle).toBeVisible();
   });
@@ -91,17 +75,12 @@ test.describe('Game Interactions', () => {
   });
 });
 
-test.describe('Game Completion and Database Saves', () => {
+test.describe('Game Lifecycle', () => {
   test('can make moves and see game state changes', async ({ page }) => {
     await startGame(page);
 
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-    await dismissErrorModalIfPresent(page);
-
-    await page.getByTestId('column-2').click();
-    await page.waitForTimeout(1000);
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
+    await playColumn(page, 2);
 
     await expect(page.getByTestId('game-board')).toBeVisible();
     await expect(page.getByTestId('game-status-text')).not.toBeEmpty();
@@ -110,16 +89,13 @@ test.describe('Game Completion and Database Saves', () => {
   test('can reset game', async ({ page }) => {
     await startGame(page);
 
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
 
     await page.getByTestId('reset-game').click();
 
     await expect(page.getByTestId('ai-selection-search')).toBeVisible();
 
     await page.getByTestId('ai-selection-search').click();
-    await page.waitForTimeout(600);
 
     await expect(page.getByTestId('game-board')).toBeVisible();
   });
@@ -128,26 +104,15 @@ test.describe('Game Completion and Database Saves', () => {
 test.describe('Error Handling and Edge Cases', () => {
   test('handles rapid column clicks gracefully', async ({ page }) => {
     await startGame(page);
+    const pieces = page.locator('[data-testid^="piece-"]');
+    const initialPieceCount = await pieces.count();
 
     for (let i = 0; i < 3; i++) {
-      await page.getByTestId(`column-${i}`).click();
-      await page.waitForTimeout(50);
+      await page.getByTestId(`column-${i}`).dispatchEvent('click');
     }
 
-    await dismissErrorModalIfPresent(page);
-
-    await expect(page.getByTestId('game-board')).toBeVisible();
-  });
-
-  test('handles rapid column selections gracefully', async ({ page }) => {
-    await startGame(page);
-
-    for (let i = 0; i < 3; i++) {
-      await page.getByTestId(`column-${i}`).click();
-      await page.waitForTimeout(50);
-    }
-
-    await dismissErrorModalIfPresent(page);
+    await expect.poll(() => pieces.count()).toBeGreaterThan(initialPieceCount);
+    await expectNoError(page);
 
     await expect(page.getByTestId('game-board')).toBeVisible();
   });
@@ -155,20 +120,14 @@ test.describe('Error Handling and Edge Cases', () => {
   test('maintains game state during navigation', async ({ page }) => {
     await startGame(page);
 
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
+    const pieces = page.locator('[data-testid^="piece-3-"]');
+    const pieceCount = await pieces.count();
 
     await page.goto('/');
-    await page.goto('/');
-    await page.waitForTimeout(1000);
-
-    await expect(page.getByTestId('ai-selection-search')).toBeVisible();
-
-    await page.getByTestId('ai-selection-search').click();
-    await page.waitForTimeout(600);
 
     await expect(page.getByTestId('game-board')).toBeVisible();
+    await expect.poll(() => pieces.count()).toBeGreaterThanOrEqual(pieceCount);
   });
 });
 
@@ -182,9 +141,7 @@ test.describe('Mobile Responsiveness', () => {
     await expect(page.getByTestId('toggle-sound')).toBeVisible();
     await expect(page.getByTestId('how-to-play')).toBeVisible();
 
-    await page.getByTestId('column-3').click();
-    await page.waitForTimeout(1000);
-    await dismissErrorModalIfPresent(page);
+    await playColumn(page, 3);
     await expect(page.getByTestId('game-board')).toBeVisible();
   });
 });

@@ -33,24 +33,39 @@ export const PendingMoveSchema = z.object({
 export type PendingMove = z.infer<typeof PendingMoveSchema>;
 
 export const WinningLineSchema = z.object({
-  positions: z.array(
-    z.object({
-      column: ColumnIndexSchema,
-      row: RowIndexSchema,
-    }),
-  ),
+  positions: z
+    .array(
+      z.object({
+        column: ColumnIndexSchema,
+        row: RowIndexSchema,
+      }),
+    )
+    .length(4),
   direction: z.enum(['horizontal', 'vertical', 'diagonal']),
 });
 export type WinningLine = z.infer<typeof WinningLineSchema>;
 
-export const GameStateSchema = z.object({
-  board: BoardSchema,
-  currentPlayer: PlayerSchema,
-  gameStatus: GameStatusSchema,
-  winner: PlayerSchema.nullable(),
-  history: z.array(MoveRecordSchema),
-  winningLine: WinningLineSchema.nullable(),
-});
+export const GameStateSchema = z
+  .object({
+    board: BoardSchema,
+    currentPlayer: PlayerSchema,
+    gameStatus: GameStatusSchema,
+    winner: PlayerSchema.nullable(),
+    history: z.array(MoveRecordSchema),
+    winningLine: WinningLineSchema.nullable(),
+  })
+  .superRefine((state, context) => {
+    const hasWinningResult = state.winner !== null && state.winningLine !== null;
+    const isDraw = state.gameStatus === 'finished' && !state.winner && !state.winningLine;
+    const isActive = state.gameStatus !== 'finished' && !state.winner && !state.winningLine;
+
+    if (!hasWinningResult && !isDraw && !isActive) {
+      context.addIssue({ code: 'custom', message: 'Game result fields are inconsistent' });
+    }
+    if (hasWinningResult && state.gameStatus !== 'finished') {
+      context.addIssue({ code: 'custom', message: 'Only finished games can have a winner' });
+    }
+  });
 export type GameState = z.infer<typeof GameStateSchema>;
 
 export const AITypeSchema = z.enum(['search', 'ml']);
@@ -58,3 +73,12 @@ export type AIType = z.infer<typeof AITypeSchema>;
 
 export const GameModeSchema = z.enum(['human-vs-human', 'human-vs-ai', 'ai-vs-ai']);
 export type GameMode = z.infer<typeof GameModeSchema>;
+
+export const PersistedGameStoreSchema = z.object({
+  gameState: GameStateSchema,
+  selectedAI: AITypeSchema,
+  player1AI: AITypeSchema,
+  player2AI: AITypeSchema,
+  gameMode: GameModeSchema,
+});
+export type PersistedGameStore = z.infer<typeof PersistedGameStoreSchema>;

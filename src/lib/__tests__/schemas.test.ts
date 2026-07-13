@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { GameStateSchema, MoveRecordSchema, PendingMoveSchema } from '../schemas';
+import { parsePersistedState } from '../game-store-state';
 
 describe('Schemas', () => {
   describe('GameStateSchema', () => {
@@ -27,6 +28,19 @@ describe('Schemas', () => {
       };
 
       expect(() => GameStateSchema.parse(invalidGameState)).toThrow();
+    });
+
+    it('should reject inconsistent game results', () => {
+      const invalidGameState = {
+        board: Array.from({ length: 7 }, () => Array(6).fill(null)),
+        currentPlayer: 'player1',
+        gameStatus: 'finished',
+        winner: 'player1',
+        history: [],
+        winningLine: null,
+      };
+
+      expect(() => GameStateSchema.parse(invalidGameState)).toThrow('inconsistent');
     });
 
     it('should validate finished game state', () => {
@@ -88,6 +102,38 @@ describe('Schemas', () => {
       expect(() =>
         PendingMoveSchema.parse({ player: 'player1', column: 7, source: 'human' }),
       ).toThrow();
+    });
+  });
+
+  describe('persisted game state', () => {
+    it('retains valid legacy game data and fills missing preferences', () => {
+      const gameState = {
+        board: Array.from({ length: 7 }, () => Array(6).fill(null)),
+        currentPlayer: 'player2',
+        gameStatus: 'playing',
+        winner: null,
+        history: [],
+        winningLine: null,
+      };
+
+      expect(parsePersistedState({ gameState })).toEqual({
+        gameState,
+        selectedAI: 'search',
+        player1AI: 'search',
+        player2AI: 'search',
+        gameMode: 'human-vs-ai',
+      });
+    });
+
+    it('rejects malformed persisted game data', () => {
+      const state = parsePersistedState({
+        gameState: { board: [] },
+        gameMode: 'unsupported',
+      });
+
+      expect(state.gameState.gameStatus).toBe('not_started');
+      expect(state.gameState.board).toHaveLength(7);
+      expect(state.gameMode).toBe('human-vs-ai');
     });
   });
 });

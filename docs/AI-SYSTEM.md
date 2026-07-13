@@ -10,7 +10,7 @@ Rowspire has two playable AI modes behind the `AIType` domain model: `search` an
 | ML AI            | Rust MCTS with value and policy networks     | Slower, more exploratory opponent    |
 | Heuristic engine | Rust evaluation path                         | Internal support and experimentation |
 
-The main thread owns the Search AI instance. The ML AI runs in `src/lib/ai.worker.ts` with its own WebAssembly instance and model weights so long searches do not block the UI.
+The main thread owns the Search AI instance. The ML AI runs in `src/lib/ai.worker.ts` with its own WebAssembly instance and model weights so long searches do not block the UI. Its client validates responses, applies a timeout, and replaces a worker after failure.
 
 ## Model Assets
 
@@ -33,7 +33,7 @@ Source model files live under `resources/ai/`. The build copies them into:
 
 The current ML model uses supervised teacher labels from the Rust solver and MCTS inference at runtime. Training entry points live in `worker/src/bin/`, with `npm run train` wrapping the Rust training binary.
 
-Run long training jobs with `caffeinate` so macOS does not sleep mid-run.
+`npm run train` uses `caffeinate` so macOS does not sleep mid-run.
 
 ## Troubleshooting
 

@@ -19,7 +19,7 @@ export function printBoard(board: Board, moveInfo?: string) {
   for (let row = 0; row < ROWS; row++) {
     let rowStr = '';
     for (let col = 0; col < COLS; col++) {
-      const cell = board[col][row];
+      const cell = board[col]?.[row];
       if (cell === 'player1') {
         rowStr += '🟢';
       } else if (cell === 'player2') {
@@ -77,7 +77,7 @@ export function checkDirection(
   positions.push({ column: col, row });
   let c = col + dCol;
   let r = row + dRow;
-  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c][r] === player) {
+  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c]?.[r] === player) {
     count++;
     positions.push({ column: c, row: r });
     c += dCol;
@@ -86,7 +86,7 @@ export function checkDirection(
 
   c = col - dCol;
   r = row - dRow;
-  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c][r] === player) {
+  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c]?.[r] === player) {
     count++;
     positions.unshift({ column: c, row: r });
     c -= dCol;

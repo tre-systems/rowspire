@@ -10,6 +10,7 @@
     "build": "rm -rf out && npm run lint && npm run generate:sw && npm run build:wasm-assets && npm run type-check && next build && npm run brand:audit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:rust": "cd worker && cargo clippy --all-targets --all-features -- -D warnings",
     "type-check": "tsc --noEmit",
     "generate:sw": "GITHUB_SHA=$GITHUB_SHA node scripts/generate-sw.js",
     "build:wasm": "rm -rf public/wasm && cd worker && wasm-pack build --release --target web --out-dir ../public/wasm --features wasm",
@@ -17,8 +18,8 @@
     "build:rust-ai": "cd worker && cargo build --release",
     "nuke": "rm -rf .next out .wrangler node_modules package-lock.json && npm install && npm run dev",
     "brand:audit": "node scripts/check-branding.mjs",
-    "check": "rm -rf out && npm run lint && npm run type-check && (cd worker && NUM_GAMES=4 cargo test test_ai_matrix -- --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
-    "check:slow": "rm -rf out && npm run lint && npm run type-check && (cd worker && RUN_SLOW_TESTS=1 cargo test --features slow_tests -- --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
+    "check": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && NUM_GAMES=4 cargo test --test ai_matrix_test test_ai_matrix -- --ignored --exact --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
+    "check:slow": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && RUN_SLOW_TESTS=1 cargo test --features slow_tests -- --include-ignored --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -28,8 +29,8 @@
     "test:ai-comparison:default": "NUM_GAMES=50 ./scripts/test-ai-comparison.sh",
     "test:ai-comparison:fast": "NUM_GAMES=10 ./scripts/test-ai-comparison.sh",
     "test:ai-comparison:comprehensive": "NUM_GAMES=100 INCLUDE_SLOW_TESTS=true ./scripts/test-ai-comparison.sh",
-    "test:e2e": "playwright test --reporter=line",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "env -u NO_COLOR playwright test --reporter=line",
+    "test:e2e:ui": "env -u NO_COLOR playwright test --ui",
     "deps": "npx npm-check-updates",
     "deps:update": "npx npm-check-updates -u && npm run nuke",
     "postinstall": "chmod +x scripts/*.sh",
@@ -40,7 +41,7 @@
     "check:diagrams": "node scripts/check-diagrams.mjs",
     "test:wasm-loading": "node scripts/test-wasm-loading.js",
     "utils:convert-model": "python3 scripts/convert_model_for_wasm.py",
-    "train": "cd worker && cargo run --release --bin train --features binary"
+    "train": "cd worker && caffeinate -dimsu cargo run --release --bin train --features training"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.57.0",
@@ -63,7 +64,6 @@
     "@types/pako": "^2.0.4",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.16",
     "eslint": "^9",
     "eslint-config-next": "15.5.18",
@@ -77,14 +77,14 @@
     "prettier": "^3.7.4",
     "raw-loader": "^4.0.2",
     "tailwindcss": "^4",
-    "tsx": "^4.21.0",
     "typescript": "^5",
     "typescript-eslint": "^8.50.1",
+    "vite": "^8.1.4",
     "vitest": "^4.0.16",
-    "wrangler": "4.95.0"
+    "wrangler": "^4.110.0"
   },
   "engines": {
-    "node": ">=22.0.0",
+    "node": ">=22.12.0",
     "npm": ">=9.0.0"
   },
   "overrides": {

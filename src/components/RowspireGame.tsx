@@ -44,9 +44,9 @@ export default function RowspireGame() {
 
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
-  const [showAISelection, setShowAISelection] = useState(true);
   const isMounted = useHydrated();
   const isStandalone = useSyncExternalStore(subscribeStandalone, isStandalonePWA, () => false);
+  const showAISelection = gameState.gameStatus === 'not_started';
 
   useEffect(() => {
     soundEffects.setEnabled(soundEnabled);
@@ -60,33 +60,28 @@ export default function RowspireGame() {
         (gameMode === 'human-vs-ai' && gameState.currentPlayer === 'player2'));
 
     if (shouldMakeAIMove) {
-      const timer = setTimeout(() => {
-        try {
-          makeAIMove();
-        } catch (error) {
-          console.error('AI move failed:', error);
-        }
-      }, 300);
-      return () => clearTimeout(timer);
+      void makeAIMove();
     }
-    return undefined;
   }, [gameState.gameStatus, gameState.currentPlayer, aiThinking, makeAIMove, gameMode]);
 
   useEffect(() => {
     if (gameState.gameStatus === 'finished' && gameState.winner) {
-      setTimeout(() => {
+      const timer = window.setTimeout(() => {
         if (gameState.winner === 'player1') {
           soundEffects.gameWin();
         } else {
           soundEffects.gameLoss();
         }
       }, 500);
+
+      return () => window.clearTimeout(timer);
     }
+
+    return undefined;
   }, [gameState.gameStatus, gameState.winner]);
 
   const handleReset = () => {
     reset();
-    setShowAISelection(true);
   };
 
   const toggleSound = () => {
@@ -112,14 +107,16 @@ export default function RowspireGame() {
     }
 
     startGame();
-    setShowAISelection(false);
   };
 
   return (
     <>
       <AppLinks mode="floating" />
       <AnimatedBackground />
-      <div className="relative min-h-screen w-full flex items-center justify-center p-4 pb-24">
+      <div
+        className="relative min-h-screen w-full flex items-center justify-center p-4 pb-24"
+        data-testid="rowspire-game"
+      >
         {!isStandalone && (
           <div className="hidden md:block absolute top-4 right-4 z-50">
             <button

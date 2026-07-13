@@ -15,6 +15,7 @@ import GamePiece from './game/GamePiece';
 import { useGameAnimations } from '@/hooks/useGameAnimations';
 import { useHydrated } from '@/hooks/useHydrated';
 import { soundEffects } from '@/lib/sound-effects';
+import { isHumanTurn } from '@/lib/game-state-machine';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -39,13 +40,13 @@ export default function GameBoard({
 }: GameBoardProps) {
   const isMounted = useHydrated();
   const boardRef = useRef<HTMLDivElement>(null);
-  const { actions, showWinnerModal } = useGameStore();
+  const { actions, pendingMove, showWinnerModal } = useGameStore();
 
   const { celebrations, droppingPieces, showWinAnimation, handleWinAnimationComplete } =
     useGameAnimations(gameState, boardRef);
 
   const handleColumnClick = (column: number) => {
-    if (gameState.gameStatus === 'playing' && gameState.currentPlayer === 'player1' && !watchMode) {
+    if (isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode) {
       void soundEffects.pieceMove();
       actions.makeMove(column);
     }
@@ -92,16 +93,16 @@ export default function GameBoard({
             {gameState.board.map((column, colIndex) => {
               const hasSpace = column.some(cell => cell === null);
               const isClickable =
-                gameState.gameStatus === 'playing' &&
-                gameState.currentPlayer === 'player1' &&
-                !watchMode &&
-                hasSpace;
+                isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode && hasSpace;
 
               return (
-                <motion.div
+                <motion.button
+                  type="button"
                   key={colIndex}
                   className="flex flex-col gap-1 relative"
-                  onClick={() => isClickable && handleColumnClick(colIndex)}
+                  onClick={() => handleColumnClick(colIndex)}
+                  disabled={!isClickable}
+                  aria-label={`Drop counter in column ${colIndex + 1}`}
                   style={{ cursor: isClickable ? 'pointer' : 'default' }}
                   whileHover={isClickable ? { scale: 1.02 } : {}}
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -131,7 +132,7 @@ export default function GameBoard({
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   )}
-                </motion.div>
+                </motion.button>
               );
             })}
 

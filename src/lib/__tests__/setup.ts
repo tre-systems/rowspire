@@ -24,7 +24,7 @@ global.WebAssembly = {
     constructor() {}
     value = 0;
   },
-} as any;
+} as unknown as typeof WebAssembly;
 
 global.Worker = class MockWorker {
   postMessage = vi.fn();
@@ -37,7 +37,7 @@ global.Worker = class MockWorker {
   dispatchEvent = vi.fn();
 
   constructor() {}
-} as any;
+} as unknown as typeof Worker;
 
 global.performance = {
   now: vi.fn(() => Date.now()),
@@ -50,7 +50,7 @@ global.performance = {
   getEntriesByType: vi.fn(() => []),
   timeOrigin: Date.now(),
   toJSON: vi.fn(),
-} as any;
+} as unknown as Performance;
 
 global.localStorage = {
   getItem: vi.fn(),
@@ -59,7 +59,7 @@ global.localStorage = {
   clear: vi.fn(),
   key: vi.fn(),
   length: 0,
-} as any;
+} as unknown as Storage;
 
 global.sessionStorage = {
   getItem: vi.fn(),
@@ -68,13 +68,12 @@ global.sessionStorage = {
   clear: vi.fn(),
   key: vi.fn(),
   length: 0,
-} as any;
+} as unknown as Storage;
 
 vi.spyOn(console, 'log').mockImplementation(() => {});
 vi.spyOn(console, 'warn').mockImplementation(() => {});
 vi.spyOn(console, 'error').mockImplementation(() => {});
 
-// Mock WASM AI service for testing
 vi.mock('../wasm-ai-service', () => ({
   getWASMAIService: vi.fn(() => ({
     isReady: false,
@@ -86,5 +85,5 @@ vi.mock('../wasm-ai-service', () => ({
     clearTranspositionTable: vi.fn(),
     getTranspositionTableSize: vi.fn(),
   })),
-  initializeWASMAI: vi.fn(),
+  initializeWASMAI: vi.fn().mockResolvedValue(undefined),
 }));

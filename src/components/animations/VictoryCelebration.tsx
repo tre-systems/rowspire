@@ -20,6 +20,7 @@ export default function VictoryCelebration({ position, player }: VictoryCelebrat
       animate={{ opacity: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 1.5 }}
+      data-testid="victory-celebration"
     >
       <motion.div
         className={`absolute -translate-x-1/2 -translate-y-8 font-bold text-lg ${colors}`}

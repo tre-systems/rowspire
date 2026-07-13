@@ -60,6 +60,7 @@ export class BackgroundEffects {
   updateShapes() {
     for (let i = this.shapes.length - 1; i >= 0; i--) {
       const shape = this.shapes[i];
+      if (!shape) continue;
 
       this.moveShape(shape);
       if (shape.life <= 0.1 && !shape.fadeOut) this.startShapeFade(shape);
@@ -71,6 +72,7 @@ export class BackgroundEffects {
   updateLines() {
     for (let i = this.lines.length - 1; i >= 0; i--) {
       const line = this.lines[i];
+      if (!line) continue;
 
       line.life -= 0.002;
       if (line.life <= 0.1 && !line.fadeOut) this.startFade(line);
@@ -82,6 +84,7 @@ export class BackgroundEffects {
   updateParticles() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
+      if (!particle) continue;
 
       this.moveParticle(particle);
       if (particle.life <= 0.1 && !particle.fadeOut) this.startFade(particle);
