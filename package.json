@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run generate:sw && next dev",
+    "dev": "npm run build:wasm-assets && npm run generate:sw && next dev",
     "build": "rm -rf out && npm run lint && npm run generate:sw && npm run build:wasm-assets && npm run type-check && next build && npm run brand:audit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
