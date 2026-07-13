@@ -18,6 +18,7 @@ export default function GameControls({
   return (
     <div className="game-controls" data-testid="game-controls">
       <motion.button
+        type="button"
         onClick={onResetGame}
         className="control-button control-button--labelled"
         whileHover={{ y: -2 }}
@@ -33,6 +34,7 @@ export default function GameControls({
 
       <div className="flex items-center gap-2.5">
         <motion.button
+          type="button"
           onClick={onToggleSound}
           className="control-button"
           whileHover={{ y: -2 }}
@@ -46,6 +48,7 @@ export default function GameControls({
         </motion.button>
 
         <motion.button
+          type="button"
           onClick={onShowHowToPlay}
           className="control-button"
           whileHover={{ y: -2 }}

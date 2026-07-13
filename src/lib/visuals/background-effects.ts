@@ -2,8 +2,6 @@ import { createLine, createParticle, createShape } from './background-factory';
 import { drawBackground } from './background-renderer';
 import type { Line, Particle, Shape } from './background-types';
 
-export type { BaseEntity, Line, Particle, Point, Shape, ShapeType } from './background-types';
-
 type WrappedEntity = {
   x: number;
   y: number;
@@ -33,21 +31,21 @@ export class BackgroundEffects {
     this.height = height;
   }
 
-  init() {
+  private init() {
     this.shapes = Array.from({ length: 18 }, () => this.createShape());
     this.lines = Array.from({ length: 10 }, () => this.createLine());
     this.particles = Array.from({ length: 28 }, () => this.createParticle());
   }
 
-  createShape(): Shape {
+  private createShape(): Shape {
     return createShape(this.width, this.height);
   }
 
-  createLine(): Line {
+  private createLine(): Line {
     return createLine(this.width, this.height);
   }
 
-  createParticle(): Particle {
+  private createParticle(): Particle {
     return createParticle(this.width, this.height);
   }
 
@@ -59,7 +57,7 @@ export class BackgroundEffects {
     this.updateParticles(normalizedStep);
   }
 
-  updateShapes(step: number) {
+  private updateShapes(step: number) {
     for (let i = this.shapes.length - 1; i >= 0; i--) {
       const shape = this.shapes[i];
       if (!shape) continue;
@@ -71,7 +69,7 @@ export class BackgroundEffects {
     }
   }
 
-  updateLines(step: number) {
+  private updateLines(step: number) {
     for (let i = this.lines.length - 1; i >= 0; i--) {
       const line = this.lines[i];
       if (!line) continue;
@@ -83,7 +81,7 @@ export class BackgroundEffects {
     }
   }
 
-  updateParticles(step: number) {
+  private updateParticles(step: number) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
       if (!particle) continue;
@@ -142,24 +140,21 @@ export class BackgroundEffects {
     shape.size = Math.max(shape.size * 0.98 ** step, shape.targetSize);
     if (shape.opacity > 0) return;
 
-    this.shapes.splice(index, 1);
-    this.shapes.push(this.createReplacementShape(shape));
+    this.shapes[index] = this.createReplacementShape(shape);
   }
 
   private fadeLine(index: number, line: Line, step: number) {
     line.opacity = Math.max(0, line.opacity - 0.02 * step);
     if (line.opacity > 0) return;
 
-    this.lines.splice(index, 1);
-    this.lines.push(this.createHiddenLine());
+    this.lines[index] = this.createHiddenLine();
   }
 
   private fadeParticle(index: number, particle: Particle, step: number) {
     particle.opacity = Math.max(0, particle.opacity - 0.02 * step);
     if (particle.opacity > 0) return;
 
-    this.particles.splice(index, 1);
-    this.particles.push(this.createReplacementParticle(particle));
+    this.particles[index] = this.createReplacementParticle(particle);
   }
 
   private createReplacementShape(previous: Shape) {

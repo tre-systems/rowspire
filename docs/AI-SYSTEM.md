@@ -51,4 +51,4 @@ Training binaries and their `chrono`/`rayon` dependencies are feature-gated behi
 - Run `npm run build:wasm-assets` if `/wasm/rowspire_ai_core.js` is missing.
 - Confirm the two model assets exist under `public/ml/data/`.
 - Check the worker error and browser console before retrying.
-- Run `npm run test:wasm-loading` while the development server is running.
+- Run `npm run test:e2e` to exercise WebAssembly loading through the production artifact.

@@ -1,14 +1,15 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import type { Player } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { MOTION } from '@/lib/visuals/motion';
 
 interface GamePieceProps {
-  player: 'player1' | 'player2';
+  player: Player;
   isWinning?: boolean;
 }
 
-const GamePiece = memo(function GamePiece({ player, isWinning = false }: GamePieceProps) {
+const GamePiece = memo(function Piece({ player, isWinning = false }: GamePieceProps) {
   return (
     <motion.div
       className={cn(

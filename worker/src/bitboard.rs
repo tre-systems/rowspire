@@ -24,23 +24,21 @@ impl Bitboard {
         }
     }
 
-    pub fn can_play(&self, column: usize) -> bool {
-        (self.mask & top_mask(column)) == 0
+    pub(crate) fn can_play(&self, column: usize) -> bool {
+        column < COLS && (self.mask & top_mask(column)) == 0
     }
 
-    pub fn play(&mut self, column: usize) {
+    pub(crate) fn play(&mut self, column: usize) {
         self.player_board ^= self.mask;
         self.mask |= self.mask + bottom_mask(column);
-        self.player_board ^= self.mask;
-        self.player_board ^= self.mask;
         self.moves_count += 1;
     }
 
-    pub fn is_win(&self) -> bool {
+    pub(crate) fn is_win(&self) -> bool {
         Self::alignment(self.player_board ^ self.mask)
     }
 
-    pub fn alignment(position: u64) -> bool {
+    fn alignment(position: u64) -> bool {
         [(7, 14), (6, 12), (8, 16), (1, 2)]
             .iter()
             .any(|&(first, second)| {
@@ -49,7 +47,7 @@ impl Bitboard {
             })
     }
 
-    pub fn key(&self) -> u64 {
+    pub(crate) fn key(&self) -> u64 {
         self.player_board + self.mask
     }
 

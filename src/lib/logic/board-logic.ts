@@ -1,16 +1,14 @@
-import type { Board, Player, WinningLine } from '../types';
-
-const ROWS = 6;
-const COLS = 7;
+import { BOARD_COLUMNS, BOARD_ROWS } from '../constants';
+import type { Board, BoardPosition, Player, WinningLine } from '../types';
 
 export function createEmptyBoard(): Board {
-  return Array.from({ length: COLS }, () => Array.from({ length: ROWS }, () => null));
+  return Array.from({ length: BOARD_COLUMNS }, () =>
+    Array.from({ length: BOARD_ROWS }, () => null),
+  );
 }
 
 export function getValidMoves(board: Board): number[] {
-  return board
-    .map((col, index) => (col.some(cell => cell === null) ? index : -1))
-    .filter(index => index !== -1);
+  return board.flatMap((column, index) => (column.includes(null) ? [index] : []));
 }
 
 export function isDraw(board: Board): boolean {
@@ -38,21 +36,21 @@ export function checkWin(
   return null;
 }
 
-export function checkDirection(
+function checkDirection(
   board: Board,
   col: number,
   row: number,
   dCol: number,
   dRow: number,
   player: Player,
-): Array<{ column: number; row: number }> | null {
-  const positions: Array<{ column: number; row: number }> = [];
+): BoardPosition[] | null {
+  const positions: BoardPosition[] = [];
 
   let count = 1;
   positions.push({ column: col, row });
   let c = col + dCol;
   let r = row + dRow;
-  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c]?.[r] === player) {
+  while (c >= 0 && c < BOARD_COLUMNS && r >= 0 && r < BOARD_ROWS && board[c]?.[r] === player) {
     count++;
     positions.push({ column: c, row: r });
     c += dCol;
@@ -61,7 +59,7 @@ export function checkDirection(
 
   c = col - dCol;
   r = row - dRow;
-  while (c >= 0 && c < COLS && r >= 0 && r < ROWS && board[c]?.[r] === player) {
+  while (c >= 0 && c < BOARD_COLUMNS && r >= 0 && r < BOARD_ROWS && board[c]?.[r] === player) {
     count++;
     positions.unshift({ column: c, row: r });
     c -= dCol;

@@ -15,10 +15,8 @@ type PendingRequest = {
   timeout: ReturnType<typeof setTimeout>;
 };
 
-type WorkerCommand =
-  | { type: 'initialize' }
-  | { type: 'search'; state: GameState; depth: number }
-  | { type: 'ml'; state: GameState };
+type WithoutId<T> = T extends { id: number } ? Omit<T, 'id'> : never;
+type WorkerCommand = WithoutId<AIWorkerRequest>;
 
 export class AIWorkerClient {
   private worker: Worker | null = null;

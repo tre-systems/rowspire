@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, X } from 'lucide-react';
+import { useDismissOnEscape } from '@/hooks/useDismissOnEscape';
 import { MOTION } from '@/lib/visuals/motion';
 
 interface ErrorModalProps {
@@ -9,6 +10,8 @@ interface ErrorModalProps {
 }
 
 export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) {
+  useDismissOnEscape(isOpen, onClose);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -23,6 +26,10 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
         >
           <motion.div
             className="modal-card modal-card--compact"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="error-title"
+            aria-describedby="error-message"
             initial={{ scale: 0.94, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.97, opacity: 0, y: 12 }}
@@ -32,12 +39,13 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
             <header className="modal-header">
               <div>
                 <span className="modal-eyebrow modal-eyebrow--warning">AI interruption</span>
-                <h2>
+                <h2 id="error-title">
                   <AlertTriangle aria-hidden="true" /> Something went wrong
                 </h2>
               </div>
               <motion.button
                 type="button"
+                autoFocus
                 className="modal-close"
                 onClick={onClose}
                 whileHover={{ scale: 1.06 }}
@@ -48,7 +56,7 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
                 <X aria-hidden="true" />
               </motion.button>
             </header>
-            <p className="modal-message" data-testid="error-message">
+            <p id="error-message" className="modal-message" data-testid="error-message">
               {error}
             </p>
             <button

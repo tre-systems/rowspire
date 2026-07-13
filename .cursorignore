@@ -1,47 +1,35 @@
-# Large model files
-training_data_cache.json
-ml_ai_weights*.json
-test_ml_weights*.json
-debug_ml_weights.json
-public/ml-weights.json
-public/ml/
-ml_ai_weights*.json.gz
-test_ml_weights*.json.gz
-public/ml-weights.json.gz
+# Dependencies and large source assets
+node_modules/
+package-lock.json
+resources/ai/
 
-# Rust and WASM build artifacts
-worker/target/
-src/lib/wasm/
-public/wasm/
-
-# Build outputs
-out/
-dist/
+# Generated application artifacts
 build/
-worker/build/
-worker/dist/
-
-# Test results and coverage
-coverage/
-test-results/
-playwright-report/
-.playwright-cli/
-output/playwright/
-
-# Local database and cache
-local.db
-*.sqlite
-*.db
-.cache/
-.parcel-cache/
-.turbo/
-.eslintcache
-
-# Environment and misc
-.venv/
-.wrangler/
-.vercel/
+dist/
+out/
+public/ml/
+public/wasm/
+worker/target/
 worker-configuration.d.ts
 
-# Design source art (large, not referenced by the build)
-design/
+# Tests and coverage
+.playwright-cli/
+coverage/
+output/playwright/
+playwright-report/
+test-results/
+
+# Local state and caches
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+.wrangler/
+*.db
+*.sqlite
+local.db
+
+# Binary assets
+docs/diagrams/*.png
+public/icons/
+screenshot.png

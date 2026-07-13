@@ -1,91 +1,30 @@
-use crate::{GameState, COLS};
+use crate::mcts_node::MctsNode;
+use crate::mcts_policy::{normalize, sample};
+use crate::{GameState, BOARD_SIZE, COLS};
 use rand::{rngs::StdRng, Rng, SeedableRng};
-use std::f32;
-
-#[derive(Debug, Clone)]
-pub struct MCTSNode {
-    pub state: GameState,
-    pub parent: Option<usize>,
-    pub children: Vec<usize>,
-    pub visits: u32,
-    pub total_value: f32,
-    pub prior_probability: f32,
-    pub is_terminal: bool,
-    pub valid_moves: Vec<u8>,
-    pub r#move: Option<u8>, // The move that led to this node
-}
-
-impl MCTSNode {
-    pub fn new(
-        state: GameState,
-        parent: Option<usize>,
-        prior_probability: f32,
-        r#move: Option<u8>,
-    ) -> Self {
-        let valid_moves = state.get_valid_moves();
-        let is_terminal = state.is_game_over();
-
-        Self {
-            state,
-            parent,
-            children: Vec::new(),
-            visits: 0,
-            total_value: 0.0,
-            prior_probability,
-            is_terminal,
-            valid_moves,
-            r#move,
-        }
-    }
-
-    pub fn ucb_score(&self, exploration_constant: f32, parent_visits: u32) -> f32 {
-        if self.visits == 0 {
-            return f32::INFINITY;
-        }
-        let exploitation = -(self.total_value / self.visits as f32);
-
-        let exploration =
-            exploration_constant * self.prior_probability * (parent_visits as f32).sqrt()
-                / (1.0 + self.visits as f32);
-
-        exploitation + exploration
-    }
-
-    pub fn is_fully_expanded(&self) -> bool {
-        self.children.len() >= self.valid_moves.len()
-    }
-}
 
 pub struct MCTS {
-    pub nodes: Vec<MCTSNode>,
-    pub exploration_constant: f32,
-    pub num_simulations: usize,
+    nodes: Vec<MctsNode>,
+    exploration: f32,
+    simulations: usize,
     pub terminal_nodes_found: u32,
     rng: StdRng,
 }
 
 impl MCTS {
-    pub fn new(exploration_constant: f32, num_simulations: usize) -> Self {
-        Self::new_with_rng(
-            exploration_constant,
-            num_simulations,
-            StdRng::from_entropy(),
-        )
+    pub fn new(exploration: f32, simulations: usize) -> Self {
+        Self::with_rng(exploration, simulations, StdRng::from_entropy())
     }
 
-    pub fn new_with_seed(exploration_constant: f32, num_simulations: usize, seed: u64) -> Self {
-        Self::new_with_rng(
-            exploration_constant,
-            num_simulations,
-            StdRng::seed_from_u64(seed),
-        )
+    pub fn new_with_seed(exploration: f32, simulations: usize, seed: u64) -> Self {
+        Self::with_rng(exploration, simulations, StdRng::seed_from_u64(seed))
     }
 
-    fn new_with_rng(exploration_constant: f32, num_simulations: usize, rng: StdRng) -> Self {
+    fn with_rng(exploration: f32, simulations: usize, rng: StdRng) -> Self {
         Self {
             nodes: Vec::new(),
-            exploration_constant,
-            num_simulations,
+            exploration,
+            simulations: simulations.max(1),
             terminal_nodes_found: 0,
             rng,
         }
@@ -94,278 +33,131 @@ impl MCTS {
     pub fn search(
         &mut self,
         root_state: GameState,
-        value_fn: &dyn Fn(&GameState) -> f32,
-        policy_fn: &dyn Fn(&GameState) -> Vec<f32>,
+        value: &dyn Fn(&GameState) -> f32,
+        policy: &dyn Fn(&GameState) -> Vec<f32>,
         temperature: f32,
         add_noise: bool,
     ) -> (u8, Vec<f32>) {
+        self.nodes.clear();
         self.terminal_nodes_found = 0;
-        let root_idx = self.add_node(root_state, None, 1.0, None);
-        for i in 0..self.num_simulations {
-            self.simulate(root_idx, value_fn, policy_fn);
-            if i == 0 && add_noise {
-                self.add_root_noise(root_idx);
-            }
-        }
-        let root_node = &self.nodes[root_idx];
-        let mut move_probs = vec![0.0; COLS];
-        let mut total_visits = 0;
+        let root = self.add_node(root_state, 1.0, None);
+        let noise_after = self.nodes[root].valid_moves.len().min(self.simulations);
 
-        for &child_idx in &root_node.children {
-            let child = &self.nodes[child_idx];
-            let move_idx = child.r#move.unwrap_or(0);
-            move_probs[move_idx as usize] = child.visits as f32;
-            total_visits += child.visits;
-        }
-
-        if total_visits > 0 {
-            if temperature > 0.1 {
-                for prob in &mut move_probs {
-                    *prob = prob.powf(1.0 / temperature);
-                }
-                let new_total: f32 = move_probs.iter().sum();
-                for prob in &mut move_probs {
-                    *prob /= new_total;
-                }
-            } else {
-                let max_visits = move_probs.iter().cloned().fold(0.0, f32::max);
-                for prob in &mut move_probs {
-                    if *prob == max_visits && max_visits > 0.0 {
-                        *prob = 1.0;
-                    } else {
-                        *prob = 0.0;
-                    }
-                }
-                let sum: f32 = move_probs.iter().sum();
-                if sum > 1.0 {
-                    for prob in &mut move_probs {
-                        *prob /= sum;
-                    }
-                }
-            }
-        }
-        let r: f32 = self.rng.gen();
-        let mut cumulative = 0.0;
-        let mut best_move = 0;
-
-        for (i, &prob) in move_probs.iter().enumerate() {
-            cumulative += prob;
-            if r <= cumulative {
-                best_move = i as u8;
-                break;
-            }
-            if i == move_probs.len() - 1 {
-                best_move = i as u8;
+        for index in 0..self.simulations {
+            self.simulate(root, value, policy, 0);
+            if add_noise && index + 1 == noise_after {
+                self.add_root_noise(root);
             }
         }
 
-        (best_move, move_probs)
-    }
-
-    fn add_root_noise(&mut self, root_idx: usize) {
-        let n = self.nodes[root_idx].children.len();
-        if n == 0 {
-            return;
+        let mut probabilities = vec![0.0; COLS];
+        for &child in &self.nodes[root].children {
+            let node = &self.nodes[child];
+            probabilities[node.last_move.expect("child nodes have a move") as usize] =
+                node.visits as f32;
         }
-
-        let children_indices: Vec<usize> = self.nodes[root_idx].children.clone();
-        const EPSILON: f32 = 0.25;
-
-        let mut noise = vec![0.0; n];
-        let mut sum = 0.0;
-        for val in noise.iter_mut().take(n) {
-            let r: f32 = self.rng.gen();
-            *val = r;
-            sum += r;
-        }
-
-        for i in 0..n {
-            let child_idx = children_indices[i];
-            let child = &mut self.nodes[child_idx];
-            child.prior_probability =
-                (1.0 - EPSILON) * child.prior_probability + EPSILON * (noise[i] / sum);
-        }
+        normalize(&mut probabilities, temperature);
+        (sample(&mut self.rng, &probabilities), probabilities)
     }
 
     fn simulate(
         &mut self,
-        node_idx: usize,
-        value_fn: &dyn Fn(&GameState) -> f32,
-        policy_fn: &dyn Fn(&GameState) -> Vec<f32>,
-    ) -> f32 {
-        self.simulate_with_depth(node_idx, value_fn, policy_fn, 0)
-    }
-
-    fn simulate_with_depth(
-        &mut self,
-        node_idx: usize,
-        value_fn: &dyn Fn(&GameState) -> f32,
-        policy_fn: &dyn Fn(&GameState) -> Vec<f32>,
+        node: usize,
+        value: &dyn Fn(&GameState) -> f32,
+        policy: &dyn Fn(&GameState) -> Vec<f32>,
         depth: usize,
     ) -> f32 {
-        const MAX_SIMULATION_DEPTH: usize = 100;
-
-        if depth > MAX_SIMULATION_DEPTH {
+        if depth >= BOARD_SIZE {
             return 0.0;
         }
 
-        let value = {
-            let node = &self.nodes[node_idx];
-            if node.is_terminal {
-                self.get_terminal_value(&node.state)
-            } else if !node.is_fully_expanded() {
-                let new_child_idx = self.expand_node(node_idx, policy_fn);
-
-                let child = &self.nodes[new_child_idx];
-                let relative_value = if child.is_terminal {
-                    self.terminal_nodes_found += 1;
-                    self.get_terminal_value(&child.state)
-                } else {
-                    value_fn(&child.state)
-                };
-                self.nodes[new_child_idx].visits = 1;
-                self.nodes[new_child_idx].total_value = relative_value;
-                -relative_value
+        let result = if self.nodes[node].terminal {
+            terminal_value(&self.nodes[node].state)
+        } else if !self.nodes[node].is_fully_expanded() {
+            let child = self.expand(node, policy);
+            let child_value = if self.nodes[child].terminal {
+                self.terminal_nodes_found += 1;
+                terminal_value(&self.nodes[child].state)
             } else {
-                let parent_visits = self.nodes[node_idx].visits;
-                let children = self.nodes[node_idx].children.clone();
-                let best_child_idx = children
+                value(&self.nodes[child].state)
+            };
+            self.nodes[child].visits = 1;
+            self.nodes[child].total_value = child_value;
+            -child_value
+        } else {
+            let child = self.best_child(node);
+            -self.simulate(child, value, policy, depth + 1)
+        };
+
+        self.nodes[node].visits += 1;
+        self.nodes[node].total_value += result;
+        result
+    }
+
+    fn best_child(&self, node: usize) -> usize {
+        let visits = self.nodes[node].visits;
+        self.nodes[node]
+            .children
+            .iter()
+            .max_by(|&&left, &&right| {
+                self.nodes[left]
+                    .ucb_score(self.exploration, visits)
+                    .total_cmp(&self.nodes[right].ucb_score(self.exploration, visits))
+            })
+            .copied()
+            .expect("expanded nodes have children")
+    }
+
+    fn expand(&mut self, node: usize, policy: &dyn Fn(&GameState) -> Vec<f32>) -> usize {
+        let policy = policy(&self.nodes[node].state);
+        let column = self.nodes[node]
+            .valid_moves
+            .iter()
+            .find(|column| {
+                !self.nodes[node]
+                    .children
                     .iter()
-                    .max_by(|&&a, &&b| {
-                        let a_score =
-                            self.nodes[a].ucb_score(self.exploration_constant, parent_visits);
-                        let b_score =
-                            self.nodes[b].ucb_score(self.exploration_constant, parent_visits);
-
-                        a_score
-                            .partial_cmp(&b_score)
-                            .unwrap_or(std::cmp::Ordering::Equal)
-                    })
-                    .copied()
-                    .unwrap_or(node_idx);
-                -self.simulate_with_depth(best_child_idx, value_fn, policy_fn, depth + 1)
-            }
-        };
-        self.nodes[node_idx].visits += 1;
-        self.nodes[node_idx].total_value += value;
-        value
+                    .any(|&child| self.nodes[child].last_move == Some(**column))
+            })
+            .copied()
+            .expect("non-expanded nodes have an available move");
+        let mut state = self.nodes[node].state.clone();
+        state.make_move(column).expect("selected move is valid");
+        let child = self.add_node(
+            state,
+            policy.get(column as usize).copied().unwrap_or(0.0),
+            Some(column),
+        );
+        self.nodes[node].children.push(child);
+        child
     }
 
-    fn expand_node(
-        &mut self,
-        node_idx: usize,
-        policy_fn: &dyn Fn(&GameState) -> Vec<f32>,
-    ) -> usize {
-        let policy = {
-            let node = &self.nodes[node_idx];
-            policy_fn(&node.state)
-        };
-        let expanded_moves: Vec<u8> = {
-            let node = &self.nodes[node_idx];
-            node.children
-                .iter()
-                .filter_map(|&child_idx| self.nodes[child_idx].r#move)
-                .collect()
-        };
-
-        let unexpanded_move = {
-            let node = &self.nodes[node_idx];
-            node.valid_moves
-                .iter()
-                .find(|&&mv| !expanded_moves.contains(&mv))
-                .copied()
-                .unwrap_or(0)
-        };
-        let mut new_state = self.nodes[node_idx].state.clone();
-        if new_state.make_move(unexpanded_move).is_ok() {
-            let prior_prob = policy.get(unexpanded_move as usize).copied().unwrap_or(0.0);
-            let child_idx =
-                self.add_node(new_state, Some(node_idx), prior_prob, Some(unexpanded_move));
-            self.nodes[node_idx].children.push(child_idx);
-            child_idx
-        } else {
-            node_idx // Fallback to current node
+    fn add_root_noise(&mut self, root: usize) {
+        let children = self.nodes[root].children.clone();
+        let noise: Vec<f32> = (0..children.len()).map(|_| self.rng.gen()).collect();
+        let total: f32 = noise.iter().sum();
+        if total <= f32::EPSILON {
+            return;
+        }
+        for (child, value) in children.into_iter().zip(noise) {
+            self.nodes[child].prior = self.nodes[child].prior * 0.75 + value / total * 0.25;
         }
     }
 
-    fn get_terminal_value(&self, state: &GameState) -> f32 {
-        if let Some(winner) = state.get_winner() {
-            if winner == state.current_player {
-                -1.0
-            } else {
-                1.0
-            }
-        } else {
-            0.0 // Draw
-        }
-    }
-
-    fn add_node(
-        &mut self,
-        state: GameState,
-        parent: Option<usize>,
-        prior_probability: f32,
-        r#move: Option<u8>,
-    ) -> usize {
-        let node = MCTSNode::new(state, parent, prior_probability, r#move);
-        self.nodes.push(node);
+    fn add_node(&mut self, state: GameState, prior: f32, last_move: Option<u8>) -> usize {
+        self.nodes.push(MctsNode::new(state, prior, last_move));
         self.nodes.len() - 1
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_mcts_node_creation() {
-        let state = GameState::new();
-        let node = MCTSNode::new(state, None, 1.0, None);
-
-        assert_eq!(node.visits, 0);
-        assert_eq!(node.total_value, 0.0);
-        assert_eq!(node.prior_probability, 1.0);
-        assert!(!node.is_terminal);
-        assert_eq!(node.valid_moves.len(), 7);
-    }
-
-    #[test]
-    fn test_mcts_ucb_score() {
-        let state = GameState::new();
-        let mut node = MCTSNode::new(state, None, 1.0, None);
-        assert_eq!(node.ucb_score(1.0, 10), f32::INFINITY);
-        node.visits = 5;
-        node.total_value = -3.0; // Negative total_value means good for parent
-        let score = node.ucb_score(1.0, 10);
-        assert!(score.is_finite());
-        assert!(score > 0.0);
-    }
-
-    #[test]
-    fn test_mcts_search() {
-        let state = GameState::new();
-        let mut mcts = MCTS::new(1.0, 100);
-
-        let value_fn = |_state: &GameState| 0.0;
-        let policy_fn = |_state: &GameState| vec![1.0 / 7.0; 7];
-
-        let (best_move, move_probs) = mcts.search(state, &value_fn, &policy_fn, 0.0, false);
-
-        assert!(usize::from(best_move) < COLS);
-        assert_eq!(move_probs.len(), COLS);
-        assert!((move_probs.iter().sum::<f32>() - 1.0).abs() < 0.001);
-    }
-
-    #[test]
-    fn seeded_search_is_reproducible() {
-        let value_fn = |_state: &GameState| 0.0;
-        let policy_fn = |_state: &GameState| vec![1.0 / 7.0; 7];
-        let mut first = MCTS::new_with_seed(1.0, 100, 42);
-        let mut second = MCTS::new_with_seed(1.0, 100, 42);
-
-        let first_result = first.search(GameState::new(), &value_fn, &policy_fn, 1.0, true);
-        let second_result = second.search(GameState::new(), &value_fn, &policy_fn, 1.0, true);
-
-        assert_eq!(first_result, second_result);
+fn terminal_value(state: &GameState) -> f32 {
+    match state.get_winner() {
+        Some(winner) if winner == state.current_player => -1.0,
+        Some(_) => 1.0,
+        None => 0.0,
     }
 }
+
+#[cfg(test)]
+#[path = "mcts_tests.rs"]
+mod tests;

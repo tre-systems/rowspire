@@ -1,6 +1,6 @@
+pub use crate::ai_types::MoveEvaluation;
 use crate::solver::{Bitboard, Solver};
 use crate::{GameState, Player};
-use serde::{Deserialize, Serialize};
 
 pub struct AI {
     solver: Solver,
@@ -36,14 +36,18 @@ impl AI {
             1 => 6,
             3 => 10,
             5 => 14,
-            _ => (depth as i32 + 4).min(20),
+            _ => depth.saturating_add(4).min(20),
         };
         let (best_move, score) = self
             .solver
             .analyze(&Bitboard::from_game_state(state), engine_depth);
 
-        self.nodes_evaluated = self.solver.get_nodes_count() as u32;
-        self.transposition_hits = 0;
+        self.nodes_evaluated = self.solver.get_nodes_count().try_into().unwrap_or(u32::MAX);
+        self.transposition_hits = self
+            .solver
+            .transposition_hits()
+            .try_into()
+            .unwrap_or(u32::MAX);
 
         let evaluations = best_move
             .map(|column| MoveEvaluation {
@@ -108,14 +112,6 @@ impl HeuristicAI {
 
         (best.map(|item| item.column), evaluations)
     }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct MoveEvaluation {
-    pub column: u8,
-    pub score: f32,
-    #[serde(rename = "moveType")]
-    pub move_type: String,
 }
 
 fn find_immediate_win(state: &GameState, player: Player) -> Option<u8> {

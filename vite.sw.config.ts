@@ -15,6 +15,6 @@ export default defineConfig({
     outDir: 'public',
   },
   define: {
-    __CACHE_VERSION__: JSON.stringify(resolveBuildId(process.env.GITHUB_SHA)),
+    __CACHE_VERSION__: JSON.stringify(resolveBuildId(process.env['GITHUB_SHA'])),
   },
 });

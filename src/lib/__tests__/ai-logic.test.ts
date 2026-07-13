@@ -1,9 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeAIMove as chooseAIMove } from '../logic/ai-logic';
 import { createEmptyBoard } from '../logic/board-logic';
 import type { Board, GameState } from '../types';
-import type WASMAIService from '../wasm-ai-service';
-import { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
+import {
+  getWASMAIService,
+  initializeWASMAI,
+  type default as WASMAIService,
+} from '../wasm-ai-service';
+
+vi.mock('../wasm-ai-service', () => ({
+  getWASMAIService: vi.fn(),
+  initializeWASMAI: vi.fn().mockResolvedValue(undefined),
+}));
 
 const base: Omit<GameState, 'board'> = {
   currentPlayer: 'player1',
@@ -30,11 +38,16 @@ const service = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.spyOn(console, 'error').mockImplementation(() => undefined);
   service.getBestMove.mockReset();
   service.getMLMove.mockReset();
   vi.mocked(initializeWASMAI).mockClear();
   service.isReady = true;
   vi.mocked(getWASMAIService).mockReturnValue(service as unknown as WASMAIService);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe('makeAIMove', () => {
@@ -76,12 +89,22 @@ describe('makeAIMove', () => {
     await expect(chooseAIMove(gameState(), 'search')).resolves.toBe(2);
   });
 
+  it('rejects an engine move in a full column', async () => {
+    service.getBestMove
+      .mockResolvedValueOnce(bestMoveResponse(3))
+      .mockResolvedValueOnce(bestMoveResponse(2));
+    const state = gameState();
+    const board: Board = state.board.map((column, index) =>
+      index === 3 ? column.map(() => 'player1') : column,
+    );
+
+    await expect(chooseAIMove({ ...state, board }, 'search')).resolves.toBe(2);
+  });
+
   it('uses a valid random move when both engine attempts fail', async () => {
     service.getBestMove.mockRejectedValue(new Error('Unavailable'));
-    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
 
-    await expect(chooseAIMove(gameState(), 'search')).resolves.toBe(0);
-    random.mockRestore();
+    await expect(chooseAIMove(gameState(), 'search', () => 1)).resolves.toBe(6);
   });
 
   it('reports failure when the board has no valid move', async () => {

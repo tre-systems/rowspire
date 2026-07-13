@@ -1,11 +1,9 @@
 export type {
   Player,
-  GameStatus,
   Board,
   ColumnIndex,
-  RowIndex,
+  BoardPosition,
   MoveRecord,
-  MoveSource,
   PendingMove,
   GameState,
   WinningLine,
@@ -16,16 +14,11 @@ export type {
 
 export {
   PlayerSchema,
-  GameStatusSchema,
-  BoardSchema,
   ColumnIndexSchema,
-  RowIndexSchema,
   MoveRecordSchema,
-  MoveSourceSchema,
   PendingMoveSchema,
   GameStateSchema,
   WinningLineSchema,
   AITypeSchema,
   GameModeSchema,
-  PersistedGameStoreSchema,
 } from './schemas';

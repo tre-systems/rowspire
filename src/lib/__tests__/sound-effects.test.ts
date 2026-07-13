@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SoundEffects, soundEffects } from '../sound-effects';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SoundEffects } from '../sound-effects';
 
 function createAudioContextMock(state: AudioContextState = 'running') {
   const oscillator = {
@@ -9,8 +9,7 @@ function createAudioContextMock(state: AudioContextState = 'running') {
     start: vi.fn(),
     stop: vi.fn(),
   };
-
-  const gainNode = {
+  const gain = {
     connect: vi.fn(),
     gain: {
       setValueAtTime: vi.fn(),
@@ -18,7 +17,6 @@ function createAudioContextMock(state: AudioContextState = 'running') {
       exponentialRampToValueAtTime: vi.fn(),
     },
   };
-
   const context = {
     state,
     currentTime: 1,
@@ -27,29 +25,17 @@ function createAudioContextMock(state: AudioContextState = 'running') {
       context.state = 'running';
     }),
     createOscillator: vi.fn(() => oscillator),
-    createGain: vi.fn(() => gainNode),
+    createGain: vi.fn(() => gain),
   };
-
   const constructor = vi.fn(function AudioContextMock() {
     return context;
   });
 
-  return {
-    constructor,
-    context,
-    oscillator,
-  };
+  return { constructor, context, oscillator };
 }
 
-function setAudioConstructors(
-  audioContext: unknown = undefined,
-  webkitAudioContext: unknown = undefined,
-) {
-  Object.defineProperty(window, 'AudioContext', {
-    configurable: true,
-    value: audioContext,
-  });
-
+function setAudioConstructors(audioContext?: unknown, webkitAudioContext?: unknown) {
+  Object.defineProperty(window, 'AudioContext', { configurable: true, value: audioContext });
   Object.defineProperty(window, 'webkitAudioContext', {
     configurable: true,
     value: webkitAudioContext,
@@ -59,162 +45,108 @@ function setAudioConstructors(
 describe('SoundEffects', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    soundEffects.setEnabled(true);
     setAudioConstructors();
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
-    soundEffects.setEnabled(true);
+    vi.useRealTimers();
     setAudioConstructors();
   });
 
-  describe('enabled state', () => {
-    it('should start with sound enabled', () => {
-      expect(soundEffects.isEnabled).toBe(true);
-    });
+  it('controls its enabled state', () => {
+    const effects = new SoundEffects();
 
-    it('should toggle enabled state', () => {
-      expect(soundEffects.toggle()).toBe(false);
-      expect(soundEffects.isEnabled).toBe(false);
-
-      expect(soundEffects.toggle()).toBe(true);
-      expect(soundEffects.isEnabled).toBe(true);
-    });
-
-    it('should set enabled state', () => {
-      soundEffects.setEnabled(false);
-      expect(soundEffects.isEnabled).toBe(false);
-
-      soundEffects.setEnabled(true);
-      expect(soundEffects.isEnabled).toBe(true);
-    });
+    expect(effects.isEnabled).toBe(true);
+    expect(effects.toggle()).toBe(false);
+    expect(effects.isEnabled).toBe(false);
+    effects.setEnabled(true);
+    expect(effects.isEnabled).toBe(true);
   });
 
-  describe('sound methods', () => {
-    it('should have all required sound methods', () => {
-      expect(typeof soundEffects.columnSelect).toBe('function');
-      expect(typeof soundEffects.pieceMove).toBe('function');
-      expect(typeof soundEffects.specialLanding).toBe('function');
-      expect(typeof soundEffects.gameWin).toBe('function');
-      expect(typeof soundEffects.gameLoss).toBe('function');
-      expect(typeof soundEffects.aiThinking).toBe('function');
-      expect(typeof soundEffects.buttonClick).toBe('function');
-    });
+  it('creates audio lazily and plays a move tone', async () => {
+    const audio = createAudioContextMock();
+    const effects = new SoundEffects();
+    setAudioConstructors(audio.constructor);
 
-    it('should return promises from sound methods', async () => {
-      const promises = [
-        soundEffects.columnSelect(),
-        soundEffects.pieceMove(),
-        soundEffects.specialLanding(),
-        soundEffects.gameWin(),
-        soundEffects.gameLoss(),
-        soundEffects.aiThinking(),
-        soundEffects.buttonClick(),
-      ];
+    expect(audio.constructor).not.toHaveBeenCalled();
+    await effects.pieceMove();
 
-      promises.forEach(promise => {
-        expect(promise).toBeInstanceOf(Promise);
-      });
-
-      await expect(Promise.all(promises)).resolves.toBeDefined();
-    });
-
-    it('should not play sounds when disabled', async () => {
-      soundEffects.setEnabled(false);
-
-      await expect(soundEffects.pieceMove()).resolves.toBeUndefined();
-      await expect(soundEffects.columnSelect()).resolves.toBeUndefined();
-      await expect(soundEffects.buttonClick()).resolves.toBeUndefined();
-    });
-
-    it('does not create an audio context when disabled', async () => {
-      const mockAudio = createAudioContextMock();
-      const effects = new SoundEffects();
-
-      setAudioConstructors(mockAudio.constructor);
-      effects.setEnabled(false);
-
-      await effects.pieceMove();
-
-      expect(mockAudio.constructor).not.toHaveBeenCalled();
-    });
+    expect(audio.constructor).toHaveBeenCalledOnce();
+    expect(audio.context.createOscillator).toHaveBeenCalledOnce();
+    expect(audio.oscillator.frequency.value).toBe(523.25);
+    expect(audio.oscillator.start).toHaveBeenCalledWith(1);
   });
 
-  describe('browser environment handling', () => {
-    it('should handle missing AudioContext gracefully', async () => {
-      const originalWindow = global.window;
-      Object.defineProperty(global, 'window', { value: {}, writable: true });
+  it('does not create audio while disabled', async () => {
+    const audio = createAudioContextMock();
+    const effects = new SoundEffects();
+    setAudioConstructors(audio.constructor);
+    effects.setEnabled(false);
 
-      await expect(soundEffects.pieceMove()).resolves.toBeUndefined();
+    await effects.pieceMove();
+    await effects.unlock();
+    effects.gameWin();
 
-      Object.defineProperty(global, 'window', {
-        value: originalWindow,
-        writable: true,
-      });
-    });
-
-    it('should handle AudioContext errors gracefully', async () => {
-      const mockAudioContext = vi.fn(function AudioContextMock() {
-        throw new Error('AudioContext not supported');
-      });
-
-      setAudioConstructors(mockAudioContext);
-
-      await expect(soundEffects.pieceMove()).resolves.toBeUndefined();
-
-      expect(mockAudioContext).toHaveBeenCalled();
-    });
-
-    it('creates the audio context lazily when a sound plays', async () => {
-      const mockAudio = createAudioContextMock();
-      const effects = new SoundEffects();
-
-      setAudioConstructors(mockAudio.constructor);
-
-      expect(mockAudio.constructor).not.toHaveBeenCalled();
-
-      await effects.pieceMove();
-
-      expect(mockAudio.constructor).toHaveBeenCalledOnce();
-      expect(mockAudio.context.createOscillator).toHaveBeenCalledOnce();
-      expect(mockAudio.oscillator.start).toHaveBeenCalledWith(1);
-    });
-
-    it('supports WebKit audio contexts', async () => {
-      const mockAudio = createAudioContextMock();
-      const effects = new SoundEffects();
-
-      setAudioConstructors(undefined, mockAudio.constructor);
-
-      await effects.pieceMove();
-
-      expect(mockAudio.constructor).toHaveBeenCalledOnce();
-    });
+    expect(audio.constructor).not.toHaveBeenCalled();
   });
 
-  describe('audio context state management', () => {
-    it('should handle suspended audio context', async () => {
-      const mockAudio = createAudioContextMock('suspended');
-      const effects = new SoundEffects();
+  it('resumes a suspended context when unlocked', async () => {
+    const audio = createAudioContextMock('suspended');
+    const effects = new SoundEffects();
+    setAudioConstructors(audio.constructor);
 
-      setAudioConstructors(mockAudio.constructor);
+    await effects.unlock();
 
-      await expect(effects.unlock()).resolves.toBeUndefined();
-
-      expect(mockAudio.context.resume).toHaveBeenCalledOnce();
-    });
+    expect(audio.context.resume).toHaveBeenCalledOnce();
   });
 
-  describe('sound effect timing', () => {
-    it('should handle setTimeout calls in sound effects', async () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
+  it('recreates a closed context', async () => {
+    const audio = createAudioContextMock('closed');
+    const effects = new SoundEffects();
+    setAudioConstructors(audio.constructor);
 
-      await soundEffects.columnSelect();
+    await effects.unlock();
 
-      expect(setTimeoutSpy).toHaveBeenCalled();
+    expect(audio.constructor).toHaveBeenCalledTimes(2);
+  });
 
-      setTimeoutSpy.mockRestore();
+  it('supports the prefixed WebKit constructor', async () => {
+    const audio = createAudioContextMock();
+    const effects = new SoundEffects();
+    setAudioConstructors(undefined, audio.constructor);
+
+    await effects.pieceMove();
+
+    expect(audio.constructor).toHaveBeenCalledOnce();
+  });
+
+  it('handles unavailable and failing audio contexts', async () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const unavailable = new SoundEffects();
+    await expect(unavailable.pieceMove()).resolves.toBeUndefined();
+
+    const constructor = vi.fn(() => {
+      throw new Error('Unavailable');
     });
+    setAudioConstructors(constructor);
+
+    await expect(new SoundEffects().pieceMove()).resolves.toBeUndefined();
+    expect(constructor).toHaveBeenCalledOnce();
+    expect(warning).toHaveBeenCalledWith('Web Audio API is not available:', expect.any(Error));
+    warning.mockRestore();
+  });
+
+  it('schedules complete win and loss sequences', async () => {
+    vi.useFakeTimers();
+    const audio = createAudioContextMock();
+    const effects = new SoundEffects();
+    setAudioConstructors(audio.constructor);
+
+    effects.gameWin();
+    effects.gameLoss();
+    effects.winAnimation();
+    await vi.runAllTimersAsync();
+
+    expect(audio.oscillator.start).toHaveBeenCalledTimes(22);
   });
 });

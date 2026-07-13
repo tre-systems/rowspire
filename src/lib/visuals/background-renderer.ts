@@ -57,7 +57,6 @@ function drawShapes(ctx: CanvasRenderingContext2D, shapes: Shape[]) {
 
 function drawShape(ctx: CanvasRenderingContext2D, shape: Shape) {
   const pulseScale = 1 + Math.sin(shape.pulse) * 0.2;
-  const currentSize = shape.size * pulseScale;
 
   ctx.save();
   ctx.globalAlpha = shape.opacity * shape.life;
@@ -67,66 +66,66 @@ function drawShape(ctx: CanvasRenderingContext2D, shape: Shape) {
   ctx.translate(shape.x, shape.y);
   ctx.rotate(shape.rotation);
   ctx.scale(pulseScale, pulseScale);
-  drawShapeBody(ctx, shape, currentSize);
+  drawShapeBody(ctx, shape, shape.size);
   ctx.restore();
 }
 
-function drawShapeBody(ctx: CanvasRenderingContext2D, shape: Shape, currentSize: number) {
+function drawShapeBody(ctx: CanvasRenderingContext2D, shape: Shape, size: number) {
   switch (shape.type) {
     case 'circle':
-      drawCircle(ctx, shape, currentSize);
+      drawCircle(ctx, shape, size);
       break;
     case 'square':
-      ctx.strokeRect(-currentSize / 2, -currentSize / 2, currentSize, currentSize);
+      ctx.strokeRect(-size / 2, -size / 2, size, size);
       break;
     case 'triangle':
-      drawTriangle(ctx, currentSize);
+      drawTriangle(ctx, size);
       break;
     case 'line':
-      drawLineShape(ctx, currentSize);
+      drawLineShape(ctx, size);
       break;
     case 'star':
-      drawStar(ctx, currentSize);
+      drawStar(ctx, size);
       break;
   }
 }
 
-function drawCircle(ctx: CanvasRenderingContext2D, shape: Shape, currentSize: number) {
-  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, currentSize / 2);
+function drawCircle(ctx: CanvasRenderingContext2D, shape: Shape, size: number) {
+  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size / 2);
 
   gradient.addColorStop(0, shape.color);
   gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.arc(0, 0, currentSize / 2, 0, Math.PI * 2);
+  ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = shape.color;
   ctx.lineWidth = 1;
   ctx.stroke();
 }
 
-function drawTriangle(ctx: CanvasRenderingContext2D, currentSize: number) {
+function drawTriangle(ctx: CanvasRenderingContext2D, size: number) {
   ctx.beginPath();
-  ctx.moveTo(0, -currentSize / 2);
-  ctx.lineTo(-currentSize / 2, currentSize / 2);
-  ctx.lineTo(currentSize / 2, currentSize / 2);
+  ctx.moveTo(0, -size / 2);
+  ctx.lineTo(-size / 2, size / 2);
+  ctx.lineTo(size / 2, size / 2);
   ctx.closePath();
   ctx.stroke();
 }
 
-function drawLineShape(ctx: CanvasRenderingContext2D, currentSize: number) {
+function drawLineShape(ctx: CanvasRenderingContext2D, size: number) {
   ctx.beginPath();
-  ctx.moveTo(-currentSize / 2, 0);
-  ctx.lineTo(currentSize / 2, 0);
+  ctx.moveTo(-size / 2, 0);
+  ctx.lineTo(size / 2, 0);
   ctx.stroke();
 }
 
-function drawStar(ctx: CanvasRenderingContext2D, currentSize: number) {
+function drawStar(ctx: CanvasRenderingContext2D, size: number) {
   ctx.beginPath();
   for (let i = 0; i < 5; i++) {
     const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-    const x = (Math.cos(angle) * currentSize) / 2;
-    const y = (Math.sin(angle) * currentSize) / 2;
+    const x = (Math.cos(angle) * size) / 2;
+    const y = (Math.sin(angle) * size) / 2;
 
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);

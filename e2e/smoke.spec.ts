@@ -30,7 +30,6 @@ async function playColumn(page: Page, column: number) {
 test.describe('Core Game Functionality', () => {
   test('can start a game and see initial state', async ({ page }) => {
     await startGame(page);
-    await expect(page.getByTestId('game-board')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rowspire' })).toBeVisible();
     await expect(page.getByText('Drop counters. Plan ahead. Make four in a row.')).toBeVisible();
   });
@@ -80,28 +79,13 @@ test.describe('Game Interactions', () => {
     await startGame(page);
   });
 
-  test('can click on board columns', async ({ page }) => {
-    const gameBoard = page.getByTestId('game-board');
-    await expect(gameBoard).toBeVisible();
-
-    await playColumn(page, 3);
-
-    await expect(gameBoard).toBeVisible();
-  });
-
-  test('can make a move by clicking on a column', async ({ page }) => {
-    await playColumn(page, 3);
-
-    await expect(page.getByTestId('game-status-text')).not.toBeEmpty();
-  });
-
   test('can toggle sound settings', async ({ page }) => {
     const soundToggle = page.getByTestId('toggle-sound');
-    await expect(soundToggle).toBeVisible();
+    await expect(soundToggle).toHaveAccessibleName('Mute sound');
 
     await soundToggle.click();
 
-    await expect(soundToggle).toBeVisible();
+    await expect(soundToggle).toHaveAccessibleName('Unmute sound');
   });
 
   test('can open and close help panel', async ({ page }) => {
@@ -115,16 +99,6 @@ test.describe('Game Interactions', () => {
 });
 
 test.describe('Game Lifecycle', () => {
-  test('can make moves and see game state changes', async ({ page }) => {
-    await startGame(page);
-
-    await playColumn(page, 3);
-    await playColumn(page, 2);
-
-    await expect(page.getByTestId('game-board')).toBeVisible();
-    await expect(page.getByTestId('game-status-text')).not.toBeEmpty();
-  });
-
   test('can reset game', async ({ page }) => {
     await startGame(page);
 

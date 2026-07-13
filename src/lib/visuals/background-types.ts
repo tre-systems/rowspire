@@ -1,9 +1,9 @@
-export interface Point {
+interface Point {
   x: number;
   y: number;
 }
 
-export interface BaseEntity {
+interface BaseEntity {
   opacity: number;
   color: string;
   life: number;
@@ -11,7 +11,7 @@ export interface BaseEntity {
   targetOpacity: number;
 }
 
-export type ShapeType = 'line' | 'circle' | 'triangle' | 'square' | 'star';
+type ShapeType = 'line' | 'circle' | 'triangle' | 'square' | 'star';
 
 export interface Shape extends BaseEntity {
   type: ShapeType;

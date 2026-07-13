@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createGameStore, useGameStore, type GameStoreDependencies } from '../game-store';
+import { useGameStore } from '../game-store';
 import { emptyGameState } from '../game-store-state';
 import { initializeWASMAI } from '../wasm-ai-service';
 import type * as AILogic from '../logic/ai-logic';
 
 const { calculateAIMove } = vi.hoisted(() => ({
   calculateAIMove: vi.fn<() => Promise<number>>(),
+}));
+
+vi.mock('../wasm-ai-service', () => ({
+  initializeWASMAI: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../logic/ai-logic', async () => {
@@ -31,55 +35,6 @@ describe('Game Store', () => {
       player2AI: 'search',
       gameMode: 'human-vs-ai',
     }));
-  });
-
-  it('supports deterministic injected application ports', async () => {
-    const random = vi.fn(() => 0.25);
-    const chooseMove = vi.fn().mockResolvedValue(4);
-    const dependencies: GameStoreDependencies = {
-      ai: { initialize: vi.fn().mockResolvedValue(undefined), chooseMove },
-      wait: vi.fn().mockResolvedValue(undefined),
-      random,
-      reportError: vi.fn(),
-    };
-    const store = createGameStore(dependencies);
-    store.getState().actions.startGame();
-
-    expect(random).toHaveBeenCalledOnce();
-    expect(store.getState().gameState.currentPlayer).toBe('player1');
-
-    store.setState(state => {
-      state.gameState = playingGame();
-      state.gameState.currentPlayer = 'player2';
-    });
-
-    await store.getState().actions.makeAIMove();
-
-    expect(chooseMove).toHaveBeenCalledWith(expect.any(Object), 'search', random);
-    expect(store.getState().pendingMove?.column).toBe(4);
-  });
-
-  it('reports AI failures through the injected error port', async () => {
-    const reportError = vi.fn();
-    const dependencies: GameStoreDependencies = {
-      ai: {
-        initialize: vi.fn().mockResolvedValue(undefined),
-        chooseMove: vi.fn().mockRejectedValue(new Error('offline')),
-      },
-      wait: vi.fn().mockResolvedValue(undefined),
-      random: Math.random,
-      reportError,
-    };
-    const store = createGameStore(dependencies);
-    store.setState(state => {
-      state.gameState = playingGame();
-      state.gameState.currentPlayer = 'player2';
-    });
-
-    await store.getState().actions.makeAIMove();
-
-    expect(reportError).toHaveBeenCalledWith('AI calculation failed: offline.');
-    expect(store.getState().aiThinking).toBe(false);
   });
 
   afterEach(() => {
@@ -108,6 +63,17 @@ describe('Game Store', () => {
     expect(state.pendingMove).toBeNull();
     expect(state.gameState.board[3]?.[5]).toBe('player1');
     expect(state.gameState.currentPlayer).toBe('player2');
+  });
+
+  it('discards a pending move from a stale turn', () => {
+    useGameStore.setState(state => {
+      state.pendingMove = { column: 3, player: 'player2', source: 'ai' };
+    });
+
+    useGameStore.getState().actions.completeMove();
+
+    expect(useGameStore.getState().pendingMove).toBeNull();
+    expect(useGameStore.getState().gameState.history).toHaveLength(0);
   });
 
   it('ignores invalid, occupied, and duplicate human moves', () => {
@@ -187,5 +153,31 @@ describe('Game Store', () => {
     expect(state.aiThinking).toBe(false);
     expect(state.pendingMove).toBeNull();
     expect(state.showWinnerModal).toBe(false);
+  });
+
+  it('updates game preferences through typed actions', () => {
+    const { actions } = useGameStore.getState();
+    actions.setAI('ml');
+    actions.setPlayer1AI('ml');
+    actions.setPlayer2AI('search');
+    actions.setGameMode('ai-vs-ai');
+
+    const state = useGameStore.getState();
+    expect(state.selectedAI).toBe('ml');
+    expect(state.player1AI).toBe('ml');
+    expect(state.player2AI).toBe('search');
+    expect(state.gameMode).toBe('ai-vs-ai');
+  });
+
+  it('shows completion only for a finished game', () => {
+    useGameStore.getState().actions.showWinnerModal();
+    expect(useGameStore.getState().showWinnerModal).toBe(false);
+
+    useGameStore.setState(state => {
+      state.gameState.gameStatus = 'finished';
+    });
+    useGameStore.getState().actions.showWinnerModal();
+
+    expect(useGameStore.getState().showWinnerModal).toBe(true);
   });
 });

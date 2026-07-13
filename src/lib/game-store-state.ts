@@ -8,11 +8,12 @@ import {
   type PendingMove,
   type PersistedGameStore,
 } from './types';
+import { createEmptyBoard } from './logic/board-logic';
 
 export const LATEST_VERSION = 4;
 
 export const emptyGameState = (): GameState => ({
-  board: Array.from({ length: 7 }, () => Array.from({ length: 6 }, () => null)),
+  board: createEmptyBoard(),
   currentPlayer: 'player1',
   gameStatus: 'not_started',
   winner: null,
@@ -20,7 +21,7 @@ export const emptyGameState = (): GameState => ({
   winningLine: null,
 });
 
-export const defaultPersistedState = (): PersistedGameStore => ({
+const defaultPersistedState = (): PersistedGameStore => ({
   gameState: emptyGameState(),
   selectedAI: 'search',
   player1AI: 'search',
@@ -34,11 +35,11 @@ export function parsePersistedState(value: unknown): PersistedGameStore {
 
   const state = value as Record<string, unknown>;
   return {
-    gameState: GameStateSchema.safeParse(state.gameState).data ?? defaults.gameState,
-    selectedAI: AITypeSchema.safeParse(state.selectedAI).data ?? defaults.selectedAI,
-    player1AI: AITypeSchema.safeParse(state.player1AI).data ?? defaults.player1AI,
-    player2AI: AITypeSchema.safeParse(state.player2AI).data ?? defaults.player2AI,
-    gameMode: GameModeSchema.safeParse(state.gameMode).data ?? defaults.gameMode,
+    gameState: GameStateSchema.safeParse(state['gameState']).data ?? defaults.gameState,
+    selectedAI: AITypeSchema.safeParse(state['selectedAI']).data ?? defaults.selectedAI,
+    player1AI: AITypeSchema.safeParse(state['player1AI']).data ?? defaults.player1AI,
+    player2AI: AITypeSchema.safeParse(state['player2AI']).data ?? defaults.player2AI,
+    gameMode: GameModeSchema.safeParse(state['gameMode']).data ?? defaults.gameMode,
   };
 }
 

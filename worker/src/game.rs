@@ -71,7 +71,11 @@ impl GameState {
     }
 
     pub fn with_first_player(current_player: Player) -> Self {
-        Self::with_genetic_params_and_first_player(GeneticParams::default(), current_player)
+        Self {
+            board: [[Cell::Empty; ROWS]; COLS],
+            current_player,
+            genetic_params: GeneticParams::default(),
+        }
     }
 
     pub fn new_random_first_player() -> Self {
@@ -80,35 +84,6 @@ impl GameState {
 
     pub fn new_random_first_player_with_rng(rng: &mut impl Rng) -> Self {
         Self::with_first_player(random_player(rng))
-    }
-
-    pub fn with_genetic_params(genetic_params: GeneticParams) -> Self {
-        Self::with_genetic_params_random_first_player(genetic_params)
-    }
-
-    pub fn with_genetic_params_random_first_player(genetic_params: GeneticParams) -> Self {
-        Self::with_genetic_params_random_first_player_with_rng(
-            genetic_params,
-            &mut rand::thread_rng(),
-        )
-    }
-
-    pub fn with_genetic_params_random_first_player_with_rng(
-        genetic_params: GeneticParams,
-        rng: &mut impl Rng,
-    ) -> Self {
-        Self::with_genetic_params_and_first_player(genetic_params, random_player(rng))
-    }
-
-    pub fn with_genetic_params_and_first_player(
-        genetic_params: GeneticParams,
-        current_player: Player,
-    ) -> Self {
-        Self {
-            board: [[Cell::Empty; ROWS]; COLS],
-            current_player,
-            genetic_params,
-        }
     }
 }
 

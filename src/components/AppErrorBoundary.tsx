@@ -5,17 +5,17 @@ type Props = { children: ReactNode };
 type State = { failed: boolean };
 
 export default class AppErrorBoundary extends Component<Props, State> {
-  state: State = { failed: false };
+  override state: State = { failed: false };
 
   static getDerivedStateFromError(): State {
     return { failed: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     captureException(error, { componentStack: errorInfo.componentStack });
   }
 
-  render() {
+  override render() {
     if (!this.state.failed) return this.props.children;
 
     return (

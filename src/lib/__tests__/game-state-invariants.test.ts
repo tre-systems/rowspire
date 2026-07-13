@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { checkWin, initializeGame, makeMove } from '../game-logic';
-import { GameStateSchema, WinningLineSchema } from '../schemas';
-import type { Board, GameState, Player } from '../types';
+import {
+  GameStateSchema,
+  WinningLineSchema,
+  type Board,
+  type GameState,
+  type Player,
+} from '../types';
 
 function playMoves(columns: number[], random: () => number = () => 0): GameState {
   return columns.reduce(makeMove, initializeGame(random));

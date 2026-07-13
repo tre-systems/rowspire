@@ -1,17 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
-
-echo "🤖 Running AI Comparison Tests..."
-
-echo "🔨 Building Rust AI core..."
-cd worker
-cargo build
-cd ..
-
-echo "🧪 Running AI Matrix Test..."
-cd worker
-cargo test test_ai_matrix -- --ignored --nocapture
-cd ..
-
-echo "✅ AI Comparison Tests Complete!"
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$ROOT/worker"
+exec caffeinate -dimsu cargo test --locked --test ai_matrix_test test_ai_matrix -- --ignored --exact --nocapture

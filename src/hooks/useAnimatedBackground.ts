@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { BackgroundEffects } from '../lib/visuals/background-effects';
+import { BackgroundEffects } from '@/lib/visuals/background-effects';
 
 const FRAME_DURATION = 1000 / 60;
 
@@ -33,7 +33,7 @@ export function useAnimatedBackground() {
     };
 
     const animate = (time: number) => {
-      const step = (time - previousTime) / FRAME_DURATION;
+      const step = Math.min((time - previousTime) / FRAME_DURATION, 3);
       previousTime = time;
       effects.update(step);
       draw();

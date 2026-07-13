@@ -3,12 +3,15 @@ type AudioWindow = Window & {
   webkitAudioContext?: typeof AudioContext;
 };
 
+type Tone = readonly [frequency: number, duration: number, type?: OscillatorType, volume?: number];
+
 export class SoundEffects {
   private audioContext: AudioContext | null = null;
   private enabled = true;
   private hasWarned = false;
 
   async unlock() {
+    if (!this.enabled) return;
     await this.ensureAudioContext();
   }
 
@@ -93,82 +96,47 @@ export class SoundEffects {
     }
   }
 
-  private async playChord(
-    frequencies: number[],
-    duration: number,
-    type: OscillatorType = 'sine',
-    volume = 0.05,
-  ) {
-    await Promise.all(frequencies.map(freq => this.playTone(freq, duration, type, volume)));
-  }
-
-  async columnSelect() {
-    for (let i = 0; i < 4; i++) {
-      setTimeout(() => {
-        this.playTone(200 + Math.random() * 100, 0.1, 'square', 0.05);
-      }, i * 50);
-    }
-  }
-
   async pieceMove() {
     await this.playTone(523.25, 0.2, 'sine', 0.08);
   }
 
-  async specialLanding() {
-    const frequencies = [523.25, 659.25, 783.99];
-    await this.playChord(frequencies, 0.5, 'sine', 0.06);
-  }
+  private scheduleTones(tones: readonly Tone[], interval: number, initialDelay = 0) {
+    if (!this.enabled) return;
 
-  async gameWin() {
-    const melody = [523.25, 659.25, 783.99, 1046.5];
-    melody.forEach((freq, i) => {
-      setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.1), i * 200);
-    });
-  }
-
-  async winAnimation() {
-    const sequence = [
-      { freq: 523.25, duration: 0.2, type: 'sine' as OscillatorType },
-      { freq: 659.25, duration: 0.2, type: 'sine' as OscillatorType },
-      { freq: 783.99, duration: 0.2, type: 'sine' as OscillatorType },
-      { freq: 1046.5, duration: 0.3, type: 'sine' as OscillatorType },
-      { freq: 1318.5, duration: 0.3, type: 'sine' as OscillatorType },
-      { freq: 1567.98, duration: 0.4, type: 'sine' as OscillatorType },
-    ];
-
-    sequence.forEach((note, i) => {
-      setTimeout(() => {
-        this.playTone(note.freq, note.duration, note.type, 0.08 + i * 0.02);
-      }, i * 150);
-    });
-
-    for (let i = 0; i < 8; i++) {
+    tones.forEach(([frequency, duration, type = 'sine', volume = 0.1], index) => {
       setTimeout(
-        () => {
-          this.playTone(800 + Math.random() * 400, 0.1, 'triangle', 0.03);
-        },
-        900 + i * 100,
+        () => void this.playTone(frequency, duration, type, volume),
+        initialDelay + index * interval,
       );
-    }
-  }
-
-  async gameLoss() {
-    const melody = [523.25, 493.88, 440, 392];
-    melody.forEach((freq, i) => {
-      setTimeout(() => this.playTone(freq, 0.4, 'sine', 0.08), i * 150);
     });
   }
 
-  async aiThinking() {
-    for (let i = 0; i < 3; i++) {
-      setTimeout(() => {
-        this.playTone(400 + i * 50, 0.1, 'sine', 0.03);
-      }, i * 300);
-    }
+  gameWin() {
+    this.scheduleTones(
+      [523.25, 659.25, 783.99, 1046.5].map(frequency => [frequency, 0.3] as Tone),
+      200,
+    );
   }
 
-  async buttonClick() {
-    await this.playTone(800, 0.1, 'square', 0.05);
+  winAnimation() {
+    const melody = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98].map(
+      (frequency, index) =>
+        [frequency, index < 3 ? 0.2 : index < 5 ? 0.3 : 0.4, 'sine', 0.08 + index * 0.02] as Tone,
+    );
+    const sparkle = Array.from(
+      { length: 8 },
+      () => [800 + Math.random() * 400, 0.1, 'triangle', 0.03] as Tone,
+    );
+
+    this.scheduleTones(melody, 150);
+    this.scheduleTones(sparkle, 100, 900);
+  }
+
+  gameLoss() {
+    this.scheduleTones(
+      [523.25, 493.88, 440, 392].map(frequency => [frequency, 0.4, 'sine', 0.08] as Tone),
+      150,
+    );
   }
 
   toggle() {

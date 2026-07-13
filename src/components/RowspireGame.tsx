@@ -1,11 +1,10 @@
-import { useState, useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { useGameStore, useGameState, useGameActions } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
 import { useUIStore } from '@/lib/ui-store';
 import { APP_TAGLINE } from '@/lib/brand';
-import { useHydrated } from '@/hooks/useHydrated';
 import GameBoard from './GameBoard';
 import AnimatedBackground from './AnimatedBackground';
 import HowToPlayPanel from './HowToPlayPanel';
@@ -34,6 +33,14 @@ function subscribeStandalone(callback: () => void) {
   };
 }
 
+function openCompactWindow() {
+  window.open(
+    '/',
+    'RowspireCompactWindow',
+    'width=420,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no',
+  );
+}
+
 export default function RowspireGame() {
   const gameState = useGameState();
   const { makeAIMove, reset, startGame } = useGameActions();
@@ -44,7 +51,6 @@ export default function RowspireGame() {
 
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
-  const isMounted = useHydrated();
   const isStandalone = useSyncExternalStore(subscribeStandalone, isStandalonePWA, () => false);
   const showAISelection = gameState.gameStatus === 'not_started';
 
@@ -80,10 +86,6 @@ export default function RowspireGame() {
     return undefined;
   }, [gameState.gameStatus, gameState.winner]);
 
-  const handleReset = () => {
-    reset();
-  };
-
   const toggleSound = () => {
     const newState = soundEffects.toggle();
     setSoundEnabled(newState);
@@ -91,14 +93,6 @@ export default function RowspireGame() {
     if (newState) {
       void soundEffects.unlock();
     }
-  };
-
-  const handleShowHowToPlay = () => {
-    setShowHowToPlay(true);
-  };
-
-  const handleCloseHowToPlay = () => {
-    setShowHowToPlay(false);
   };
 
   const handleStartGame = () => {
@@ -109,6 +103,8 @@ export default function RowspireGame() {
     startGame();
   };
 
+  const closeHowToPlay = () => setShowHowToPlay(false);
+
   return (
     <>
       <AppLinks mode="floating" />
@@ -117,19 +113,14 @@ export default function RowspireGame() {
         {!isStandalone && (
           <div className="hidden md:block absolute top-4 right-4 z-50">
             <button
-              onClick={() => {
-                window.open(
-                  '/',
-                  'RowspireCompactWindow',
-                  'width=420,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no',
-                );
-              }}
+              type="button"
+              onClick={openCompactWindow}
               className="compact-button"
-              title="Open Compact Window"
+              title="Open compact window"
               data-testid="compact-window-button"
             >
-              <ExternalLink className="w-4 h-4 mr-1" />
-              <span>Compact Window</span>
+              <ExternalLink className="mr-1 h-4 w-4" aria-hidden="true" />
+              <span>Compact window</span>
             </button>
           </div>
         )}
@@ -160,19 +151,13 @@ export default function RowspireGame() {
               data-testid="game-stage"
             >
               <BrandHeader tagline={APP_TAGLINE} />
-              {import.meta.env.DEV && isMounted && (
-                <div className="mb-2 text-center text-xs text-gray-500">
-                  Status: {gameState.gameStatus} | Player: {gameState.currentPlayer} | AI Thinking:{' '}
-                  {aiThinking ? 'Yes' : 'No'}
-                </div>
-              )}
               <GameBoard
                 gameState={gameState}
                 aiThinking={aiThinking}
-                onResetGame={handleReset}
+                onResetGame={reset}
                 soundEnabled={soundEnabled}
                 onToggleSound={toggleSound}
-                onShowHowToPlay={handleShowHowToPlay}
+                onShowHowToPlay={() => setShowHowToPlay(true)}
                 watchMode={gameMode === 'ai-vs-ai'}
                 gameMode={gameMode}
               />
@@ -182,7 +167,7 @@ export default function RowspireGame() {
         </AnimatePresence>
       </div>
 
-      <HowToPlayPanel isOpen={showHowToPlay} onClose={handleCloseHowToPlay} />
+      <HowToPlayPanel isOpen={showHowToPlay} onClose={closeHowToPlay} />
       <ErrorModal isOpen={errorModal.isOpen} onClose={hideError} error={errorModal.error} />
     </>
   );

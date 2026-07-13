@@ -1,7 +1,12 @@
 import { motion } from 'framer-motion';
 import { ArrowUpRight, type LucideIcon } from 'lucide-react';
-import type { AIType } from '../lib/types';
+import type { AIType } from '@/lib/types';
 import { MOTION } from '@/lib/visuals/motion';
+
+const CARD_VARIANTS = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
 
 interface AISelectionCardProps {
   aiType: AIType;
@@ -10,7 +15,7 @@ interface AISelectionCardProps {
   subtitle: string;
   onClick: () => void;
   icon: LucideIcon;
-  'data-testid'?: string;
+  'data-testid': string;
 }
 
 export default function AISelectionCard({
@@ -24,9 +29,10 @@ export default function AISelectionCard({
 }: AISelectionCardProps) {
   return (
     <motion.button
+      type="button"
       onClick={onClick}
       className={`ai-card ai-card--${aiType}`}
-      variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+      variants={CARD_VARIANTS}
       transition={MOTION.entrance}
       whileHover={{ y: -6, scale: 1.01 }}
       whileTap={{ scale: 0.985 }}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { GameStateSchema, MoveRecordSchema, PendingMoveSchema } from '../schemas';
 import { initializeGame, makeMove } from '../game-logic';
 import { parsePersistedState } from '../game-store-state';
+import { GameStateSchema, MoveRecordSchema, PendingMoveSchema } from '../types';
 
 function playMoves(columns: number[]) {
   return columns.reduce(

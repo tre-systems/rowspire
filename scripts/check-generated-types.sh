@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$ROOT"
 backup=$(mktemp)
 cp src/lib/bindings.ts "$backup"
 restore() {
@@ -9,7 +11,7 @@ restore() {
 }
 trap restore EXIT
 
-./scripts/generate-types.sh >/dev/null
+"$ROOT/scripts/generate-types.sh" >/dev/null
 if ! cmp -s "$backup" src/lib/bindings.ts; then
   diff -u "$backup" src/lib/bindings.ts || true
   echo "Generated Rust bindings are stale. Run npm run generate:types."

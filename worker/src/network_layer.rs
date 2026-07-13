@@ -70,26 +70,29 @@ impl Layer {
         (activated, linear)
     }
 
-    pub fn load_weights(&mut self, weights: &[f32]) -> usize {
-        let mut index = 0;
+    pub fn weight_count(&self) -> usize {
+        self.weights.len() + self.biases.len()
+    }
 
-        for row in 0..self.weights.shape()[0] {
-            for column in 0..self.weights.shape()[1] {
-                if let Some(weight) = weights.get(index) {
-                    self.weights[[row, column]] = *weight;
-                    index += 1;
-                }
-            }
+    pub fn load_weights(&mut self, weights: &[f32]) -> Result<(), String> {
+        let expected = self.weight_count();
+        if weights.len() != expected {
+            return Err(format!(
+                "layer weight count mismatch: expected {expected}, received {}",
+                weights.len()
+            ));
         }
 
-        for bias in &mut self.biases {
-            if let Some(value) = weights.get(index) {
-                *bias = *value;
-                index += 1;
-            }
+        let matrix_size = self.weights.len();
+        for (target, source) in self.weights.iter_mut().zip(weights) {
+            *target = *source;
         }
 
-        index
+        for (target, source) in self.biases.iter_mut().zip(&weights[matrix_size..]) {
+            *target = *source;
+        }
+
+        Ok(())
     }
 
     pub fn get_weights(&self) -> Vec<f32> {

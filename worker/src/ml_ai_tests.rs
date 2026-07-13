@@ -15,12 +15,12 @@ fn seeded_initialization_is_reproducible() {
     let second = MLAI::new_with_seed(42);
 
     assert_eq!(
-        first.value_network.save_weights(),
-        second.value_network.save_weights()
+        first.value_network.get_weights(),
+        second.value_network.get_weights()
     );
     assert_eq!(
-        first.policy_network.save_weights(),
-        second.policy_network.save_weights()
+        first.policy_network.get_weights(),
+        second.policy_network.get_weights()
     );
 }
 
@@ -65,4 +65,24 @@ fn move_evaluations_are_sorted() {
         .move_evaluations
         .windows(2)
         .all(|moves| moves[0].score >= moves[1].score));
+}
+
+#[test]
+fn rejects_incomplete_weight_sets() {
+    let mut ai = MLAI::new_with_seed(42);
+
+    assert_eq!(
+        ai.load_weights(&[0.0], &[0.0]).unwrap_err(),
+        "value network weight count mismatch: expected 62593, received 1"
+    );
+}
+
+#[test]
+fn weight_loading_is_atomic() {
+    let mut ai = MLAI::new_with_seed(42);
+    let original = ai.value_network.get_weights();
+    let (value_count, _) = expected_weight_counts();
+
+    assert!(ai.load_weights(&vec![0.0; value_count], &[0.0]).is_err());
+    assert_eq!(ai.value_network.get_weights(), original);
 }

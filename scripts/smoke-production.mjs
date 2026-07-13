@@ -1,4 +1,5 @@
 const origin = 'https://rowspire.com';
+const requestTimeout = 10_000;
 const checks = [
   {
     path: '/',
@@ -15,7 +16,10 @@ async function waitFor(check) {
   let detail = 'No response';
   for (let attempt = 1; attempt <= 10; attempt += 1) {
     try {
-      const response = await fetch(`${origin}${check.path}`, { cache: 'no-store' });
+      const response = await fetch(`${origin}${check.path}`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(requestTimeout),
+      });
       const body = check.includes ? await response.text() : '';
       const contentType = response.headers.get('content-type') ?? '';
       const validHeader =
@@ -40,9 +44,11 @@ async function waitFor(check) {
 
 for (const check of checks) await waitFor(check);
 
-const redirect = await fetch('https://rowspire.net', { redirect: 'manual' });
+const redirect = await fetch('https://rowspire.net', {
+  redirect: 'manual',
+  signal: AbortSignal.timeout(requestTimeout),
+});
 if (redirect.status !== 301 || redirect.headers.get('location') !== `${origin}/`) {
   throw new Error('Canonical host redirect smoke check failed');
 }
 console.log('Canonical host redirect smoke check passed');
-process.exit(0);

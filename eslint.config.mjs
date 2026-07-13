@@ -56,10 +56,8 @@ export default tseslint.config(
     ignores: [
       '.wrangler/**',
       'node_modules/**',
-      '*.config.mjs',
       'worker-configuration.d.ts',
       'public/**',
-      'src/lib/wasm/**',
       'out/**',
       'coverage/**',
       'test-results/**',
@@ -68,7 +66,7 @@ export default tseslint.config(
     ],
   },
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.strict,
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
@@ -103,6 +101,8 @@ export default tseslint.config(
         { fixStyle: 'inline-type-imports', prefer: 'type-imports' },
       ],
       '@typescript-eslint/no-import-type-side-effects': 'error',
+      '@typescript-eslint/no-shadow': 'error',
+      'no-duplicate-imports': 'error',
       'no-restricted-syntax': [
         'error',
         {
@@ -117,6 +117,11 @@ export default tseslint.config(
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/lib/types.ts', 'src/lib/__tests__/**'],
     rules: {
+      'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': [
+        'error',
+        { max: 120, skipBlankLines: true, skipComments: true, IIFEs: true },
+      ],
       'no-restricted-imports': [
         'error',
         {
@@ -166,7 +171,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['*.config.mjs', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

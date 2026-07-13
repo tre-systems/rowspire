@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 import type { Player, GameState } from '@/lib/types';
 import { useGameActions, useGameStore } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
@@ -19,9 +19,9 @@ interface DroppingPiece {
 
 export function useGameAnimations(
   gameState: GameState,
-  boardRef: React.RefObject<HTMLDivElement | null>,
+  boardRef: RefObject<HTMLDivElement | null>,
 ) {
-  const [celebrations, setCelebrations] = useState<Celebration[]>([]);
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
 
   const actions = useGameActions();
@@ -31,39 +31,25 @@ export function useGameAnimations(
     if (gameState.gameStatus === 'finished' && gameState.winner) {
       const winner = gameState.winner;
       const boardRect = boardRef.current?.getBoundingClientRect();
-      const timers: number[] = [];
+      const animationFrame = requestAnimationFrame(() => {
+        if (boardRect) {
+          setCelebration({
+            id: `celebration-${Date.now()}-${winner}`,
+            position: {
+              x: boardRect.left + boardRect.width / 2,
+              y: boardRect.top + boardRect.height / 2,
+            },
+            player: winner,
+          });
+        }
 
-      if (boardRect) {
-        timers.push(
-          window.setTimeout(() => {
-            setCelebrations(prevCelebrations => [
-              ...prevCelebrations,
-              {
-                id: `celebration-${Date.now()}-${winner}`,
-                position: {
-                  x: boardRect.left + boardRect.width / 2,
-                  y: boardRect.top + boardRect.height / 2,
-                },
-                player: winner,
-              },
-            ]);
-          }, 0),
-        );
-      }
+        setShowWinAnimation(Boolean(gameState.winningLine));
+      });
 
-      if (gameState.winningLine) {
-        timers.push(
-          window.setTimeout(() => {
-            setShowWinAnimation(true);
-          }, 0),
-        );
-        soundEffects.winAnimation();
-      }
+      if (gameState.winningLine) soundEffects.winAnimation();
 
       return () => {
-        timers.forEach(timer => {
-          window.clearTimeout(timer);
-        });
+        cancelAnimationFrame(animationFrame);
       };
     }
 
@@ -71,30 +57,29 @@ export function useGameAnimations(
   }, [gameState.gameStatus, gameState.winner, gameState.winningLine, boardRef]);
 
   useEffect(() => {
-    if (celebrations.length === 0) return undefined;
+    if (!celebration) return undefined;
 
     const cleanupTimer = window.setTimeout(() => {
-      setCelebrations([]);
+      setCelebration(null);
     }, 3000);
 
     return () => window.clearTimeout(cleanupTimer);
-  }, [celebrations.length]);
+  }, [celebration]);
 
-  const droppingPieces: DroppingPiece[] = (() => {
-    if (!pendingMove) return [];
+  const droppingPiece: DroppingPiece | null = (() => {
+    if (!pendingMove) return null;
     const column = gameState.board[pendingMove.column];
-    if (!column) return [];
+    if (!column) return null;
 
     const row = column.lastIndexOf(null);
-    if (row === -1) return [];
-    return [
-      {
-        id: `drop-${pendingMove.player}-${pendingMove.column}-${row}`,
-        column: pendingMove.column,
-        row,
-        player: pendingMove.player,
-      },
-    ];
+    if (row === -1) return null;
+
+    return {
+      id: `drop-${pendingMove.player}-${pendingMove.column}-${row}`,
+      column: pendingMove.column,
+      row,
+      player: pendingMove.player,
+    };
   })();
 
   useEffect(() => {
@@ -119,8 +104,8 @@ export function useGameAnimations(
   };
 
   return {
-    celebrations,
-    droppingPieces,
+    celebration,
+    droppingPiece,
     showWinAnimation,
     handleWinAnimationComplete,
   };

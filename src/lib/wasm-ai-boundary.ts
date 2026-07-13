@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BOARD_COLUMNS, BOARD_ROWS } from './constants';
 import type {
   GameState as WasmGameState,
   GeneticParams,
@@ -33,7 +34,7 @@ export const GeneticParamsSchema: z.ZodType<GeneticParams> = z
 
 export const WasmGameStateSchema: z.ZodType<WasmGameState> = z
   .object({
-    board: z.array(z.array(CellSchema).length(6)).length(7),
+    board: z.array(z.array(CellSchema).length(BOARD_ROWS)).length(BOARD_COLUMNS),
     current_player: PlayerSchema,
     genetic_params: GeneticParamsSchema,
   })
@@ -41,7 +42,11 @@ export const WasmGameStateSchema: z.ZodType<WasmGameState> = z
 
 const MoveEvaluationSchema = z
   .object({
-    column: z.number().int().min(0).max(6),
+    column: z
+      .number()
+      .int()
+      .min(0)
+      .max(BOARD_COLUMNS - 1),
     score: z.number().finite(),
     moveType: z.string(),
   })
@@ -49,7 +54,12 @@ const MoveEvaluationSchema = z
 
 export const BestMoveResponseSchema: z.ZodType<WasmBestMoveResponse> = z
   .object({
-    move: z.number().int().min(0).max(6).nullable(),
+    move: z
+      .number()
+      .int()
+      .min(0)
+      .max(BOARD_COLUMNS - 1)
+      .nullable(),
     evaluations: z.array(MoveEvaluationSchema),
     nodesEvaluated: z.number().int().nonnegative(),
     transpositionHits: z.number().int().nonnegative(),
@@ -58,15 +68,26 @@ export const BestMoveResponseSchema: z.ZodType<WasmBestMoveResponse> = z
 
 export const MLResponseSchema: z.ZodType<WasmMLResponse> = z
   .object({
-    move: z.number().int().min(0).max(6).nullable(),
+    move: z
+      .number()
+      .int()
+      .min(0)
+      .max(BOARD_COLUMNS - 1)
+      .nullable(),
     evaluation: z.number().finite(),
     thinking: z.string(),
     diagnostics: z
       .object({
-        validMoves: z.array(z.number().int().min(0).max(6)),
+        validMoves: z.array(
+          z
+            .number()
+            .int()
+            .min(0)
+            .max(BOARD_COLUMNS - 1),
+        ),
         moveEvaluations: z.array(MoveEvaluationSchema),
         valueNetworkOutput: z.number().finite(),
-        policyNetworkOutputs: z.array(z.number().finite()).length(7),
+        policyNetworkOutputs: z.array(z.number().finite()).length(BOARD_COLUMNS),
       })
       .strict(),
   })

@@ -61,7 +61,9 @@ reportFailures();
 
 const probe = spawnSync('dot', ['-V'], { stdio: 'ignore' });
 if (probe.error || probe.status !== 0) {
-  console.log(`Diagram style passed (${dotFiles.length} diagrams); render skipped without Graphviz.`);
+  console.log(
+    `Diagram style passed (${dotFiles.length} diagrams); render skipped without Graphviz.`,
+  );
   process.exit(0);
 }
 

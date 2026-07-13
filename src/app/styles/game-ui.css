@@ -96,14 +96,6 @@
   color: #c4b5fd;
 }
 
-.game-status--green {
-  color: #86efac;
-}
-
-.game-status--pink {
-  color: #f9a8d4;
-}
-
 .game-status__matchup {
   min-height: 1rem;
   margin-top: 0.25rem;
@@ -118,7 +110,7 @@
   margin-left: 0.15rem;
 }
 
-.thinking-dots i {
+.thinking-dots > span {
   width: 0.25rem;
   height: 0.25rem;
   border-radius: 50%;
@@ -126,11 +118,11 @@
   animation: thinkingDot 720ms ease-in-out infinite alternate;
 }
 
-.thinking-dots i:nth-child(2) {
+.thinking-dots > span:nth-child(2) {
   animation-delay: 120ms;
 }
 
-.thinking-dots i:nth-child(3) {
+.thinking-dots > span:nth-child(3) {
   animation-delay: 240ms;
 }
 

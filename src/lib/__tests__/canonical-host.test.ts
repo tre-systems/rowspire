@@ -23,4 +23,8 @@ describe('getCanonicalRedirectUrl', () => {
       'https://rowspire.com/offline?source=old#install',
     );
   });
+
+  it('upgrades the canonical host to HTTPS', () => {
+    expect(getCanonicalRedirectUrl('http://rowspire.com/play')).toBe('https://rowspire.com/play');
+  });
 });

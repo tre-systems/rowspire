@@ -103,6 +103,14 @@
   --completion-rgb: var(--violet-rgb);
 }
 
+.completion-card--green {
+  --completion-rgb: 74, 222, 128;
+}
+
+.completion-card--gray {
+  --completion-rgb: 148, 163, 184;
+}
+
 .completion-icon {
   display: grid;
   width: 4.6rem;

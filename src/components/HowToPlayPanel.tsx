@@ -1,7 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Circle, Crown, Star, Trophy, X, Zap, type LucideIcon } from 'lucide-react';
+import { useDismissOnEscape } from '@/hooks/useDismissOnEscape';
 import { APP_NAME, LEGAL_DISCLAIMER } from '@/lib/brand';
 import { MOTION } from '@/lib/visuals/motion';
+
+type GuideEntry = {
+  title: string;
+  icon: LucideIcon;
+  tone: 'amber' | 'green' | 'teal' | 'violet';
+} & ({ body: string; items?: never } | { body?: never; items: readonly string[] });
 
 const GUIDE = [
   {
@@ -48,13 +55,7 @@ const GUIDE = [
     tone: 'violet',
     body: 'A four-counter line wins. A full grid without a winner is a draw.',
   },
-] satisfies ReadonlyArray<{
-  title: string;
-  icon: LucideIcon;
-  tone: string;
-  body?: string;
-  items?: readonly string[];
-}>;
+] satisfies readonly GuideEntry[];
 
 interface HowToPlayPanelProps {
   isOpen: boolean;
@@ -62,6 +63,8 @@ interface HowToPlayPanelProps {
 }
 
 export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps) {
+  useDismissOnEscape(isOpen, onClose);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -76,6 +79,9 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
         >
           <motion.div
             className="modal-card modal-card--scroll"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="how-to-play-title"
             initial={{ scale: 0.94, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.97, opacity: 0, y: 12 }}
@@ -85,10 +91,11 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
             <header className="modal-header">
               <div>
                 <span className="modal-eyebrow">Quick guide</span>
-                <h2>How to play {APP_NAME}</h2>
+                <h2 id="how-to-play-title">How to play {APP_NAME}</h2>
               </div>
               <motion.button
                 type="button"
+                autoFocus
                 className="modal-close"
                 onClick={onClose}
                 whileHover={{ scale: 1.06 }}

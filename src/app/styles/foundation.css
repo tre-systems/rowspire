@@ -6,7 +6,6 @@
   --violet: #a78bfa;
   --violet-rgb: 167, 139, 250;
   --surface: rgba(12, 17, 29, 0.82);
-  --surface-strong: rgba(18, 24, 38, 0.94);
   color-scheme: dark;
 }
 
@@ -45,6 +44,10 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 button:focus-visible,

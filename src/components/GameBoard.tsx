@@ -1,47 +1,47 @@
 import { useRef } from 'react';
-import type { GameState, GameMode } from '@/lib/types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useGameActions, useGameStore } from '@/lib/game-store';
+import { isHumanTurn } from '@/lib/game-state-machine';
+import { soundEffects } from '@/lib/sound-effects';
+import type { GameMode, GameState } from '@/lib/types';
+import { MOTION } from '@/lib/visuals/motion';
+import { useGameAnimations } from '@/hooks/useGameAnimations';
 
 import VictoryCelebration from './animations/VictoryCelebration';
 import WinningLineBurst from './animations/WinningLineBurst';
-import GameSquare from './game/GameSquare';
+import DroppingPiece from './game/DroppingPiece';
+import GameColumn from './game/GameColumn';
 import GameCompletionOverlay from './game/GameCompletionOverlay';
 import GameControls from './game/GameControls';
 import GameStatus from './game/GameStatus';
-import DroppingPiece from './game/DroppingPiece';
-import { useGameAnimations } from '@/hooks/useGameAnimations';
-import { soundEffects } from '@/lib/sound-effects';
-import { isHumanTurn } from '@/lib/game-state-machine';
-import { MOTION } from '@/lib/visuals/motion';
 
 interface GameBoardProps {
   gameState: GameState;
-  aiThinking?: boolean;
+  aiThinking: boolean;
   onResetGame: () => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
   onShowHowToPlay: () => void;
-  watchMode?: boolean;
-  gameMode?: GameMode;
+  watchMode: boolean;
+  gameMode: GameMode;
 }
 
 export default function GameBoard({
   gameState,
-  aiThinking = false,
+  aiThinking,
   onResetGame,
   soundEnabled,
   onToggleSound,
   onShowHowToPlay,
-  watchMode = false,
-  gameMode = 'human-vs-ai',
+  watchMode,
+  gameMode,
 }: GameBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const actions = useGameActions();
   const pendingMove = useGameStore(state => state.pendingMove);
   const showWinnerModal = useGameStore(state => state.showWinnerModal);
 
-  const { celebrations, droppingPieces, showWinAnimation, handleWinAnimationComplete } =
+  const { celebration, droppingPiece, showWinAnimation, handleWinAnimationComplete } =
     useGameAnimations(gameState, boardRef);
 
   const handleColumnClick = (column: number) => {
@@ -56,17 +56,18 @@ export default function GameBoard({
       ? gameState.winningLine.positions.map(pos => `${pos.column},${pos.row}`)
       : [],
   );
+  const canPlay = isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode;
 
   return (
     <>
       <AnimatePresence>
-        {celebrations.map(celebration => (
+        {celebration && (
           <VictoryCelebration
             key={celebration.id}
             position={celebration.position}
             player={celebration.player}
           />
-        ))}
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {gameState.gameStatus === 'finished' && showWinnerModal && (
@@ -91,47 +92,28 @@ export default function GameBoard({
           </div>
           <div className="game-grid">
             <div className="game-grid__columns">
-              {gameState.board.map((column, colIndex) => {
-                const hasSpace = column.some(cell => cell === null);
-                const isClickable =
-                  isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode && hasSpace;
-
-                return (
-                  <motion.button
-                    type="button"
-                    key={colIndex}
-                    className="game-column"
-                    onClick={() => handleColumnClick(colIndex)}
-                    disabled={!isClickable}
-                    aria-label={`Drop counter in column ${colIndex + 1}`}
-                    whileTap={isClickable ? { scale: 0.975 } : {}}
-                    transition={MOTION.spring}
-                    data-testid={`column-${colIndex}`}
-                  >
-                    {column.map((cell, rowIndex) => (
-                      <GameSquare
-                        key={`${colIndex}-${rowIndex}`}
-                        column={colIndex}
-                        row={rowIndex}
-                        player={cell}
-                        isWinning={winningSet.has(`${colIndex},${rowIndex}`)}
-                      />
-                    ))}
-                  </motion.button>
-                );
-              })}
+              {gameState.board.map((cells, column) => (
+                <GameColumn
+                  key={column}
+                  cells={cells}
+                  column={column}
+                  canPlay={canPlay}
+                  winningPositions={winningSet}
+                  onSelect={handleColumnClick}
+                />
+              ))}
             </div>
 
             <div className="game-drop-layer" aria-hidden="true">
               <AnimatePresence>
-                {droppingPieces.map(drop => (
+                {droppingPiece && (
                   <DroppingPiece
-                    key={drop.id}
-                    column={drop.column}
-                    row={drop.row}
-                    player={drop.player}
+                    key={droppingPiece.id}
+                    column={droppingPiece.column}
+                    row={droppingPiece.row}
+                    player={droppingPiece.player}
                   />
-                ))}
+                )}
               </AnimatePresence>
             </div>
 

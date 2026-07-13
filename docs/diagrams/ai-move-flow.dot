@@ -45,7 +45,7 @@ digraph AiMoveFlow {
     arrowsize=0.78
   ];
 
-  A [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>game-store.makeAIMove()</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">AI turn detected &middot; sets aiThinking</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+  A [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>game-store-ai-actions.makeAIMove()</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">AI turn detected &middot; sets aiThinking</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
   B [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ai-logic.makeAIMove(state, aiType)</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">strategy dispatcher</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
   W [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Validated AI worker request</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">one worker + WASM instance</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 

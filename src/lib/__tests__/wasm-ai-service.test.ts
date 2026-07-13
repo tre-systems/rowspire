@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_GENETIC_PARAMS } from '../constants';
 import { initializeGame } from '../game-logic';
-import type { AIWorkerClient } from '../ai-worker-client';
 
 vi.unmock('../wasm-ai-service');
 
@@ -54,7 +54,7 @@ describe('WASM AI service', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response(JSON.stringify(geneticParams)));
     const { default: WASMAIService } = await import('../wasm-ai-service');
-    const service = new WASMAIService(client as unknown as AIWorkerClient);
+    const service = new WASMAIService(client);
     const game = initializeGame();
 
     await service.getBestMove(game, 5);
@@ -69,5 +69,48 @@ describe('WASM AI service', () => {
     expect(client.ml).toHaveBeenCalledWith(
       expect.objectContaining({ genetic_params: geneticParams }),
     );
+  });
+
+  it('uses validated defaults when genetic parameters are unavailable', async () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const client = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      search: vi.fn().mockResolvedValue({
+        move: 3,
+        evaluations: [],
+        nodesEvaluated: 1,
+        transpositionHits: 0,
+      }),
+      ml: vi.fn(),
+    };
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    const { default: WASMAIService } = await import('../wasm-ai-service');
+
+    await new WASMAIService(client).getBestMove(initializeGame(), 3);
+
+    expect(client.search).toHaveBeenCalledWith(
+      expect.objectContaining({ genetic_params: DEFAULT_GENETIC_PARAMS }),
+      3,
+    );
+    expect(warning).toHaveBeenCalledOnce();
+  });
+
+  it('wraps initialization errors and permits a retry', async () => {
+    const client = {
+      initialize: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('worker failed'))
+        .mockResolvedValueOnce(undefined),
+      search: vi.fn(),
+      ml: vi.fn(),
+    };
+    const { default: WASMAIService } = await import('../wasm-ai-service');
+    const service = new WASMAIService(client);
+
+    await expect(service.initialize()).rejects.toThrow('Failed to load WASM AI: worker failed');
+    await expect(service.initialize()).resolves.toBeUndefined();
+
+    expect(client.initialize).toHaveBeenCalledTimes(2);
+    expect(service.isReady).toBe(true);
   });
 });

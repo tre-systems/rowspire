@@ -1,5 +1,8 @@
+mod ai_types;
 mod bitboard;
 mod evaluation;
+mod evaluation_lines;
+mod feature_scores;
 mod game;
 mod network_layer;
 mod network_training;
@@ -9,14 +12,19 @@ mod search_ai;
 pub mod features;
 pub mod genetic_params;
 pub mod mcts;
+mod mcts_node;
+mod mcts_policy;
 pub mod ml_ai;
+mod ml_network;
 mod ml_tactics;
+mod ml_types;
 pub mod neural_network;
 pub mod solver;
 pub mod wasm_api;
 
+pub use ai_types::MoveEvaluation;
 pub use game::{Cell, GameState, Player, BOARD_SIZE, COLS, ROWS};
-pub use search_ai::{HeuristicAI, MoveEvaluation, AI};
+pub use search_ai::{HeuristicAI, AI};
 
 #[cfg(test)]
 mod tests {
@@ -39,8 +47,11 @@ mod tests {
     #[test]
     fn search_returns_a_legal_move() {
         let state = GameState::new();
-        let (best_move, _) = AI::new().get_best_move(&state, 3);
+        let mut ai = AI::new();
+        let (best_move, _) = ai.get_best_move(&state, 3);
 
         assert!(best_move.is_some_and(|column| state.get_valid_moves().contains(&column)));
+        assert!(ai.nodes_evaluated > 0);
+        assert!(ai.transposition_hits > 0);
     }
 }

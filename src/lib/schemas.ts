@@ -1,20 +1,35 @@
 import { z } from 'zod';
+import { BOARD_COLUMNS, BOARD_ROWS } from './constants';
 import { gameStateInvariantErrors } from './logic/game-state-invariants';
 
 export const PlayerSchema = z.enum(['player1', 'player2']);
 export type Player = z.infer<typeof PlayerSchema>;
 
-export const GameStatusSchema = z.enum(['not_started', 'playing', 'finished']);
-export type GameStatus = z.infer<typeof GameStatusSchema>;
+const GameStatusSchema = z.enum(['not_started', 'playing', 'finished']);
 
-export const BoardSchema = z.array(z.array(PlayerSchema.nullable()).length(6)).length(7);
+const BoardSchema = z
+  .array(z.array(PlayerSchema.nullable()).length(BOARD_ROWS))
+  .length(BOARD_COLUMNS);
 export type Board = z.infer<typeof BoardSchema>;
 
-export const ColumnIndexSchema = z.number().int().min(0).max(6);
+export const ColumnIndexSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(BOARD_COLUMNS - 1);
 export type ColumnIndex = z.infer<typeof ColumnIndexSchema>;
 
-export const RowIndexSchema = z.number().int().min(0).max(5);
-export type RowIndex = z.infer<typeof RowIndexSchema>;
+const RowIndexSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(BOARD_ROWS - 1);
+
+const BoardPositionSchema = z.object({
+  column: ColumnIndexSchema,
+  row: RowIndexSchema,
+});
+export type BoardPosition = z.infer<typeof BoardPositionSchema>;
 
 export const MoveRecordSchema = z.object({
   player: PlayerSchema,
@@ -23,8 +38,7 @@ export const MoveRecordSchema = z.object({
 });
 export type MoveRecord = z.infer<typeof MoveRecordSchema>;
 
-export const MoveSourceSchema = z.enum(['human', 'ai']);
-export type MoveSource = z.infer<typeof MoveSourceSchema>;
+const MoveSourceSchema = z.enum(['human', 'ai']);
 
 export const PendingMoveSchema = z.object({
   player: PlayerSchema,
@@ -34,15 +48,7 @@ export const PendingMoveSchema = z.object({
 export type PendingMove = z.infer<typeof PendingMoveSchema>;
 
 export const WinningLineSchema = z.object({
-  positions: z
-    .array(
-      z.object({
-        column: ColumnIndexSchema,
-        row: RowIndexSchema,
-      }),
-    )
-    .min(4)
-    .max(7),
+  positions: z.array(BoardPositionSchema).min(4).max(BOARD_COLUMNS),
   direction: z.enum(['horizontal', 'vertical', 'diagonal']),
 });
 export type WinningLine = z.infer<typeof WinningLineSchema>;
@@ -69,11 +75,10 @@ export type AIType = z.infer<typeof AITypeSchema>;
 export const GameModeSchema = z.enum(['human-vs-human', 'human-vs-ai', 'ai-vs-ai']);
 export type GameMode = z.infer<typeof GameModeSchema>;
 
-export const PersistedGameStoreSchema = z.object({
-  gameState: GameStateSchema,
-  selectedAI: AITypeSchema,
-  player1AI: AITypeSchema,
-  player2AI: AITypeSchema,
-  gameMode: GameModeSchema,
-});
-export type PersistedGameStore = z.infer<typeof PersistedGameStoreSchema>;
+export type PersistedGameStore = {
+  gameState: GameState;
+  selectedAI: AIType;
+  player1AI: AIType;
+  player2AI: AIType;
+  gameMode: GameMode;
+};

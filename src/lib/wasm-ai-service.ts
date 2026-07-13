@@ -9,12 +9,17 @@ import { DEFAULT_GENETIC_PARAMS } from './constants';
 import { AIWorkerClient } from './ai-worker-client';
 import { GeneticParamsSchema, WasmGameStateSchema } from './wasm-ai-boundary';
 
+type AIClient = Pick<AIWorkerClient, 'initialize' | 'search' | 'ml'>;
+
 export default class WASMAIService {
   private isLoaded = false;
   private loadPromise: Promise<void> | null = null;
   private geneticParamsPromise: Promise<GeneticParams> | null = null;
+  private readonly client: AIClient;
 
-  constructor(private readonly client = new AIWorkerClient()) {}
+  constructor(client: AIClient = new AIWorkerClient()) {
+    this.client = client;
+  }
 
   async initialize(): Promise<void> {
     if (this.isLoaded || typeof window === 'undefined') return;
@@ -78,10 +83,6 @@ let wasmAIInstance: WASMAIService | null = null;
 export function getWASMAIService(): WASMAIService {
   wasmAIInstance ??= new WASMAIService();
   return wasmAIInstance;
-}
-
-export function resetWASMAIService(): void {
-  wasmAIInstance = null;
 }
 
 export async function initializeWASMAI(): Promise<void> {

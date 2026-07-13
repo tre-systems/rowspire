@@ -12,7 +12,7 @@ function otherPlayer(player: Player): Player {
 function addMove(board: Board, move: MoveRecord): Board {
   return board.map((column, index) =>
     index === move.column
-      ? column.map((cell, row) => (row === move.row ? move.player : cell))
+      ? [...column.slice(0, move.row), move.player, ...column.slice(move.row + 1)]
       : column,
   );
 }

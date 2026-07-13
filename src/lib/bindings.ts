@@ -38,22 +38,14 @@ export interface GeneticParams {
 
 export interface MLDiagnostics {
   validMoves: Array<number>;
-  moveEvaluations: Array<MLMoveEvaluation>;
+  moveEvaluations: Array<MoveEvaluation>;
   valueNetworkOutput: number;
   policyNetworkOutputs: Array<number>;
 }
 
-// Generated from MLMoveEvaluation.ts
+// Generated from MoveEvaluation.ts
 
-export interface MLMoveEvaluation {
-  column: number;
-  score: number;
-  moveType: string;
-}
-
-// Generated from MoveEvaluationWasm.ts
-
-export interface MoveEvaluationWasm {
+export interface MoveEvaluation {
   column: number;
   score: number;
   moveType: string;
@@ -67,7 +59,7 @@ export type Player = 'player1' | 'player2';
 
 export interface WasmBestMoveResponse {
   move: number | null;
-  evaluations: Array<MoveEvaluationWasm>;
+  evaluations: Array<MoveEvaluation>;
   nodesEvaluated: number;
   transpositionHits: number;
 }

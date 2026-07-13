@@ -1,37 +1,10 @@
 use super::features::GameFeatures;
+use super::ml_network::{create_networks, expected_weight_counts};
 use super::ml_tactics::tactical_move;
-use super::neural_network::{NetworkConfig, NeuralNetwork};
-use super::GameState;
-use serde::{Deserialize, Serialize};
-use ts_rs::TS;
-
-#[derive(Clone, Debug, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(rename_all = "camelCase")]
-pub struct MLMoveEvaluation {
-    pub column: u8,
-    pub score: f32,
-    pub move_type: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(rename_all = "camelCase")]
-pub struct MLDiagnostics {
-    pub valid_moves: Vec<u8>,
-    pub move_evaluations: Vec<MLMoveEvaluation>,
-    pub value_network_output: f32,
-    pub policy_network_outputs: Vec<f32>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MLResponse {
-    pub r#move: Option<u8>,
-    pub evaluation: f32,
-    pub thinking: String,
-    pub diagnostics: MLDiagnostics,
-}
+use super::neural_network::NeuralNetwork;
+use super::{GameState, COLS};
+pub use crate::ml_types::{MLDiagnostics, MLResponse};
+use crate::MoveEvaluation;
 
 pub struct MLAI {
     pub value_network: NeuralNetwork,
@@ -47,13 +20,13 @@ fn tactical_response(valid_moves: Vec<u8>, column: u8, move_type: &str) -> MLRes
         thinking: format!("Tactical move in column {column}: {move_type}"),
         diagnostics: MLDiagnostics {
             valid_moves,
-            move_evaluations: vec![MLMoveEvaluation {
+            move_evaluations: vec![MoveEvaluation {
                 column,
                 score: 1.0,
                 move_type: move_type.to_string(),
             }],
             value_network_output: 0.0,
-            policy_network_outputs: vec![0.0; 7],
+            policy_network_outputs: vec![0.0; COLS],
         },
     }
 }
@@ -74,23 +47,8 @@ impl MLAI {
     }
 
     fn create(seed: Option<u64>) -> Self {
-        let value_config = NetworkConfig {
-            input_size: 100,
-            hidden_sizes: vec![128, 128, 128, 128],
-            output_size: 1,
-            use_skip_connections: true,
-        };
-        let policy_config = NetworkConfig {
-            input_size: 100,
-            hidden_sizes: vec![128, 128, 128, 128],
-            output_size: 7,
-            use_skip_connections: true,
-        };
-
         let simulations = if cfg!(debug_assertions) { 200 } else { 4000 };
-
-        let value_network = network(value_config, seed);
-        let policy_network = network(policy_config, seed.map(|value| value.wrapping_add(1)));
+        let (value_network, policy_network) = create_networks(seed);
 
         Self {
             value_network,
@@ -112,7 +70,7 @@ impl MLAI {
                     valid_moves: vec![],
                     move_evaluations: vec![],
                     value_network_output: 0.0,
-                    policy_network_outputs: vec![0.0; 7],
+                    policy_network_outputs: vec![0.0; COLS],
                 },
             };
         }
@@ -130,14 +88,15 @@ impl MLAI {
                     valid_moves: valid_moves.clone(),
                     move_evaluations: vec![],
                     value_network_output: 0.0,
-                    policy_network_outputs: vec![0.0; 7],
+                    policy_network_outputs: vec![0.0; COLS],
                 },
             };
         }
 
         let features = GameFeatures::from_game_state(state);
-        let raw_value = self.value_network.forward(&features.to_array())[0];
-        let raw_policy = self.policy_network.forward(&features.to_array());
+        let feature_array = features.to_array();
+        let raw_value = self.value_network.forward(&feature_array)[0];
+        let raw_policy = self.policy_network.forward(&feature_array);
 
         let mut mcts = match self.mcts_seed {
             Some(seed) => super::mcts::MCTS::new_with_seed(1.41, self.mcts_simulations, seed),
@@ -159,17 +118,15 @@ impl MLAI {
 
         let (best_move, move_probs) = mcts.search(state.clone(), &value_fn, &policy_fn, 0.0, true);
 
-        let mut move_evaluations = Vec::new();
-        for &col in &valid_moves {
-            let prob = move_probs[col as usize];
-            move_evaluations.push(MLMoveEvaluation {
-                column: col,
-                score: prob,
+        let mut move_evaluations: Vec<_> = valid_moves
+            .iter()
+            .map(|&column| MoveEvaluation {
+                column,
+                score: move_probs[column as usize],
                 move_type: "mcts_visit_prob".to_string(),
-            });
-        }
-
-        move_evaluations.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+            })
+            .collect();
+        move_evaluations.sort_by(|left, right| right.score.total_cmp(&left.score));
 
         MLResponse {
             r#move: Some(best_move),
@@ -197,16 +154,30 @@ impl MLAI {
         value[0]
     }
 
-    pub fn load_weights(&mut self, value_weights: &[f32], policy_weights: &[f32]) {
-        self.value_network.load_weights(value_weights);
-        self.policy_network.load_weights(policy_weights);
+    pub fn load_weights(
+        &mut self,
+        value_weights: &[f32],
+        policy_weights: &[f32],
+    ) -> Result<(), String> {
+        let (expected_value, expected_policy) = expected_weight_counts();
+        validate_weight_count("value", value_weights.len(), expected_value)?;
+        validate_weight_count("policy", policy_weights.len(), expected_policy)?;
+        self.value_network
+            .load_weights(value_weights)
+            .map_err(|error| format!("value {error}"))?;
+        self.policy_network
+            .load_weights(policy_weights)
+            .map_err(|error| format!("policy {error}"))
     }
 }
 
-fn network(config: NetworkConfig, seed: Option<u64>) -> NeuralNetwork {
-    match seed {
-        Some(seed) => NeuralNetwork::new_with_seed(config, seed),
-        None => NeuralNetwork::new(config),
+fn validate_weight_count(name: &str, actual: usize, expected: usize) -> Result<(), String> {
+    if actual == expected {
+        Ok(())
+    } else {
+        Err(format!(
+            "{name} network weight count mismatch: expected {expected}, received {actual}"
+        ))
     }
 }
 

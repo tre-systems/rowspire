@@ -4,7 +4,7 @@ const DIRECTIONS: [(i32, i32); 4] = [(1, 0), (0, 1), (1, 1), (1, -1)];
 
 impl GameState {
     pub fn is_game_over(&self) -> bool {
-        self.has_winner() || self.is_draw()
+        self.has_winner() || self.board_is_full()
     }
 
     pub fn has_winner(&self) -> bool {
@@ -12,7 +12,7 @@ impl GameState {
     }
 
     pub fn is_draw(&self) -> bool {
-        self.get_winner().is_none() && self.get_valid_moves().is_empty()
+        !self.has_winner() && self.board_is_full()
     }
 
     pub fn is_empty_board(&self) -> bool {
@@ -58,7 +58,7 @@ impl GameState {
         let row = self.lowest_empty_row(column).ok_or("Column is full")?;
         self.board[column][row] = Cell::from_player(self.current_player);
 
-        if !self.is_game_over() {
+        if !self.check_win_at(column, row, self.current_player) && !self.board_is_full() {
             self.current_player = self.current_player.opponent();
         }
 
@@ -69,6 +69,10 @@ impl GameState {
         (0..ROWS)
             .rev()
             .find(|row| self.board[column][*row] == Cell::Empty)
+    }
+
+    pub(crate) fn board_is_full(&self) -> bool {
+        self.board.iter().all(|column| column[0] != Cell::Empty)
     }
 
     pub(crate) fn check_win_at(&self, column: usize, row: usize, player: Player) -> bool {

@@ -1,5 +1,6 @@
 #[cfg(feature = "wasm")]
 use super::ml_ai::MLAI;
+use super::MoveEvaluation;
 #[cfg(feature = "wasm")]
 use super::{GameState, AI};
 use serde::{Deserialize, Serialize};
@@ -14,18 +15,9 @@ use wasm_bindgen::JsValue;
 #[derive(Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
-pub struct MoveEvaluationWasm {
-    pub column: u8,
-    pub score: f32,
-    pub move_type: String,
-}
-
-#[derive(Serialize, Deserialize, TS)]
-#[ts(export)]
-#[serde(rename_all = "camelCase")]
 pub struct WasmBestMoveResponse {
     pub r#move: Option<u8>,
-    pub evaluations: Vec<MoveEvaluationWasm>,
+    pub evaluations: Vec<MoveEvaluation>,
     pub nodes_evaluated: u32,
     pub transposition_hits: u32,
 }
@@ -70,18 +62,9 @@ impl RowspireAI {
 
         let (best_move, evaluations) = self.ai.get_best_move(&state, depth);
 
-        let wasm_evaluations: Vec<MoveEvaluationWasm> = evaluations
-            .into_iter()
-            .map(|e| MoveEvaluationWasm {
-                column: e.column,
-                score: e.score,
-                move_type: e.move_type,
-            })
-            .collect();
-
         let response = WasmBestMoveResponse {
             r#move: best_move,
-            evaluations: wasm_evaluations,
+            evaluations,
             nodes_evaluated: self.ai.nodes_evaluated,
             transposition_hits: self.ai.transposition_hits,
         };
@@ -127,17 +110,9 @@ impl RowspireAI {
         let policy_weights: Vec<f32> = serde_wasm_bindgen::from_value(policy_weights.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-        if value_weights.len() != 62593 || policy_weights.len() != 63367 {
-            return Err(JsValue::from_str(&format!(
-                "ML weight size mismatch: expected 62593/63367, received {}/{}",
-                value_weights.len(),
-                policy_weights.len()
-            )));
-        }
-
-        self.ml_ai.load_weights(&value_weights, &policy_weights);
-
-        Ok(())
+        self.ml_ai
+            .load_weights(&value_weights, &policy_weights)
+            .map_err(|error| JsValue::from_str(&error))
     }
 }
 

@@ -1,3 +1,8 @@
+import type { GeneticParams } from './bindings';
+
+export const BOARD_COLUMNS = 7;
+export const BOARD_ROWS = 6;
+
 export const DEFAULT_GENETIC_PARAMS = {
   id: 'default-fallback',
   parent_ids: [],
@@ -16,6 +21,6 @@ export const DEFAULT_GENETIC_PARAMS = {
   vertical_control_weight: 2.862,
   horizontal_control_weight: 1.344,
   defensive_weight: 1.372,
-};
+} satisfies GeneticParams;
 
 export const SEARCH_AI_DEPTH = 5;

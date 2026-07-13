@@ -118,7 +118,8 @@ The AI strategy fallback is fixed:
 | `src/hooks`                                                            | Reusable React lifecycle coordination                |
 | `src/lib/schemas.ts`, `types.ts`                                       | Domain schemas and public domain facade              |
 | `src/lib/logic`, `game-logic.ts`                                       | Pure rules and invariant validation                  |
-| `src/lib/game-store-core.ts`                                           | Application commands over injected ports             |
+| `src/lib/game-store-core.ts`                                           | Store composition and synchronous commands           |
+| `src/lib/game-store-ai-actions.ts`                                     | Asynchronous AI command and stale-result rejection   |
 | `src/lib/game-store.ts`                                                | Production store construction and persistence        |
 | `src/lib/*protocol.ts`, `*-boundary.ts`, `*-service.ts`, `*-client.ts` | External contracts and adapters                      |
 | `src/service-worker.ts`                                                | Offline runtime shell                                |

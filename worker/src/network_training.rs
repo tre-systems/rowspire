@@ -50,17 +50,6 @@ impl NeuralNetwork {
         loss
     }
 
-    #[cfg(test)]
-    pub(crate) fn compute_layer_gradients(
-        &self,
-        layer: &Layer,
-        input: &Array1<f32>,
-        linear_output: &Array1<f32>,
-        output_gradient: &Array1<f32>,
-    ) -> (Array2<f32>, Array1<f32>, Array1<f32>) {
-        layer_gradients(layer, input, linear_output, output_gradient)
-    }
-
     fn forward_training(&self, input: &Array1<f32>) -> (Vec<Array1<f32>>, Vec<Array1<f32>>) {
         let mut activations = vec![input.clone()];
         let mut linear_outputs = Vec::new();

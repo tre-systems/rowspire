@@ -1,20 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import fixtureData from '../../../resources/conformance/game-rules.json';
+import { BOARD_COLUMNS, BOARD_ROWS } from '../constants';
 import { initializeGame, makeMove } from '../game-logic';
 import { getValidMoves } from '../logic/board-logic';
-import { PlayerSchema } from '../types';
-import type { Board } from '../types';
+import { PlayerSchema, type Board } from '../types';
 
 const FixtureSchema = z.object({
   schemaVersion: z.literal(1),
   cases: z.array(
     z.object({
       name: z.string(),
-      moves: z.array(z.number().int().min(0).max(6)),
-      expectedBoard: z.array(z.string().length(7)).length(6),
+      moves: z.array(
+        z
+          .number()
+          .int()
+          .min(0)
+          .max(BOARD_COLUMNS - 1),
+      ),
+      expectedBoard: z.array(z.string().length(BOARD_COLUMNS)).length(BOARD_ROWS),
       expectedCurrentPlayer: PlayerSchema,
-      expectedValidMoves: z.array(z.number().int().min(0).max(6)),
+      expectedValidMoves: z.array(
+        z
+          .number()
+          .int()
+          .min(0)
+          .max(BOARD_COLUMNS - 1),
+      ),
       expectedWinner: PlayerSchema.nullable(),
       expectedDraw: z.boolean(),
       expectedGameOver: z.boolean(),
@@ -23,7 +35,7 @@ const FixtureSchema = z.object({
 });
 
 function encodeBoard(board: Board) {
-  return Array.from({ length: 6 }, (_, row) =>
+  return Array.from({ length: BOARD_ROWS }, (_, row) =>
     board
       .map(column => {
         if (column[row] === 'player1') return '1';

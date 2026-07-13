@@ -6,8 +6,8 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const release = env.SENTRY_RELEASE || env.GITHUB_SHA;
-  const uploadSourceMaps = Boolean(env.SENTRY_AUTH_TOKEN && release);
+  const release = env['SENTRY_RELEASE'] || env['GITHUB_SHA'];
+  const uploadSourceMaps = Boolean(env['SENTRY_AUTH_TOKEN'] && release);
 
   return {
     plugins: [
@@ -15,11 +15,11 @@ export default defineConfig(({ mode }) => {
       cloudflare({ inspectorPort: false }),
       uploadSourceMaps &&
         sentryVitePlugin({
-          authToken: env.SENTRY_AUTH_TOKEN,
-          org: env.SENTRY_ORG || 'total-reality-engineering',
-          project: env.SENTRY_PROJECT || 'rowspire',
-          ...(env.SENTRY_URL ? { url: env.SENTRY_URL } : {}),
-          release: { name: release! },
+          authToken: env['SENTRY_AUTH_TOKEN'],
+          org: env['SENTRY_ORG'] || 'total-reality-engineering',
+          project: env['SENTRY_PROJECT'] || 'rowspire',
+          ...(env['SENTRY_URL'] ? { url: env['SENTRY_URL'] } : {}),
+          release: { name: release ?? 'unknown' },
           sourcemaps: { filesToDeleteAfterUpload: ['out/client/**/*.map'] },
           telemetry: false,
         }),

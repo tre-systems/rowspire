@@ -36,8 +36,6 @@ declare module '/wasm/rowspire_ai_core.js' {
 
   export default function __wbg_init(
     module_or_path?:
-      | { module_or_path: InitInput | Promise<InitInput> }
-      | InitInput
-      | Promise<InitInput>,
+      { module_or_path: InitInput | Promise<InitInput> } | InitInput | Promise<InitInput>,
   ): Promise<InitOutput>;
 }

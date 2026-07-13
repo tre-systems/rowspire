@@ -1,4 +1,4 @@
-import { useAnimatedBackground } from '../hooks/useAnimatedBackground';
+import { useAnimatedBackground } from '@/hooks/useAnimatedBackground';
 
 export default function AnimatedBackground() {
   const canvasRef = useAnimatedBackground();

@@ -6,8 +6,7 @@
   border-radius: 1.45rem;
   background:
     linear-gradient(145deg, rgba(var(--teal-rgb), 0.055), transparent 38%),
-    linear-gradient(325deg, rgba(var(--violet-rgb), 0.055), transparent 42%),
-    var(--surface);
+    linear-gradient(325deg, rgba(var(--violet-rgb), 0.055), transparent 42%), var(--surface);
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.5),
     0 0 60px rgba(var(--teal-rgb), 0.09),

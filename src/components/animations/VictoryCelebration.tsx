@@ -24,6 +24,7 @@ export default function VictoryCelebration({ position, player }: VictoryCelebrat
     <div
       className={`victory-celebration victory-celebration--${player}`}
       style={{ left: position.x, top: position.y }}
+      aria-hidden="true"
       data-testid="victory-celebration"
     >
       {PARTICLES.map((particle, index) => (

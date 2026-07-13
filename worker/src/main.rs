@@ -1,67 +1,59 @@
 use rowspire_ai_core::{GameState, AI};
-use std::env;
+use std::error::Error;
 use std::fs;
-use std::process;
+use std::io::{self, Write};
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        eprintln!(
-            "Usage: {} <get_move|evaluate> <input_file> [--depth N]",
-            args[0]
-        );
-        process::exit(1);
+    if let Err(error) = run() {
+        eprintln!("{error}");
+        std::process::exit(1);
     }
+}
 
-    let mut depth = 3u8;
-    let mut i = 3;
-    while i < args.len() {
-        if args[i] == "--depth" && i + 1 < args.len() {
-            depth = args[i + 1].parse().unwrap_or(3);
-            i += 2;
-        } else {
-            i += 1;
-        }
-    }
-
-    let command = &args[1];
-    let input_file = &args[2];
-
-    let input = match fs::read_to_string(input_file) {
-        Ok(content) => content,
-        Err(e) => {
-            eprintln!("Failed to read input file: {e}");
-            process::exit(1);
-        }
-    };
-
-    let game_state: GameState = match serde_json::from_str(&input) {
-        Ok(state) => state,
-        Err(e) => {
-            eprintln!("Invalid game state JSON: {e}");
-            process::exit(1);
-        }
-    };
+fn run() -> Result<(), Box<dyn Error>> {
+    let mut args = std::env::args().skip(1);
+    let command = required(args.next(), "command")?;
+    let input_file = required(args.next(), "input file")?;
+    let depth = parse_depth(args.collect())?;
+    let state: GameState = serde_json::from_str(&fs::read_to_string(input_file)?)?;
+    let mut stdout = io::stdout().lock();
 
     match command.as_str() {
-        "get_move" => {
-            let mut ai = AI::new();
-            let (best_move, move_evaluations) = ai.get_best_move(&game_state, depth);
-            let evaluation = game_state.evaluate();
-            let response = serde_json::json!({
-                "move": best_move,
-                "evaluation": evaluation,
-                "moveEvaluations": move_evaluations
-            });
-            println!("{}", serde_json::to_string(&response).unwrap());
-        }
-        "evaluate" => {
-            let evaluation = game_state.evaluate();
-            println!("{evaluation}");
-        }
-        _ => {
-            eprintln!("Unknown command: {command}");
-            process::exit(1);
-        }
+        "get_move" => write_move(&mut stdout, &state, depth)?,
+        "evaluate" => writeln!(stdout, "{}", state.evaluate())?,
+        _ => return Err(input_error(format!("unknown command: {command}"))),
     }
+    Ok(())
+}
+
+fn parse_depth(args: Vec<String>) -> Result<u8, Box<dyn Error>> {
+    match args.as_slice() {
+        [] => Ok(3),
+        [flag, value] if flag == "--depth" => Ok(value.parse()?),
+        _ => Err(input_error(
+            "usage: rowspire-ai-worker <get_move|evaluate> <input> [--depth N]",
+        )),
+    }
+}
+
+fn write_move(output: &mut impl Write, state: &GameState, depth: u8) -> Result<(), Box<dyn Error>> {
+    let (best_move, evaluations) = AI::new().get_best_move(state, depth);
+    serde_json::to_writer(
+        &mut *output,
+        &serde_json::json!({
+            "move": best_move,
+            "evaluation": state.evaluate(),
+            "moveEvaluations": evaluations,
+        }),
+    )?;
+    writeln!(output)?;
+    Ok(())
+}
+
+fn required(value: Option<String>, name: &str) -> Result<String, Box<dyn Error>> {
+    value.ok_or_else(|| input_error(format!("missing {name}")))
+}
+
+fn input_error(message: impl Into<String>) -> Box<dyn Error> {
+    Box::new(io::Error::new(io::ErrorKind::InvalidInput, message.into()))
 }

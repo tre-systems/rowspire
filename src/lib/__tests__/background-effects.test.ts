@@ -1,12 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  BackgroundEffects,
-  type Line,
-  type Particle,
-  type Shape,
-} from '../visuals/background-effects';
+import { BackgroundEffects } from '../visuals/background-effects';
 import { drawBackground } from '../visuals/background-renderer';
 import { createLine, createParticle, createShape } from '../visuals/background-factory';
+import type { Line, Particle, Shape } from '../visuals/background-types';
 
 function expireEntity(entity: Shape | Line | Particle) {
   entity.opacity = 0.01;
@@ -40,7 +36,8 @@ describe('BackgroundEffects', () => {
 
   it('normalizes movement to elapsed frame time', () => {
     const effects = new BackgroundEffects(800, 600);
-    const particle = effects.particles[0]!;
+    const particle = effects.particles[0];
+    if (!particle) throw new Error('Expected a background particle');
     particle.x = 100;
     particle.y = 100;
     particle.direction = { x: 2, y: -2 };

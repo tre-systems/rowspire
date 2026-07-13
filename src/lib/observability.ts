@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/browser';
-import { makeBrowserOfflineTransport, type ErrorEvent, type EventHint } from '@sentry/browser';
+import { makeBrowserOfflineTransport, type ErrorEvent } from '@sentry/browser';
 
-const SENSITIVE_KEYS = new Set([
+const SENSITIVE_KEYS = [
   'apiKey',
   'authorization',
   'cookie',
@@ -13,9 +13,13 @@ const SENSITIVE_KEYS = new Set([
   'response',
   'seed',
   'text',
-]);
+].map(key => key.toLowerCase());
 
-function beforeSend(event: ErrorEvent, _hint: EventHint): ErrorEvent {
+function isSensitive(key: string) {
+  return SENSITIVE_KEYS.includes(key.toLowerCase());
+}
+
+function beforeSend(event: ErrorEvent): ErrorEvent {
   if (event.request) {
     event.request.headers = Object.fromEntries(
       Object.entries(event.request.headers ?? {}).map(([key, value]) => [
@@ -28,20 +32,20 @@ function beforeSend(event: ErrorEvent, _hint: EventHint): ErrorEvent {
   }
 
   Object.keys(event.extra ?? {}).forEach(key => {
-    if (SENSITIVE_KEYS.has(key) && event.extra) event.extra[key] = '[Filtered]';
+    if (isSensitive(key) && event.extra) event.extra[key] = '[Filtered]';
   });
   return event;
 }
 
 export function initializeObservability() {
-  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  const dsn = import.meta.env['VITE_SENTRY_DSN'];
   if (!dsn) return;
 
   const offlineTransport = makeBrowserOfflineTransport();
   Sentry.init({
     dsn,
-    environment: import.meta.env.VITE_SENTRY_ENVIRONMENT ?? import.meta.env.MODE,
-    release: import.meta.env.VITE_SENTRY_RELEASE,
+    environment: import.meta.env['VITE_SENTRY_ENVIRONMENT'] ?? import.meta.env.MODE,
+    release: import.meta.env['VITE_SENTRY_RELEASE'],
     sendDefaultPii: false,
     transport: options => offlineTransport({ ...options, shouldSend: () => navigator.onLine }),
     tracesSampleRate: import.meta.env.PROD ? 0.01 : 0,

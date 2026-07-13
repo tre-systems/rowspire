@@ -1,26 +1,42 @@
 import { motion } from 'framer-motion';
-import { Brain, Cpu, Eye, Sparkles } from 'lucide-react';
-import { useGameActions } from '../lib/game-store';
+import { Brain, Cpu, Eye, Sparkles, type LucideIcon } from 'lucide-react';
+import { SEARCH_AI_DEPTH } from '@/lib/constants';
+import { useGameActions } from '@/lib/game-store';
+import type { AIType } from '@/lib/types';
 import AISelectionCard from './AISelectionCard';
-import type { AIType } from '../lib/types';
-import { SEARCH_AI_DEPTH } from '../lib/constants';
 
 const AI_OPTIONS = [
   {
-    aiType: 'search' as AIType,
+    aiType: 'search',
     title: 'Search AI',
     description: 'A tactical opponent using minimax search with alpha-beta pruning.',
     subtitle: `Minimax + Alpha-Beta (Depth ${SEARCH_AI_DEPTH})`,
     icon: Cpu,
   },
   {
-    aiType: 'ml' as AIType,
+    aiType: 'ml',
     title: 'ML AI',
     description: 'A modern opponent that learned by observing thousands of games.',
     subtitle: 'Policy + Value Neural Network',
     icon: Brain,
   },
-];
+] satisfies ReadonlyArray<{
+  aiType: AIType;
+  title: string;
+  description: string;
+  subtitle: string;
+  icon: LucideIcon;
+}>;
+
+const PANEL_VARIANTS = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.08 } },
+};
+
+const ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0 },
+};
 
 interface AISelectionPanelProps {
   onStartGame?: () => void;
@@ -29,11 +45,22 @@ interface AISelectionPanelProps {
 export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps) {
   const actions = useGameActions();
 
+  const launchGame = () => {
+    actions.reset();
+    onStartGame?.();
+  };
+
   const handleAISelection = (aiType: AIType) => {
     actions.setAI(aiType);
     actions.setGameMode('human-vs-ai');
-    actions.reset();
-    onStartGame?.();
+    launchGame();
+  };
+
+  const handleWatchGame = () => {
+    actions.setPlayer1AI('search');
+    actions.setPlayer2AI('ml');
+    actions.setGameMode('ai-vs-ai');
+    launchGame();
   };
 
   return (
@@ -41,17 +68,11 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
       initial="hidden"
       animate="visible"
       exit="hidden"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.08 } },
-      }}
+      variants={PANEL_VARIANTS}
       className="selection-panel"
       data-testid="ai-selection-panel"
     >
-      <motion.div
-        className="selection-heading"
-        variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
-      >
+      <motion.div className="selection-heading" variants={ITEM_VARIANTS}>
         <span className="selection-eyebrow">
           <Sparkles aria-hidden="true" />
           Two minds. Two styles.
@@ -75,18 +96,10 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
         ))}
       </div>
 
-      <motion.div
-        className="flex justify-center"
-        variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}
-      >
+      <motion.div className="flex justify-center" variants={ITEM_VARIANTS}>
         <motion.button
-          onClick={() => {
-            actions.setPlayer1AI('search');
-            actions.setPlayer2AI('ml');
-            actions.setGameMode('ai-vs-ai');
-            actions.reset();
-            onStartGame?.();
-          }}
+          type="button"
+          onClick={handleWatchGame}
           className="watch-button"
           whileHover={{ y: -3, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

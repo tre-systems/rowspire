@@ -1,7 +1,7 @@
 import type { AIType, GameMode, GameState, Player } from './types';
 
 export type GameIcon = 'brain' | 'cpu' | 'crown' | 'trophy' | 'x-circle' | 'zap';
-export type GameTone = 'gray' | 'green' | 'pink' | 'teal' | 'violet';
+type GameTone = 'gray' | 'green' | 'pink' | 'teal' | 'violet';
 
 const AI_TYPE_LABELS = {
   search: 'Search AI',

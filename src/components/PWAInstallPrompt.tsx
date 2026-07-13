@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Download, X } from 'lucide-react';
 import { APP_NAME } from '@/lib/brand';
@@ -12,22 +12,13 @@ interface BeforeInstallPromptEvent extends Event {
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     let showTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const checkInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isIOSStandalone = (window.navigator as { standalone?: boolean }).standalone === true;
-      setIsInstalled(isStandalone || isIOSStandalone);
-    };
-
-    checkInstalled();
-
-    const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handleBeforeInstallPrompt = (event: BeforeInstallPromptEvent) => {
+      event.preventDefault();
+      setDeferredPrompt(event);
 
       if (showTimer) clearTimeout(showTimer);
       showTimer = setTimeout(() => {
@@ -38,7 +29,6 @@ export default function PWAInstallPrompt() {
     };
 
     const handleAppInstalled = () => {
-      setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
     };
@@ -74,9 +64,10 @@ export default function PWAInstallPrompt() {
 
   return (
     <AnimatePresence>
-      {!isInstalled && showPrompt && deferredPrompt && (
+      {showPrompt && deferredPrompt && (
         <motion.aside
           className="install-prompt"
+          aria-labelledby="install-prompt-title"
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 14, scale: 0.98 }}
@@ -88,7 +79,7 @@ export default function PWAInstallPrompt() {
           </div>
           <div className="install-prompt__content">
             <span className="modal-eyebrow">Play anywhere</span>
-            <h3>Install {APP_NAME}</h3>
+            <h3 id="install-prompt-title">Install {APP_NAME}</h3>
             <p>Add it to your home screen for instant access and offline play.</p>
             <div className="install-prompt__actions">
               <motion.button

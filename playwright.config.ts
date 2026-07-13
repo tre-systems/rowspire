@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const e2ePort = 3100;
+const e2ePort = Number(process.env['PLAYWRIGHT_PORT'] ?? 3100);
 const baseURL = `http://localhost:${e2ePort}`;
-const isCI = Boolean(process.env.CI);
+const isCI = Boolean(process.env['CI']);
 
 export default defineConfig({
   testDir: './e2e',

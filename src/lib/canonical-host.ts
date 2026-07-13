@@ -13,9 +13,10 @@ const REDIRECT_HOSTS = new Set([
 export function getCanonicalRedirectUrl(requestUrl: string): string | null {
   const url = new URL(requestUrl);
 
-  if (!REDIRECT_HOSTS.has(url.hostname)) {
+  if (url.hostname === CANONICAL_HOST && url.protocol === 'https:') {
     return null;
   }
+  if (url.hostname !== CANONICAL_HOST && !REDIRECT_HOSTS.has(url.hostname)) return null;
 
   url.protocol = 'https:';
   url.hostname = CANONICAL_HOST;
