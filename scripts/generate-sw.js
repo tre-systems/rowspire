@@ -18,6 +18,10 @@ const STATIC_ASSETS = [
   '/offline',
   '/manifest.webmanifest',
   '/favicon.ico',
+  '/wasm/rowspire_ai_core.js',
+  '/wasm/rowspire_ai_core_bg.wasm',
+  '/ml/data/genetic_params/evolved.json',
+  '/ml/data/weights/ml_ai_weights_best.json',
 ];
 
 self.addEventListener('install', event => {
@@ -72,12 +76,12 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(event.request.url);
 
-  if (url.pathname.startsWith('/wasm/')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
-
-  if (url.pathname.startsWith('/_next/') || url.pathname.startsWith('/static/')) {
+  if (
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/static/') ||
+    url.pathname.startsWith('/wasm/') ||
+    url.pathname.startsWith('/ml/')
+  ) {
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) {

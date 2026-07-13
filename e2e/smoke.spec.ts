@@ -129,6 +129,25 @@ test.describe('Error Handling and Edge Cases', () => {
     await expect(page.getByTestId('game-board')).toBeVisible();
     await expect.poll(() => pieces.count()).toBeGreaterThanOrEqual(pieceCount);
   });
+
+  test('restores the game and AI runtime offline', async ({ page, context }) => {
+    await startGame(page);
+    await playColumn(page, 3);
+    await page.evaluate(async () => void (await navigator.serviceWorker.ready));
+    await page.reload();
+
+    await context.setOffline(true);
+    try {
+      await page.reload();
+
+      const pieces = page.locator('[data-testid^="piece-"]');
+      const pieceCount = await pieces.count();
+      await playColumn(page, 2);
+      await expect.poll(() => pieces.count()).toBeGreaterThanOrEqual(pieceCount + 2);
+    } finally {
+      await context.setOffline(false);
+    }
+  });
 });
 
 test.describe('Mobile Responsiveness', () => {

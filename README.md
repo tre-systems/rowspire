@@ -31,7 +31,7 @@ The dev server runs at [http://localhost:3000](http://localhost:3000). Requires 
 
 | Command                 | Description                                                                         |
 | ----------------------- | ----------------------------------------------------------------------------------- |
-| `npm run dev`           | Generate the service worker and start the dev server                                |
+| `npm run dev`           | Build AI assets, generate the service worker, and start the dev server              |
 | `npm run build`         | Generate assets, export the static app, and run the brand audit                     |
 | `npm run brand:audit`   | Scan source, docs, generated public assets, and exported pages for blocked branding |
 | `npm run check`         | Lint, Clippy, type-check, Rust AI matrix, coverage, brand audit, and Playwright     |
