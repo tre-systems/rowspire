@@ -18,7 +18,6 @@ export default function OpponentDetailsModal({
   onClose,
 }: OpponentDetailsModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const profile = opponent ? OPPONENTS[opponent] : null;
 
   useEffect(() => {
@@ -31,8 +30,6 @@ export default function OpponentDetailsModal({
     }
 
     if (!dialog.open) dialog.showModal();
-    const frame = requestAnimationFrame(() => titleRef.current?.focus());
-    return () => cancelAnimationFrame(frame);
   }, [opponent]);
 
   return (
@@ -61,9 +58,7 @@ export default function OpponentDetailsModal({
           <header className="modal-header">
             <div>
               <span className="modal-eyebrow">{profile.technicalName}</span>
-              <h2 id="opponent-details-title" ref={titleRef} tabIndex={-1}>
-                How {profile.name} thinks
-              </h2>
+              <h2 id="opponent-details-title">How {profile.name} thinks</h2>
             </div>
             <motion.button
               type="button"
