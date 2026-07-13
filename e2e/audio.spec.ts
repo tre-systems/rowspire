@@ -54,9 +54,16 @@ async function installAudioMock(page: Page) {
 }
 
 async function audioStarts(page: Page) {
-  return page.evaluate(
-    () => (window as Window & { __rowspireAudioStarts?: number }).__rowspireAudioStarts ?? 0,
-  );
+  try {
+    return await page.evaluate(
+      () => (window as Window & { __rowspireAudioStarts?: number }).__rowspireAudioStarts ?? 0,
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Execution context was destroyed'))
+      return 0;
+
+    throw error;
+  }
 }
 
 async function resetAudioStarts(page: Page) {
