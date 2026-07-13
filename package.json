@@ -18,8 +18,8 @@
     "build:rust-ai": "cd worker && cargo build --release",
     "nuke": "rm -rf .next out .wrangler node_modules package-lock.json && npm install && npm run dev",
     "brand:audit": "node scripts/check-branding.mjs",
-    "check": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && NUM_GAMES=4 cargo test --test ai_matrix_test test_ai_matrix -- --ignored --exact --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
-    "check:slow": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && RUN_SLOW_TESTS=1 cargo test --features slow_tests -- --include-ignored --nocapture) && npm run test:coverage && npm run brand:audit && npm run test:e2e",
+    "check": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && NUM_GAMES=4 cargo test --test ai_matrix_test test_ai_matrix -- --ignored --exact --nocapture) && npm run test:coverage && npm run brand:audit && npm run check:diagrams && npm run test:e2e",
+    "check:slow": "rm -rf out && npm run lint && npm run lint:rust && npm run type-check && (cd worker && RUN_SLOW_TESTS=1 cargo test --features slow_tests -- --include-ignored --nocapture) && npm run test:coverage && npm run brand:audit && npm run check:diagrams && npm run test:e2e",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -54,6 +54,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwind-merge": "^3.4.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

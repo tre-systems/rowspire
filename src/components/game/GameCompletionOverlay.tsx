@@ -1,10 +1,28 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Trophy, Zap, Brain, Cpu } from 'lucide-react';
-import { cn, getAITypeLabel } from '@/lib/utils';
+import { Trophy, Zap, Brain, Cpu, Crown, XCircle, type LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { GameState, GameMode } from '@/lib/types';
 import { useGameStore } from '@/lib/game-store';
+import { presentGameCompletion, type GameIcon, type GameTone } from '@/lib/game-presentation';
+
+const COMPLETION_ICONS = {
+  brain: Brain,
+  cpu: Cpu,
+  crown: Crown,
+  trophy: Trophy,
+  'x-circle': XCircle,
+  zap: Zap,
+} satisfies Record<GameIcon, LucideIcon>;
+
+const COMPLETION_COLORS = {
+  gray: 'text-gray-400',
+  green: 'text-green-400',
+  pink: 'text-pink-400',
+  teal: 'text-teal-300',
+  violet: 'text-violet-300',
+} satisfies Record<GameTone, string>;
 
 interface GameCompletionOverlayProps {
   gameState: GameState;
@@ -17,35 +35,16 @@ export default function GameCompletionOverlay({
   onResetGame,
   gameMode = 'human-vs-ai',
 }: GameCompletionOverlayProps) {
-  const { player1AI, player2AI } = useGameStore();
-  const isPlayer1Winner = gameState.winner === 'player1';
-  const isDraw = gameState.gameStatus === 'finished' && !gameState.winner;
-
-  const getTitle = () => {
-    if (isDraw) return 'Draw!';
-    if (gameMode === 'ai-vs-ai') {
-      const aiLabel = getAITypeLabel(gameState.winner === 'player1' ? player1AI : player2AI);
-      return isPlayer1Winner ? `${aiLabel} (Teal) Wins!` : `${aiLabel} (Violet) Wins!`;
-    }
-    return isPlayer1Winner ? 'You Win!' : 'AI Wins!';
-  };
-
-  const getMessage = () => {
-    if (isDraw) return "The board is full. It's a tie!";
-    if (gameMode === 'ai-vs-ai') {
-      return '🎉 AI Battle Complete! 🎉';
-    }
-    return isPlayer1Winner ? '🎉 Congratulations! 🎉' : '💫 The AI won this round! 💫';
-  };
-
-  const getIcon = () => {
-    if (isDraw) return null;
-    if (gameMode === 'ai-vs-ai') {
-      const aiType = gameState.winner === 'player1' ? player1AI : player2AI;
-      return aiType === 'ml' ? Brain : Cpu;
-    }
-    return isPlayer1Winner ? Trophy : Zap;
-  };
+  const player1AI = useGameStore(state => state.player1AI);
+  const player2AI = useGameStore(state => state.player2AI);
+  const presentation = presentGameCompletion({
+    gameState,
+    gameMode,
+    player1AI,
+    player2AI,
+  });
+  const Icon = presentation.icon ? COMPLETION_ICONS[presentation.icon] : null;
+  const color = COMPLETION_COLORS[presentation.tone];
 
   return (
     <motion.div
@@ -77,7 +76,7 @@ export default function GameCompletionOverlay({
             delay: 0.2,
           }}
         >
-          {!isDraw && getIcon() && (
+          {Icon && (
             <motion.div
               animate={{
                 rotate: [0, 10, -10, 0],
@@ -99,41 +98,13 @@ export default function GameCompletionOverlay({
                   delay: 0.5,
                 }}
               >
-                {(() => {
-                  const Icon = getIcon();
-                  if (!Icon) return null;
-                  return (
-                    <Icon
-                      className={cn(
-                        'w-20 h-20 mx-auto mb-4 drop-shadow-lg',
-                        gameMode === 'ai-vs-ai'
-                          ? isPlayer1Winner
-                            ? 'text-teal-300'
-                            : 'text-violet-300'
-                          : isPlayer1Winner
-                            ? 'text-green-400'
-                            : 'text-pink-400',
-                      )}
-                    />
-                  );
-                })()}
+                <Icon className={cn('w-20 h-20 mx-auto mb-4 drop-shadow-lg', color)} />
               </motion.div>
             </motion.div>
           )}
 
           <motion.h2
-            className={cn(
-              'text-4xl font-bold neon-text mb-6',
-              isDraw
-                ? 'text-gray-400'
-                : gameMode === 'ai-vs-ai'
-                  ? isPlayer1Winner
-                    ? 'text-teal-300'
-                    : 'text-violet-300'
-                  : isPlayer1Winner
-                    ? 'text-green-400'
-                    : 'text-pink-400',
-            )}
+            className={cn('text-4xl font-bold neon-text mb-6', color)}
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{
@@ -144,7 +115,7 @@ export default function GameCompletionOverlay({
             }}
             data-testid="game-completion-title"
           >
-            {getTitle()}
+            {presentation.title}
           </motion.h2>
 
           <motion.div
@@ -159,11 +130,11 @@ export default function GameCompletionOverlay({
             }}
           >
             <p className="text-lg mb-3" data-testid="game-completion-message">
-              {getMessage()}
+              {presentation.message}
             </p>
-            {gameMode === 'ai-vs-ai' && !isDraw && (
-              <p className="text-sm text-gray-300">
-                {getAITypeLabel(player1AI)} vs {getAITypeLabel(player2AI)}
+            {presentation.matchup && (
+              <p className="text-sm text-gray-300" data-testid="game-completion-matchup">
+                {presentation.matchup}
               </p>
             )}
           </motion.div>

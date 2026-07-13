@@ -1,4 +1,4 @@
-import { GameState, Player, AIType, Board } from '../schemas';
+import type { GameState, Player, AIType, Board } from '../types';
 import { MLMoveEvaluation, MoveEvaluationWasm } from '../bindings';
 import { SEARCH_AI_DEPTH } from '../constants';
 import { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
@@ -106,8 +106,6 @@ export async function makeAIMove(gameState: GameState, aiType: AIType = 'search'
         };
         break;
       }
-      default:
-        response = await wasmAI.getBestMove(gameState, 1);
     }
 
     if (isValidColumn(response.move)) {

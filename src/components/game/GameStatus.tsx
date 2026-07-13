@@ -1,11 +1,29 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, getAITypeLabel } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { GameState, GameMode } from '@/lib/types';
-import { Crown, Zap, Trophy, XCircle, Brain, Cpu } from 'lucide-react';
+import { Crown, Zap, Trophy, XCircle, Brain, Cpu, type LucideIcon } from 'lucide-react';
 import { useGameStore } from '@/lib/game-store';
 import { useHydrated } from '@/hooks/useHydrated';
+import { presentGameStatus, type GameIcon, type GameTone } from '@/lib/game-presentation';
+
+const STATUS_ICONS = {
+  brain: Brain,
+  cpu: Cpu,
+  crown: Crown,
+  trophy: Trophy,
+  'x-circle': XCircle,
+  zap: Zap,
+} satisfies Record<GameIcon, LucideIcon>;
+
+const STATUS_COLORS = {
+  gray: 'text-gray-400',
+  green: 'text-green-400',
+  pink: 'text-pink-400',
+  teal: 'text-teal-300',
+  violet: 'text-violet-300',
+} satisfies Record<GameTone, string>;
 
 interface GameStatusProps {
   gameState: GameState;
@@ -19,86 +37,11 @@ export default function GameStatus({
   gameMode = 'human-vs-ai',
 }: GameStatusProps) {
   const isMounted = useHydrated();
-  const { player1AI, player2AI } = useGameStore();
-
-  const getStatusMessage = () => {
-    if (gameState.gameStatus === 'not_started') {
-      return {
-        text: 'Select AI and start game',
-        icon: Crown,
-        color: 'text-gray-400',
-      };
-    }
-
-    if (gameState.gameStatus === 'finished') {
-      if (gameState.winner) {
-        if (gameMode === 'ai-vs-ai') {
-          const winnerAI = getAITypeLabel(gameState.winner === 'player1' ? player1AI : player2AI);
-          return {
-            text:
-              gameState.winner === 'player1'
-                ? `${winnerAI} (Teal) Wins!`
-                : `${winnerAI} (Violet) Wins!`,
-            icon: gameState.winner === 'player1' ? Trophy : Zap,
-            color: gameState.winner === 'player1' ? 'text-teal-300' : 'text-violet-300',
-          };
-        }
-        return {
-          text: gameState.winner === 'player1' ? 'Teal Wins!' : 'Violet Wins!',
-          icon: gameState.winner === 'player1' ? Trophy : Zap,
-          color: gameState.winner === 'player1' ? 'text-teal-300' : 'text-violet-300',
-        };
-      } else {
-        return {
-          text: 'Draw!',
-          icon: XCircle,
-          color: 'text-gray-400',
-        };
-      }
-    }
-
-    if (gameState.currentPlayer === 'player1') {
-      if (gameMode === 'ai-vs-ai') {
-        const aiLabel = getAITypeLabel(player1AI);
-        return {
-          text: aiThinking ? `${aiLabel} (Teal) thinking...` : `${aiLabel} (Teal)'s turn`,
-          icon: player1AI === 'ml' ? Brain : Cpu,
-          color: 'text-teal-300',
-        };
-      }
-      return {
-        text: "Teal's turn",
-        icon: Crown,
-        color: 'text-teal-300',
-      };
-    } else {
-      if (gameMode === 'ai-vs-ai') {
-        const aiLabel = getAITypeLabel(player2AI);
-        return {
-          text: aiThinking ? `${aiLabel} (Violet) thinking...` : `${aiLabel} (Violet)'s turn`,
-          icon: player2AI === 'ml' ? Brain : Cpu,
-          color: 'text-violet-300',
-        };
-      }
-      if (aiThinking) {
-        return {
-          text: 'Violet thinking...',
-          icon: Zap,
-          color: 'text-violet-300',
-        };
-      }
-      return {
-        text: "Violet's turn",
-        icon: Zap,
-        color: 'text-violet-300',
-      };
-    }
-  };
-
-  const status = getStatusMessage();
-  const StatusIcon = status.icon;
-  const isValidIcon =
-    typeof StatusIcon === 'function' || (typeof StatusIcon === 'object' && StatusIcon !== null);
+  const player1AI = useGameStore(state => state.player1AI);
+  const player2AI = useGameStore(state => state.player2AI);
+  const status = presentGameStatus({ gameState, gameMode, aiThinking, player1AI, player2AI });
+  const StatusIcon = STATUS_ICONS[status.icon];
+  const color = STATUS_COLORS[status.tone];
 
   if (!isMounted) {
     return (
@@ -120,25 +63,24 @@ export default function GameStatus({
           animate={{ scale: aiThinking ? [1, 1.05, 1] : 1 }}
           transition={{ repeat: aiThinking ? Infinity : 0, duration: 1 }}
         >
-          {isValidIcon ? (
-            <StatusIcon className={cn('w-4 h-4', status.color)} data-testid="game-status-icon" />
-          ) : null}
+          <StatusIcon className={cn('w-4 h-4', color)} data-testid="game-status-icon" />
           <span
-            className={cn('font-bold text-lg', status.color, 'neon-text')}
+            className={cn('font-bold text-lg', color, 'neon-text')}
             data-testid="game-status-text"
           >
             {status.text}
           </span>
         </motion.div>
 
-        {gameMode === 'ai-vs-ai' && gameState.gameStatus === 'playing' && (
+        {status.matchup && (
           <motion.div
             className="text-xs text-gray-400 mt-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
+            data-testid="game-status-matchup"
           >
-            {getAITypeLabel(player1AI)} vs {getAITypeLabel(player2AI)}
+            {status.matchup}
           </motion.div>
         )}
 
@@ -149,6 +91,7 @@ export default function GameStatus({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              data-testid="game-status-thinking"
             >
               {[...Array(3)].map((_, i) => (
                 <motion.div

@@ -34,7 +34,7 @@ The dev server runs at [http://localhost:3000](http://localhost:3000). Requires 
 | `npm run dev`           | Build AI assets, generate the service worker, and start the dev server              |
 | `npm run build`         | Generate assets, export the static app, and run the brand audit                     |
 | `npm run brand:audit`   | Scan source, docs, generated public assets, and exported pages for blocked branding |
-| `npm run check`         | Lint, Clippy, type-check, Rust AI matrix, coverage, brand audit, and Playwright     |
+| `npm run check`         | Lint, Clippy, types, Rust AI matrix, coverage, audits, diagrams, and Playwright     |
 | `npm run lint:rust`     | Run strict Clippy checks across every Rust target and feature                       |
 | `npm run test`          | Run Vitest unit tests                                                               |
 | `npm run test:coverage` | Run unit tests with enforced coverage thresholds                                    |
@@ -66,7 +66,7 @@ Pushing to `main` runs the deploy workflow. Wrangler provisions custom domains f
 
 ## Documentation
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system design and diagrams
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): required pattern catalog, dependency rules, and system design
 - [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md): AI engines, model assets, and training notes
 - [docs/BACKLOG.md](docs/BACKLOG.md): planned work
 - [AGENTS.md](AGENTS.md): repo conventions

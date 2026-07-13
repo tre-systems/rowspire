@@ -1,4 +1,4 @@
-import { GameState, Player, Board, MoveRecord } from './schemas';
+import type { GameState, Player, Board, MoveRecord } from './types';
 import { createEmptyBoard, printBoard, isDraw, checkWin } from './logic/board-logic';
 import { makeAIMove, otherPlayer } from './logic/ai-logic';
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Player, GameState } from '@/lib/types';
-import { useGameStore } from '@/lib/game-store';
+import { useGameActions, useGameStore } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
 
 interface Celebration {
@@ -23,7 +23,8 @@ export function useGameAnimations(
   const [celebrations, setCelebrations] = useState<Celebration[]>([]);
   const [showWinAnimation, setShowWinAnimation] = useState(false);
 
-  const { actions, pendingMove } = useGameStore();
+  const actions = useGameActions();
+  const pendingMove = useGameStore(state => state.pendingMove);
 
   useEffect(() => {
     if (gameState.gameStatus === 'finished' && gameState.winner) {

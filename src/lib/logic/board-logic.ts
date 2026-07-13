@@ -1,4 +1,4 @@
-import { Board, Player } from '../schemas';
+import type { Board, Player } from '../types';
 
 const ROWS = 6;
 const COLS = 7;

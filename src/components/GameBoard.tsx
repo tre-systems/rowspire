@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import { GameState, GameMode } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGameStore } from '@/lib/game-store';
+import { useGameActions, useGameStore } from '@/lib/game-store';
 
 import VictoryCelebration from './animations/VictoryCelebration';
 import WinningLineBurst from './animations/WinningLineBurst';
@@ -40,7 +40,9 @@ export default function GameBoard({
 }: GameBoardProps) {
   const isMounted = useHydrated();
   const boardRef = useRef<HTMLDivElement>(null);
-  const { actions, pendingMove, showWinnerModal } = useGameStore();
+  const actions = useGameActions();
+  const pendingMove = useGameStore(state => state.pendingMove);
+  const showWinnerModal = useGameStore(state => state.showWinnerModal);
 
   const { celebrations, droppingPieces, showWinAnimation, handleWinAnimationComplete } =
     useGameAnimations(gameState, boardRef);

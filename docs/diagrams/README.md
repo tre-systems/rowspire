@@ -15,7 +15,7 @@ Color coding by domain (shared with the wider project house style):
 
 - **Green** nodes / clusters — application code (React UI, Zustand stores, WASM facade, Rust AI engine).
 - **Purple** — pure functions (`game-logic`, `logic/*`; no side effects).
-- **Teal** — persistence (`localStorage`; D1, drawn dashed because it is scaffolded/not wired).
+- **Teal** — persistence and static deployment boundaries.
 - **Blue** — client surface (browser / SPA).
 - **Orange / gold** — build-time / codegen (wasm-pack, ts-rs, model assets).
 - **Diamonds** — decisions. **Bold green outline** — terminal success. **Bold red outline** — error / terminal failure.

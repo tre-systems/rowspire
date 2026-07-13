@@ -1,3 +1,9 @@
+import {
+  MLResponseSchema,
+  MLWorkerRequestSchema,
+  type MLWorkerResponse,
+} from './ml-ai-worker-protocol';
+
 interface WASMAIInstance {
   get_ml_move: (state: unknown) => unknown;
   load_ml_weights: (value: unknown, policy: unknown) => void;
@@ -9,8 +15,8 @@ interface WASMModule {
 }
 
 const ctx = self as unknown as {
-  onmessage: ((event: { data: { id: number; state: unknown } }) => void) | null;
-  postMessage: (message: unknown) => void;
+  onmessage: ((event: MessageEvent<unknown>) => void) | null;
+  postMessage: (message: MLWorkerResponse) => void;
 };
 
 let aiPromise: Promise<WASMAIInstance> | null = null;
@@ -49,10 +55,17 @@ async function initializeAI(): Promise<WASMAIInstance> {
 }
 
 ctx.onmessage = async event => {
-  const { id, state } = event.data;
+  const request = MLWorkerRequestSchema.safeParse(event.data);
+  if (!request.success) {
+    console.error('ML worker received an invalid request');
+    return;
+  }
+
+  const { id, state } = request.data;
   try {
     const ai = await loadAI();
-    ctx.postMessage({ id, response: ai.get_ml_move(state) });
+    const response = MLResponseSchema.parse(ai.get_ml_move(state));
+    ctx.postMessage({ id, response });
   } catch (error) {
     ctx.postMessage({ id, error: String(error) });
   }

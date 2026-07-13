@@ -1,4 +1,4 @@
-import { GameState } from './schemas';
+import type { GameState } from './types';
 import type { WasmBestMoveResponse, WasmHeuristicResponse, WasmMLResponse } from './bindings';
 import { DEFAULT_GENETIC_PARAMS } from './constants';
 import { MLAIWorkerClient } from './ml-ai-worker-client';

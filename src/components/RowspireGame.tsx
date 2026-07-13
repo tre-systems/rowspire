@@ -39,7 +39,7 @@ export default function RowspireGame() {
   const { makeAIMove, reset, startGame } = useGameActions();
   const aiThinking = useGameStore(state => state.aiThinking);
   const gameMode = useGameStore(state => state.gameMode);
-  const { errorModal } = useUIStore();
+  const errorModal = useUIStore(state => state.errorModal);
   const { hideError } = useUIStore(state => state.actions);
 
   const [soundEnabled, setSoundEnabled] = useState(true);

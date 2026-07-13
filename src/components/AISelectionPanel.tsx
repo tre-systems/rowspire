@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Brain, Cpu, Eye } from 'lucide-react';
-import { useGameStore } from '../lib/game-store';
+import { useGameActions } from '../lib/game-store';
 import AISelectionCard from './AISelectionCard';
 import type { AIType } from '../lib/types';
 import { SEARCH_AI_DEPTH } from '../lib/constants';
@@ -33,7 +33,7 @@ interface AISelectionPanelProps {
 }
 
 export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps) {
-  const { actions } = useGameStore();
+  const actions = useGameActions();
 
   const handleAISelection = (aiType: AIType) => {
     actions.setAI(aiType);

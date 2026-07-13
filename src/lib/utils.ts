@@ -51,13 +51,11 @@ export const isDevelopment = () => {
   );
 };
 
+const AI_TYPE_LABELS = {
+  search: 'Search AI',
+  ml: 'ML AI',
+} satisfies Record<AIType, string>;
+
 export function getAITypeLabel(aiType: AIType): string {
-  switch (aiType) {
-    case 'search':
-      return 'Search AI';
-    case 'ml':
-      return 'ML AI';
-    default:
-      return 'AI';
-  }
+  return AI_TYPE_LABELS[aiType];
 }

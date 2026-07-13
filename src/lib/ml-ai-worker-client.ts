@@ -1,4 +1,9 @@
 import type { WasmMLResponse } from './bindings';
+import {
+  MLWorkerResponseSchema,
+  workerMessageId,
+  type MLWorkerRequest,
+} from './ml-ai-worker-protocol';
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -7,32 +12,6 @@ type PendingRequest = {
   reject: (error: Error) => void;
   timeout: ReturnType<typeof setTimeout>;
 };
-
-type WorkerResponse = {
-  id?: unknown;
-  response?: unknown;
-  error?: unknown;
-};
-
-function isMLResponse(value: unknown): value is WasmMLResponse {
-  if (!value || typeof value !== 'object') return false;
-  const response = value as Record<string, unknown>;
-  const move = response.move;
-  const diagnostics = response.diagnostics;
-  if (!diagnostics || typeof diagnostics !== 'object') return false;
-
-  const details = diagnostics as Record<string, unknown>;
-  return (
-    (move === null || (Number.isInteger(move) && Number(move) >= 0 && Number(move) < 7)) &&
-    typeof response.evaluation === 'number' &&
-    Number.isFinite(response.evaluation) &&
-    typeof response.thinking === 'string' &&
-    Array.isArray(details.validMoves) &&
-    Array.isArray(details.moveEvaluations) &&
-    typeof details.valueNetworkOutput === 'number' &&
-    Array.isArray(details.policyNetworkOutputs)
-  );
-}
 
 export class MLAIWorkerClient {
   private worker: Worker | null = null;
@@ -50,7 +29,7 @@ export class MLAIWorkerClient {
 
       this.pending.set(id, { resolve, reject, timeout });
       try {
-        worker.postMessage({ id, state });
+        worker.postMessage({ id, state } satisfies MLWorkerRequest);
       } catch (error) {
         clearTimeout(timeout);
         this.pending.delete(id);
@@ -70,23 +49,25 @@ export class MLAIWorkerClient {
     return this.worker;
   }
 
-  private handleMessage(event: MessageEvent<WorkerResponse>) {
-    const { id, response, error } = event.data;
-    if (typeof id !== 'number') return;
-
+  private handleMessage(event: MessageEvent<unknown>) {
+    const id = workerMessageId(event.data);
+    if (id === null) return;
     const request = this.pending.get(id);
     if (!request) return;
 
     clearTimeout(request.timeout);
     this.pending.delete(id);
 
-    if (typeof error === 'string') request.reject(new Error(error));
-    else if (isMLResponse(response)) request.resolve(response);
-    else {
+    const message = MLWorkerResponseSchema.safeParse(event.data);
+    if (!message.success) {
       request.reject(new Error('ML worker returned an invalid response'));
       this.worker?.terminate();
       this.worker = null;
+      return;
     }
+
+    if ('error' in message.data) request.reject(new Error(message.data.error));
+    else request.resolve(message.data.response);
   }
 
   private failAll(error: Error) {

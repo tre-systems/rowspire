@@ -60,6 +60,31 @@ export default tseslint.config(
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.type='Identifier'][callee.name=/^use[A-Z].*Store$/][arguments.length=0]",
+          message: 'Subscribe to Zustand stores with a selector.',
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/lib/types.ts', 'src/lib/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/schemas'],
+              message: 'Import the consolidated domain model from types.ts.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
