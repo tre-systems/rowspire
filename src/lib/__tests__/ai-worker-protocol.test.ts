@@ -58,6 +58,12 @@ describe('AI worker protocol', () => {
     ).toBe(false);
   });
 
+  it('bounds search work at the worker boundary', () => {
+    expect(
+      AIWorkerRequestSchema.safeParse({ id: 1, type: 'search', state, depth: 21 }).success,
+    ).toBe(false);
+  });
+
   it('accepts typed success and error responses', () => {
     expect(AIWorkerResponseSchema.safeParse({ id: 1, type: 'ml', response }).success).toBe(true);
     expect(AIWorkerResponseSchema.safeParse({ id: 1, error: 'failed' }).success).toBe(true);

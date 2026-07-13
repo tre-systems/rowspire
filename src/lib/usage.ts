@@ -6,6 +6,16 @@ export function isUsageEvent(value: unknown): value is UsageEvent {
   return typeof value === 'string' && USAGE_EVENTS.some(event => event === value);
 }
 
+export function parseUsageEvent(value: unknown): UsageEvent | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+
+  const entries = Object.entries(value);
+  if (entries.length !== 1 || entries[0]?.[0] !== 'event') return null;
+
+  const event = entries[0][1];
+  return isUsageEvent(event) ? event : null;
+}
+
 export function usageDataPoint(event: UsageEvent) {
   return {
     indexes: ['rowspire'],

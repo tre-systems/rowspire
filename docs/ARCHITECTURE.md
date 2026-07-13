@@ -44,6 +44,7 @@ Dependencies point inward: the pure browser domain does not depend on React, Zus
 | Privacy-filtered observability    | Make reporting optional and filter sensitive data | `observability.ts`, `AppErrorBoundary.tsx`       | Observability tests                 |
 | Executable conformance            | Keep TypeScript and Rust rules aligned            | Shared rule fixtures                             | Vitest and Cargo tests              |
 | Artifact promotion                | Test and deploy the same build output             | Vite/Cloudflare workflow                         | Production-preview Playwright       |
+| Least-privilege delivery          | Isolate secrets and pin executable dependencies   | GitHub Actions                                   | SHA policy and scoped step env      |
 | Fitness function                  | Turn architectural constraints into release gates | Lint, types, tests, audits, docs, bundle         | `npm run check`                     |
 
 ## Domain and State
@@ -109,7 +110,7 @@ Shared timings live in `visuals/motion.ts`; UI transitions use transforms and op
 
 ### Observability
 
-Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables default PII, removes request bodies and cookies, filters authorization and common sensitive fields, and queues transport while offline. The React error boundary provides a local recovery surface whether reporting is configured or not.
+Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables default PII, removes users, request bodies, cookies, and URL queries, recursively filters common sensitive fields, and queues transport while offline. The React error boundary provides a local recovery surface whether reporting is configured or not.
 
 The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes anonymous counts to the account-level `app_usage` Analytics Engine dataset for Antenna. No board, move, player, browser, or user identifier is included.
 
@@ -141,13 +142,13 @@ Prefer code files under 200 lines and functions under 20 lines. Split by stable 
 
 `check:types` temporarily regenerates Rust transport types and rejects drift from committed `bindings.ts`. `wasm-pack` compiles Rust into ignored `public/wasm`; source AI assets are copied into ignored `public/ml`; a dedicated Vite build emits `public/sw.js`. The Cloudflare Vite plugin then creates client assets plus the Worker bundle and deploy configuration under `out/`.
 
-CI runs `npm run check`, previews the resulting production artifact for Playwright, deploys that unchanged output, and smoke-tests the live shell, manifest, WASM, ML weights, and canonical redirect. Concurrency cancellation prevents superseded `main` runs from deploying.
+Pull requests run dependency audits, lint, types, tests, CodeQL, a production build, and Playwright without deployment credentials. On `main`, Sentry credentials exist only while building source maps and Cloudflare credentials exist only while deploying. CI then deploys the tested output and smoke-tests the live shell, manifest, WASM, ML weights, usage boundary, security headers, and canonical redirect. Actions use full commit SHAs, language tools are versioned, and concurrency cancellation prevents superseded runs from deploying.
 
 ![Build and deployment flow](diagrams/build-deploy-flow.png)
 
 Graphviz owns complex architecture and branching flows; Mermaid stays inline for compact local relationships and state. See the [diagram guide](diagrams/README.md).
 
-`npm run check` enforces strict ESLint and TypeScript, generated binding drift, Clippy with warnings denied, Rust/Vitest/conformance tests, coverage thresholds, internal documentation links and commands, diagram rendering, bundle budgets, branding, and production-preview Playwright.
+`npm run check` enforces strict ESLint and TypeScript, generated binding drift, npm/RustSec advisories, npm registry signatures, Clippy with warnings denied, Rust/Vitest/conformance tests, coverage thresholds, internal documentation links and commands, diagram rendering, bundle budgets, branding, and production-preview Playwright.
 
 ## Deliberate Omissions
 

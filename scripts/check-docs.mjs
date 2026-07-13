@@ -11,7 +11,7 @@ function markdownFiles(directory) {
   });
 }
 
-const documents = ['README.md', 'AGENTS.md', ...markdownFiles('docs')];
+const documents = ['README.md', 'AGENTS.md', 'SECURITY.md', ...markdownFiles('docs')];
 const scripts = JSON.parse(readFileSync('package.json', 'utf8')).scripts ?? {};
 const failures = [];
 

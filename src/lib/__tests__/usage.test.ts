@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isUsageEvent, reportUsage, usageDataPoint } from '../usage';
+import { isUsageEvent, parseUsageEvent, reportUsage, usageDataPoint } from '../usage';
 
 describe('usage reporting', () => {
   afterEach(() => {
@@ -10,6 +10,13 @@ describe('usage reporting', () => {
     expect(isUsageEvent('game_started')).toBe(true);
     expect(isUsageEvent('game_completed')).toBe(true);
     expect(isUsageEvent('page_view')).toBe(false);
+  });
+
+  it('accepts only an exact usage payload', () => {
+    expect(parseUsageEvent({ event: 'game_started' })).toBe('game_started');
+    expect(parseUsageEvent({ event: 'game_started', user: 'someone' })).toBeNull();
+    expect(parseUsageEvent({ event: 'page_view' })).toBeNull();
+    expect(parseUsageEvent(null)).toBeNull();
   });
 
   it('builds the shared Antenna Analytics Engine contract', () => {

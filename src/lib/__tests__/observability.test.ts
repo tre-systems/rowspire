@@ -42,19 +42,35 @@ describe('observability', () => {
     });
 
     const event = options?.beforeSend({
+      user: { id: 'secret-user' },
       request: {
-        headers: { Authorization: 'secret', Accept: 'application/json' },
+        url: 'https://rowspire.com/play?token=secret#private',
+        headers: {
+          Authorization: 'secret',
+          'X-Api-Key': 'secret',
+          Accept: 'application/json',
+        },
         cookies: { session: 'secret' },
         data: 'secret',
+        query_string: 'token=secret',
       },
-      extra: { Prompt: 'secret', score: 4 },
+      extra: { Prompt: 'secret', score: 4, nested: { apiKey: 'secret', safe: true } },
     });
 
     expect(event).toEqual({
       request: {
-        headers: { Authorization: '[Filtered]', Accept: 'application/json' },
+        url: 'https://rowspire.com/play',
+        headers: {
+          Authorization: '[Filtered]',
+          'X-Api-Key': '[Filtered]',
+          Accept: 'application/json',
+        },
       },
-      extra: { Prompt: '[Filtered]', score: 4 },
+      extra: {
+        Prompt: '[Filtered]',
+        score: 4,
+        nested: { apiKey: '[Filtered]', safe: true },
+      },
     });
 
     options?.transport({ sample: true });

@@ -46,7 +46,14 @@ test.describe('Core Game Functionality', () => {
     await page.getByTestId('ai-selection-search').click();
     await expect(page.getByTestId('column-3')).toBeEnabled({ timeout: 20_000 });
 
-    expect(response?.headers()['content-security-policy']).toContain("'wasm-unsafe-eval'");
+    const headers = response?.headers() ?? {};
+    expect(headers['content-security-policy']).toContain("'wasm-unsafe-eval'");
+    expect(headers['content-security-policy']).toContain("script-src-attr 'none'");
+    expect(headers['content-security-policy']).toContain("form-action 'none'");
+    expect(headers['content-security-policy']).toContain("worker-src 'self'");
+    expect(headers['strict-transport-security']).toBe('max-age=31536000');
+    expect(headers['x-content-type-options']).toBe('nosniff');
+    expect(headers['x-frame-options']).toBe('DENY');
     expect(initializationFailures).toEqual([]);
   });
 

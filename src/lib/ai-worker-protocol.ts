@@ -10,7 +10,7 @@ export const AIWorkerRequestSchema = z.discriminatedUnion('type', [
       id: RequestIdSchema,
       type: z.literal('search'),
       state: WasmGameStateSchema,
-      depth: z.number().int().positive(),
+      depth: z.number().int().min(1).max(20),
     })
     .strict(),
   z.object({ id: RequestIdSchema, type: z.literal('ml'), state: WasmGameStateSchema }).strict(),
