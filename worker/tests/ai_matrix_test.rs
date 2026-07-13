@@ -361,14 +361,12 @@ struct MatrixResult {
     ai2_avg_time_ms: f64,
 }
 
-// Enhanced recommendations generation
 fn generate_recommendations(
     ai_performance: &HashMap<String, f64>,
     ai_speeds: &HashMap<String, f64>,
 ) -> Vec<String> {
     let mut recommendations = Vec::new();
 
-    // Find best performing AI
     if let Some((best_ai, win_rate)) = ai_performance
         .iter()
         .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
@@ -391,7 +389,6 @@ fn generate_recommendations(
         }
     }
 
-    // Find fastest AI
     if let Some((fastest_ai, avg_time)) = ai_speeds
         .iter()
         .min_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
@@ -408,11 +405,6 @@ fn generate_recommendations(
             ));
         }
     }
-
-    // General recommendations
-    recommendations.push("Use MM-Depth3 for best performance/speed balance".to_string());
-    recommendations.push("Use Random AI for baseline testing".to_string());
-    recommendations.push("Use Heuristic AI for educational purposes".to_string());
 
     recommendations
 }

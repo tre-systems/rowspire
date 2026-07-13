@@ -69,21 +69,21 @@ export function useGameAnimations(
   }, [gameState.gameStatus, gameState.winner, gameState.winningLine, boardRef]);
 
   useEffect(() => {
-    celebrations.forEach(celebration => {
-      setTimeout(() => {
-        setCelebrations(prev => prev.filter(c => c.id !== celebration.id));
-      }, 3000);
-    });
-  }, [celebrations]);
+    if (celebrations.length === 0) return undefined;
 
-  // The piece currently dropping is derived directly from the pending move, so it
-  // appears the moment a move starts and disappears the instant the move is
-  // committed (pendingMove clears). Deriving it — rather than mirroring it into
-  // separate state driven by timers — means an AI move committed by the store can
-  // never leave a ghost piece stranded at the top of the board.
+    const cleanupTimer = window.setTimeout(() => {
+      setCelebrations([]);
+    }, 3000);
+
+    return () => window.clearTimeout(cleanupTimer);
+  }, [celebrations.length]);
+
   const droppingPieces: DroppingPiece[] = (() => {
     if (!pendingMove) return [];
-    const row = gameState.board[pendingMove.column].lastIndexOf(null);
+    const column = gameState.board[pendingMove.column];
+    if (!column) return [];
+
+    const row = column.lastIndexOf(null);
     if (row === -1) return [];
     return [
       {
@@ -95,14 +95,11 @@ export function useGameAnimations(
     ];
   })();
 
-  // Play the drop sound for AI moves, and commit human moves once the drop
-  // animation has played. AI moves are committed by the store on its own timer.
   useEffect(() => {
     if (!pendingMove) return undefined;
 
     if (pendingMove.source === 'ai') {
       void soundEffects.pieceMove();
-      return undefined;
     }
 
     const completeMoveTimer = window.setTimeout(() => {
@@ -116,9 +113,7 @@ export function useGameAnimations(
 
   const handleWinAnimationComplete = () => {
     setShowWinAnimation(false);
-    setTimeout(() => {
-      actions.showWinnerModal();
-    }, 500);
+    actions.showWinnerModal();
   };
 
   return {

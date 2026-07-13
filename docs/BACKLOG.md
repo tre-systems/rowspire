@@ -10,7 +10,7 @@ Known gaps and future work for Rowspire, ordered roughly by priority.
 
 ## Tech Debt
 
-- Dependency refresh: review with `npm run deps`, apply with `npm run deps:update`, then run `npm run check`.
+- Framework upgrade: migrate Next.js and its ESLint integration to version 16 after validating static export, Sentry, WebAssembly, and Node 26 without deprecation warnings.
 - Rust file size: split oversized modules such as `lib.rs`, `solver.rs`, `mcts.rs`, `features.rs`, and `wasm_api.rs`.
 - WASM boundary errors: replace stringly-typed failures with a discriminated result type.
 

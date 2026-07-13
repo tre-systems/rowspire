@@ -11,6 +11,7 @@ export type {
   WinningLine,
   AIType,
   GameMode,
+  PersistedGameStore,
 } from './schemas';
 
 export {
@@ -26,4 +27,5 @@ export {
   WinningLineSchema,
   AITypeSchema,
   GameModeSchema,
+  PersistedGameStoreSchema,
 } from './schemas';

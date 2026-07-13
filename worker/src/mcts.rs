@@ -379,7 +379,7 @@ mod tests {
         let (best_move, move_probs) = mcts.search(state, &value_fn, &policy_fn, 0.0, false);
 
         assert!(usize::from(best_move) < COLS);
-        assert_eq!(move_probs.len(), COLS as usize);
+        assert_eq!(move_probs.len(), COLS);
         assert!((move_probs.iter().sum::<f32>() - 1.0).abs() < 0.001);
     }
 }

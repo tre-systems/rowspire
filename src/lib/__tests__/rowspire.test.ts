@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { initializeGame, makeMove, checkWin, makeAIMove, isDraw } from '../game-logic';
 import { Board } from '../schemas';
+import { emptyGameState } from '../game-store-state';
+import type { GameState } from '../types';
 
 describe('Rowspire Game Logic', () => {
   it('should initialize an empty game', () => {
@@ -19,7 +21,7 @@ describe('Rowspire Game Logic', () => {
     const game = initializeGame();
     const newGame = makeMove(game, 3);
 
-    expect(newGame.board[3][5]).toBe(game.currentPlayer);
+    expect(newGame.board[3]?.[5]).toBe(game.currentPlayer);
     expect(newGame.history).toHaveLength(1);
     expect(newGame.history[0]).toEqual({
       player: game.currentPlayer,
@@ -35,11 +37,11 @@ describe('Rowspire Game Logic', () => {
     const secondPlayer = firstPlayer === 'player1' ? 'player2' : 'player1';
 
     currentGame = makeMove(currentGame, 0);
-    expect(currentGame.board[0][5]).toBe(firstPlayer);
+    expect(currentGame.board[0]?.[5]).toBe(firstPlayer);
     currentGame = makeMove(currentGame, 0);
-    expect(currentGame.board[0][4]).toBe(secondPlayer);
+    expect(currentGame.board[0]?.[4]).toBe(secondPlayer);
     currentGame = makeMove(currentGame, 0);
-    expect(currentGame.board[0][3]).toBe(firstPlayer);
+    expect(currentGame.board[0]?.[3]).toBe(firstPlayer);
   });
 
   it('should detect horizontal win', () => {
@@ -77,18 +79,19 @@ describe('Rowspire Game Logic', () => {
   });
 
   it('should detect draw when board is full', () => {
-    let currentGame = initializeGame();
-    // Fill the board row by row, offsetting the starting column for each row
-    for (let row = 0; row < 6; row++) {
-      for (let col = 0; col < 7; col++) {
-        // Offset the starting column for each row to avoid 4 in a row
-        const moveCol = (col + row) % 7;
-        currentGame = makeMove(currentGame, moveCol);
-      }
+    const moves = [
+      6, 5, 3, 0, 4, 5, 4, 6, 3, 2, 4, 4, 5, 3, 6, 1, 3, 3, 5, 4, 5, 1, 0, 6, 3, 6, 2, 4, 0, 0, 6,
+      0, 2, 5, 2, 2, 1, 1, 0, 2, 1, 1,
+    ];
+    let currentGame: GameState = { ...emptyGameState(), gameStatus: 'playing' };
+
+    for (const column of moves) {
+      currentGame = makeMove(currentGame, column);
     }
+
     expect(currentGame.gameStatus).toBe('finished');
-    // Accept either a draw or a win, since the last move can create a win
-    expect(isDraw(currentGame.board) || currentGame.winner !== null).toBe(true);
+    expect(currentGame.winner).toBeNull();
+    expect(isDraw(currentGame.board)).toBe(true);
   });
 
   it('should make AI moves', async () => {
@@ -98,7 +101,7 @@ describe('Rowspire Game Logic', () => {
       const aiMove = await makeAIMove(game);
       expect(aiMove).toBeGreaterThanOrEqual(0);
       expect(aiMove).toBeLessThan(7);
-      expect(game.board[aiMove].some(cell => cell === null)).toBe(true);
+      expect(game.board[aiMove]?.some(cell => cell === null)).toBe(true);
     } catch (error) {
       // WASM AI may be unavailable in the test environment
       expect(error).toBeInstanceOf(Error);

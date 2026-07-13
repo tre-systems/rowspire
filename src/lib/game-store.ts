@@ -1,161 +1,189 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { initializeGame, makeMove as makeMoveLogic, makeAIMove } from './game-logic';
-import { initializeWASMAI } from './wasm-ai-service';
-import type { AIType, GameMode } from './types';
+import { initializeGame, makeAIMove, makeMove } from './game-logic';
+import {
+  aiForTurn,
+  isAITurn,
+  isCurrentPendingMove,
+  isHumanTurn,
+  isSameTurn,
+} from './game-state-machine';
+import {
+  emptyGameState,
+  LATEST_VERSION,
+  parsePersistedState,
+  persistedStateFrom,
+  type GameStore,
+} from './game-store-state';
+import { ColumnIndexSchema } from './types';
 import { useUIStore } from './ui-store';
-import { emptyGameState, LATEST_VERSION, type GameStore } from './game-store-state';
+import { initializeWASMAI } from './wasm-ai-service';
 
-const createGameStore = immer<GameStore>((set, get) => ({
-  gameState: emptyGameState(),
-  aiThinking: false,
-  pendingMove: null,
-  showWinnerModal: false,
-  selectedAI: 'search' as AIType,
-  player1AI: 'search' as AIType,
-  player2AI: 'search' as AIType,
-  gameMode: 'human-vs-ai' as GameMode,
-  actions: {
-    initialize: () => {
-      initializeWASMAI().catch(error => {
-        console.warn('Failed to initialize WASM AI:', error);
-      });
-    },
-    startGame: () => {
-      set(state => {
-        state.gameState = { ...initializeGame() };
-        state.aiThinking = false;
-        state.showWinnerModal = false;
-        state.pendingMove = null;
-      });
-    },
-    makeMove: (column: number) => {
-      const { gameState } = get();
-      if (gameState.gameStatus !== 'playing') return;
+const AI_DELAY_MS = 500;
 
-      set(state => {
-        state.pendingMove = { column, player: gameState.currentPlayer, source: 'human' };
-      });
-    },
-    completeMove: () => {
-      const { gameState, pendingMove } = get();
-      if (!pendingMove) return;
+const delay = (duration: number) =>
+  new Promise<void>(resolve => {
+    setTimeout(resolve, duration);
+  });
 
-      const newState = makeMoveLogic(gameState, pendingMove.column);
-      set(state => {
-        state.gameState = newState;
-        state.pendingMove = null;
+const createGameStore = immer<GameStore>((set, get) => {
+  let gameGeneration = 0;
 
-        if (newState.gameStatus === 'finished' && newState.winner) {
+  const clearThinking = () => {
+    set(state => {
+      state.aiThinking = false;
+    });
+  };
+
+  const invalidateGame = () => {
+    gameGeneration += 1;
+  };
+
+  return {
+    ...parsePersistedState(undefined),
+    aiThinking: false,
+    pendingMove: null,
+    showWinnerModal: false,
+    actions: {
+      initialize: () => {
+        void initializeWASMAI().catch(error => {
+          console.warn('Failed to initialize WASM AI:', error);
+        });
+      },
+      startGame: () => {
+        invalidateGame();
+        set(state => {
+          state.gameState = initializeGame();
+          state.aiThinking = false;
+          state.pendingMove = null;
           state.showWinnerModal = false;
-        }
-      });
-    },
-    makeAIMove: async () => {
-      const { gameState, selectedAI, player1AI, player2AI, gameMode } = get();
+        });
+      },
+      makeMove: column => {
+        const parsedColumn = ColumnIndexSchema.safeParse(column);
+        const state = get();
+        if (!parsedColumn.success || state.aiThinking || state.pendingMove) return;
+        if (!isHumanTurn(state.gameState, state.gameMode)) return;
+        if (!state.gameState.board[parsedColumn.data]?.includes(null)) return;
 
-      const isAITurn =
-        gameMode === 'ai-vs-ai' ||
-        (gameMode === 'human-vs-ai' && gameState.currentPlayer === 'player2');
+        set(store => {
+          store.pendingMove = {
+            column: parsedColumn.data,
+            player: state.gameState.currentPlayer,
+            source: 'human',
+          };
+        });
+      },
+      completeMove: () => {
+        const { gameState, pendingMove } = get();
+        if (!pendingMove) return;
 
-      if (gameState.gameStatus !== 'playing' || !isAITurn) return;
-
-      set(state => {
-        state.aiThinking = true;
-      });
-
-      setTimeout(async () => {
-        const currentState = get().gameState;
-        const currentGameMode = get().gameMode;
-        const isStillAITurn =
-          currentGameMode === 'ai-vs-ai' ||
-          (currentGameMode === 'human-vs-ai' && currentState.currentPlayer === 'player2');
-
-        if (currentState.gameStatus === 'playing' && isStillAITurn) {
-          try {
-            const aiTypeToUse: AIType =
-              currentGameMode === 'ai-vs-ai'
-                ? currentState.currentPlayer === 'player1'
-                  ? player1AI
-                  : player2AI
-                : selectedAI;
-
-            const aiColumn = await makeAIMove(currentState, aiTypeToUse);
-            set(state => {
-              state.pendingMove = {
-                column: aiColumn,
-                player: currentState.currentPlayer,
-                source: 'ai',
-              };
-              state.aiThinking = false;
-            });
-
-            setTimeout(() => {
-              const { gameState: updatedState, pendingMove } = get();
-              if (pendingMove) {
-                const newState = makeMoveLogic(updatedState, pendingMove.column);
-                set(state => {
-                  state.gameState = newState;
-                  state.pendingMove = null;
-
-                  if (newState.gameStatus === 'finished' && newState.winner) {
-                    state.showWinnerModal = false;
-                  }
-                });
-              }
-            }, 800);
-          } catch (error) {
-            console.error('AI move calculation failed:', error);
-            const errorMessage = `AI calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please refresh the page.`;
-            useUIStore.getState().actions.showError(errorMessage);
-            set(state => {
-              state.aiThinking = false;
-            });
-          }
-        } else {
+        if (!isCurrentPendingMove(gameState, pendingMove)) {
           set(state => {
+            state.pendingMove = null;
+          });
+          return;
+        }
+
+        const nextGameState = makeMove(gameState, pendingMove.column);
+        set(state => {
+          state.gameState = nextGameState;
+          state.pendingMove = null;
+          state.showWinnerModal = nextGameState.gameStatus === 'finished' && !nextGameState.winner;
+        });
+      },
+      makeAIMove: async () => {
+        const initial = get();
+        if (initial.aiThinking || initial.pendingMove) return;
+        if (!isAITurn(initial.gameState, initial.gameMode)) return;
+
+        const generation = gameGeneration;
+        set(state => {
+          state.aiThinking = true;
+        });
+
+        await delay(AI_DELAY_MS);
+        const current = get();
+        if (generation !== gameGeneration) return;
+        if (!isAITurn(current.gameState, current.gameMode)) return clearThinking();
+
+        const aiType = aiForTurn(
+          current.gameState,
+          current.gameMode,
+          current.selectedAI,
+          current.player1AI,
+          current.player2AI,
+        );
+
+        try {
+          const column = await makeAIMove(current.gameState, aiType);
+          const latest = get();
+          if (generation !== gameGeneration) return;
+          if (!isSameTurn(current.gameState, latest.gameState)) {
+            clearThinking();
+            return;
+          }
+          if (!isAITurn(latest.gameState, latest.gameMode)) {
+            clearThinking();
+            return;
+          }
+
+          set(state => {
+            state.pendingMove = {
+              column,
+              player: current.gameState.currentPlayer,
+              source: 'ai',
+            };
             state.aiThinking = false;
           });
+        } catch (error) {
+          if (generation !== gameGeneration) return;
+
+          console.error('AI move calculation failed:', error);
+          const detail = error instanceof Error ? error.message : 'Unknown error';
+          useUIStore.getState().actions.showError(`AI calculation failed: ${detail}.`);
+          clearThinking();
         }
-      }, 500);
+      },
+      reset: () => {
+        invalidateGame();
+        set(state => {
+          state.gameState = emptyGameState();
+          state.aiThinking = false;
+          state.pendingMove = null;
+          state.showWinnerModal = false;
+        });
+      },
+      showWinnerModal: () => {
+        set(state => {
+          state.showWinnerModal = state.gameState.gameStatus === 'finished';
+        });
+      },
+      setAI: aiType => {
+        set(state => {
+          state.selectedAI = aiType;
+          state.player2AI = aiType;
+        });
+      },
+      setPlayer1AI: aiType => {
+        set(state => {
+          state.player1AI = aiType;
+        });
+      },
+      setPlayer2AI: aiType => {
+        set(state => {
+          state.player2AI = aiType;
+        });
+      },
+      setGameMode: gameMode => {
+        set(state => {
+          state.gameMode = gameMode;
+        });
+      },
     },
-    reset: () => {
-      set(state => {
-        state.gameState = emptyGameState();
-        state.aiThinking = false;
-        state.pendingMove = null;
-        state.showWinnerModal = false;
-      });
-    },
-    showWinnerModal: () => {
-      set(state => {
-        state.showWinnerModal = true;
-      });
-    },
-    setAI: (aiType: AIType) => {
-      set(state => {
-        state.selectedAI = aiType;
-        state.player2AI = aiType;
-      });
-    },
-    setPlayer1AI: (aiType: AIType) => {
-      set(state => {
-        state.player1AI = aiType;
-      });
-    },
-    setPlayer2AI: (aiType: AIType) => {
-      set(state => {
-        state.player2AI = aiType;
-      });
-    },
-    setGameMode: (mode: GameMode) => {
-      set(state => {
-        state.gameMode = mode;
-      });
-    },
-  },
-}));
+  };
+});
 
 export const useGameStore =
   typeof window === 'undefined'
@@ -164,25 +192,17 @@ export const useGameStore =
         persist(createGameStore, {
           name: 'rowspire-game-storage',
           storage: createJSONStorage(() => window.localStorage),
-          onRehydrateStorage: () => (state, error) => {
-            if (error) {
-              console.error('Failed to rehydrate game store:', error);
-            }
-            if (state) {
-              state.actions.initialize(true);
-            }
-          },
           version: LATEST_VERSION,
-          migrate: (persistedState, version) => {
-            const state = persistedState as Partial<GameStore>;
-            if (version < LATEST_VERSION || !state || !state.gameState) {
-              return { gameState: initializeGame() };
-            }
-            return { gameState: state.gameState };
-          },
-          partialize: state => ({
-            gameState: state.gameState,
+          partialize: persistedStateFrom,
+          migrate: parsePersistedState,
+          merge: (persistedState, currentState) => ({
+            ...currentState,
+            ...parsePersistedState(persistedState),
           }),
+          onRehydrateStorage: () => (state, error) => {
+            if (error) console.error('Failed to restore the saved game:', error);
+            state?.actions.initialize();
+          },
         }),
       );
 

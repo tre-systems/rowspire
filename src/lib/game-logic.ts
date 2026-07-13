@@ -32,6 +32,8 @@ export function makeMove(gameState: GameState, column: number): GameState {
   if (column < 0 || column >= COLS) return gameState;
 
   const col = gameState.board[column];
+  if (!col) return gameState;
+
   const row = col.lastIndexOf(null);
   if (row === -1) return gameState;
 

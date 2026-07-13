@@ -119,7 +119,7 @@ fn main() {
                 }
 
                 let core_evals = solver.analyze_all(&bitboard, SOLVER_DEPTH);
-                if count % progress_interval == 0 && count > 0 {
+                if count.is_multiple_of(progress_interval) && count > 0 {
                     let pct = (count as f32 * 100.0) / NUM_RAW_SAMPLES as f32;
                     let elapsed = gen_start.elapsed().as_secs_f32();
                     let rate = count as f32 / elapsed;

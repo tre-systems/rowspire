@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX, HelpCircle, RotateCcw } from 'lucide-react';
-import { isDevelopment } from '@/lib/utils';
 
 interface GameControlsProps {
   soundEnabled: boolean;
@@ -18,23 +17,19 @@ export default function GameControls({
   onResetGame,
 }: GameControlsProps) {
   return (
-    <>
+    <div data-testid="game-controls">
       <hr className="my-4 border-white/10" />
       <div className="flex items-center justify-between w-full">
-        {isDevelopment() && (
-          <div className="flex items-center space-x-2">
-            <motion.button
-              onClick={onResetGame}
-              className="p-3 glass-dark rounded-lg text-white/70 hover:text-white transition-colors button-glow"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              title="Reset Game"
-              data-testid="reset-game"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </motion.button>
-          </div>
-        )}
+        <motion.button
+          onClick={onResetGame}
+          className="p-3 glass-dark rounded-lg text-white/70 hover:text-white transition-colors button-glow"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="Reset Game"
+          data-testid="reset-game"
+        >
+          <RotateCcw className="w-5 h-5" />
+        </motion.button>
 
         <div className="flex items-center space-x-3">
           <motion.button
@@ -60,6 +55,6 @@ export default function GameControls({
           </motion.button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

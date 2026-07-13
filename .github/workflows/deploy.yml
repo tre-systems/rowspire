@@ -31,7 +31,7 @@ jobs:
           version: 'v0.15.0'
 
       - name: Install Wrangler
-        run: npm install -g wrangler@4.95.0
+        run: npm install -g wrangler@4.110.0
 
       - name: Verify Wrangler installation
         run: |

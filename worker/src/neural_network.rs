@@ -355,10 +355,7 @@ mod tests {
             use_skip_connections: false,
         };
 
-        assert_eq!(
-            config.total_weights(),
-            (10 + 1) * 5 + (5 + 1) * 3 + (3 + 1) * 1
-        );
+        assert_eq!(config.total_weights(), (10 + 1) * 5 + (5 + 1) * 3 + (3 + 1));
     }
 
     #[test]

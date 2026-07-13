@@ -10,6 +10,8 @@ export default function AnimatedBackground() {
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
       style={{ background: 'transparent' }}
+      aria-hidden="true"
+      data-testid="animated-background"
     />
   );
 }
