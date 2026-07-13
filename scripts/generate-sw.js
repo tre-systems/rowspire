@@ -2,10 +2,11 @@
 
 import fs from 'fs';
 import path from 'path';
+import { resolveBuildId } from './build-id.mjs';
 
 const packageJsonPath = path.join(process.cwd(), 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-const buildId = process.env.GITHUB_SHA?.slice(0, 7) || 'local';
+const buildId = resolveBuildId(process.env.GITHUB_SHA);
 const CACHE_VERSION = `${buildId}-v${packageJson.version}`;
 
 const serviceWorkerTemplate = `const CACHE_VERSION = '${CACHE_VERSION}';
