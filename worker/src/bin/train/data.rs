@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
-pub const SOLVER_DEPTH: u8 = 12;
+pub const SOLVER_DEPTH: u8 = 18;
 const RAW_SAMPLES: usize = 250_000;
 const EARLY_RATIO: f32 = 0.4;
 const MID_RATIO: f32 = 0.4;
@@ -154,7 +154,9 @@ fn report_progress(completed: usize) {
 }
 
 fn dataset_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../resources/ai/training/dataset_p4.json")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!(
+        "../resources/ai/training/dataset_p4_depth{SOLVER_DEPTH}.json"
+    ))
 }
 
 impl StoredSample {
