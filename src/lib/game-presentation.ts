@@ -1,8 +1,12 @@
 import type { AIType, GameMode, GameState, Player } from './types';
-import { getAITypeLabel } from './utils';
 
 export type GameIcon = 'brain' | 'cpu' | 'crown' | 'trophy' | 'x-circle' | 'zap';
 export type GameTone = 'gray' | 'green' | 'pink' | 'teal' | 'violet';
+
+const AI_TYPE_LABELS = {
+  search: 'Search AI',
+  ml: 'ML AI',
+} satisfies Record<AIType, string>;
 
 type PresentationContext = {
   gameState: GameState;
@@ -36,6 +40,10 @@ function aiForPlayer(context: PresentationContext, player: Player): AIType {
 
 function aiIcon(aiType: AIType): GameIcon {
   return aiType === 'ml' ? 'brain' : 'cpu';
+}
+
+function getAITypeLabel(aiType: AIType): string {
+  return AI_TYPE_LABELS[aiType];
 }
 
 function aiWinnerText(context: PresentationContext, winner: Player): string {

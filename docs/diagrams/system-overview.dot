@@ -140,7 +140,7 @@ digraph SystemOverview {
     ];
 
     G1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Bitboard solver</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Negamax + &alpha;-&beta; pruning</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    G2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML-MCTS</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">AlphaZero-style &middot; 4000 sims</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    G2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML strategy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">tactical guard &middot; AlphaZero-style MCTS</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
     G3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Neural network</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">4&times;128 value + policy</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 
     G1 -> G2 [style=invis];

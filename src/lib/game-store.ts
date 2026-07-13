@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { initializeGame, makeAIMove, makeMove } from './game-logic';
+import { initializeGame, makeMove } from './game-logic';
+import { makeAIMove } from './logic/ai-logic';
 import {
   aiForTurn,
   isAITurn,

@@ -1,4 +1,5 @@
 use super::features::GameFeatures;
+use super::ml_tactics::tactical_move;
 use super::neural_network::{NetworkConfig, NeuralNetwork};
 use super::GameState;
 use serde::{Deserialize, Serialize};
@@ -37,6 +38,24 @@ pub struct MLAI {
     pub value_network: NeuralNetwork,
     pub policy_network: NeuralNetwork,
     pub mcts_simulations: usize,
+}
+
+fn tactical_response(valid_moves: Vec<u8>, column: u8, move_type: &str) -> MLResponse {
+    MLResponse {
+        r#move: Some(column),
+        evaluation: 1.0,
+        thinking: format!("Tactical move in column {column}: {move_type}"),
+        diagnostics: MLDiagnostics {
+            valid_moves,
+            move_evaluations: vec![MLMoveEvaluation {
+                column,
+                score: 1.0,
+                move_type: move_type.to_string(),
+            }],
+            value_network_output: 0.0,
+            policy_network_outputs: vec![0.0; 7],
+        },
+    }
 }
 
 impl Default for MLAI {
@@ -86,6 +105,10 @@ impl MLAI {
             };
         }
 
+        if let Some((column, move_type)) = tactical_move(state, &valid_moves) {
+            return tactical_response(valid_moves, column, move_type);
+        }
+
         if valid_moves.len() == 1 {
             return MLResponse {
                 r#move: Some(valid_moves[0]),
@@ -100,12 +123,10 @@ impl MLAI {
             };
         }
 
-        // Get raw network output for diagnostics
         let features = GameFeatures::from_game_state(state);
         let raw_value = self.value_network.forward(&features.to_array())[0];
         let raw_policy = self.policy_network.forward(&features.to_array());
 
-        // Use MCTS for search (AlphaZero style)
         let mut mcts = super::mcts::MCTS::new(1.41, self.mcts_simulations);
 
         let value_net = &self.value_network;
@@ -113,7 +134,7 @@ impl MLAI {
 
         let value_fn = |s: &GameState| -> f32 {
             let f = GameFeatures::from_game_state(s);
-            value_net.forward(&f.to_array())[0] // Now relative by default
+            value_net.forward(&f.to_array())[0]
         };
 
         let policy_fn = |s: &GameState| -> Vec<f32> {
@@ -123,13 +144,12 @@ impl MLAI {
 
         let (best_move, move_probs) = mcts.search(state.clone(), &value_fn, &policy_fn, 0.0, true);
 
-        // Convert MCTS probs to diagnostics
         let mut move_evaluations = Vec::new();
         for &col in &valid_moves {
             let prob = move_probs[col as usize];
             move_evaluations.push(MLMoveEvaluation {
                 column: col,
-                score: prob, // Display visit probability as score
+                score: prob,
                 move_type: "mcts_visit_prob".to_string(),
             });
         }
@@ -169,114 +189,5 @@ impl MLAI {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::COLS;
-
-    #[test]
-    fn test_ml_ai_new() {
-        let ai = MLAI::new();
-        assert!(ai.value_network.num_layers() > 0);
-        assert!(ai.policy_network.num_layers() > 0);
-    }
-
-    #[test]
-    fn test_ml_ai_empty_board() {
-        let mut ai = MLAI::new();
-        let state = GameState::new();
-        let response = ai.get_best_move(&state);
-
-        assert!(response.r#move.is_some());
-        assert_eq!(response.diagnostics.valid_moves.len(), COLS);
-        assert_eq!(response.diagnostics.policy_network_outputs.len(), 7);
-    }
-
-    #[test]
-    fn test_ml_ai_winning_move() {
-        let mut ai = MLAI::new();
-        let mut state = GameState::new();
-        let first_player = state.current_player;
-
-        // Set up a winning position for the first player
-        state.make_move(0).unwrap();
-        state.current_player = first_player;
-        state.make_move(1).unwrap();
-        state.current_player = first_player;
-        state.make_move(2).unwrap();
-        state.current_player = first_player;
-
-        let response = ai.get_best_move(&state);
-        // Should have a valid move (the AI might not always choose the optimal winning move)
-        assert!(response.r#move.is_some());
-        let best_move = response.r#move.unwrap();
-        assert!(best_move < COLS as u8);
-    }
-
-    #[test]
-    fn test_ml_ai_blocking_move() {
-        let mut ai = MLAI::new();
-        let mut state = GameState::new();
-
-        // Set up a threat for Player 2
-        state.make_move(0).unwrap();
-        state.make_move(1).unwrap();
-        state.make_move(2).unwrap();
-
-        let response = ai.get_best_move(&state);
-        // Should have a valid move (untrained ML AI may not choose optimal blocking move)
-        assert!(response.r#move.is_some());
-        let best_move = response.r#move.unwrap();
-        assert!(best_move < COLS as u8);
-    }
-
-    #[test]
-    fn test_ml_ai_no_valid_moves() {
-        let mut ai = MLAI::new();
-        let state = GameState::new();
-
-        // Fill the board (this would take many moves, but we can test the logic)
-        // For now, just test that it handles empty valid moves correctly
-        let response = ai.get_best_move(&state);
-        assert!(response.r#move.is_some()); // Should have valid moves on empty board
-    }
-
-    #[test]
-    fn test_ml_ai_evaluate_position() {
-        let ai = MLAI::new();
-        let state = GameState::new();
-        let evaluation = ai.evaluate_position(&state);
-
-        // Evaluation should be a finite number
-        assert!(!evaluation.is_nan());
-        assert!(!evaluation.is_infinite());
-    }
-
-    #[test]
-    fn test_ml_ai_center_preference() {
-        let mut ai = MLAI::new();
-        let state = GameState::new();
-        let response = ai.get_best_move(&state);
-
-        // Should have a valid move
-        let best_move = response.r#move.unwrap();
-        assert!(best_move <= 6); // Valid column range
-    }
-
-    #[test]
-    fn test_ml_ai_move_evaluations() {
-        let mut ai = MLAI::new();
-        let state = GameState::new();
-        let response = ai.get_best_move(&state);
-
-        // Should have evaluations for all valid moves
-        assert_eq!(response.diagnostics.move_evaluations.len(), COLS);
-
-        // Evaluations should be sorted (best first)
-        for i in 1..response.diagnostics.move_evaluations.len() {
-            assert!(
-                response.diagnostics.move_evaluations[i - 1].score
-                    >= response.diagnostics.move_evaluations[i].score
-            );
-        }
-    }
-}
+#[path = "ml_ai_tests.rs"]
+mod tests;

@@ -1,13 +1,16 @@
 import type { GameState, Player, Board, MoveRecord } from './types';
 import { createEmptyBoard, printBoard, isDraw, checkWin } from './logic/board-logic';
-import { makeAIMove, otherPlayer } from './logic/ai-logic';
 
-export { checkWin, isDraw, makeAIMove };
+export { checkWin, isDraw };
 
 const COLS = 7;
 
 function getPlayerName(player: Player) {
   return player === 'player1' ? 'Teal' : 'Violet';
+}
+
+function otherPlayer(player: Player): Player {
+  return player === 'player1' ? 'player2' : 'player1';
 }
 
 export function initializeGame(): GameState {

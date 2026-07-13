@@ -8,7 +8,7 @@ Rowspire is an independent browser strategy game with Rust/WebAssembly AI oppone
 
 - Two AI opponents compiled from Rust to WebAssembly:
   - Search AI: negamax with alpha-beta pruning over a compact bitboard engine.
-  - ML AI: MCTS over value and policy networks.
+  - ML AI: deterministic tactical guard followed by MCTS over value and policy networks.
 - Human vs AI and AI vs AI watch mode.
 - Procedural Web Audio effects for moves, wins, losses, and watch-mode AI turns.
 - Persistent animated canvas background effects across setup, play, and completed games.

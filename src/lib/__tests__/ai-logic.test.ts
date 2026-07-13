@@ -1,14 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { immediateTacticalMove, makeAIMove as chooseAIMove } from '../logic/ai-logic';
+import { makeAIMove as chooseAIMove } from '../logic/ai-logic';
 import { createEmptyBoard } from '../logic/board-logic';
-import type { Board, GameState, Player } from '../types';
+import type { Board, GameState } from '../types';
 import WASMAIService, { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
-
-function setCell(board: Board, column: number, row: number, player: Player) {
-  const targetColumn = board[column];
-  if (!targetColumn) throw new Error(`Invalid column ${column}`);
-  targetColumn[row] = player;
-}
 
 const base: Omit<GameState, 'board'> = {
   currentPlayer: 'player1',
@@ -42,41 +36,6 @@ beforeEach(() => {
   vi.mocked(initializeWASMAI).mockClear();
   service.isReady = true;
   vi.mocked(getWASMAIService).mockReturnValue(service as unknown as WASMAIService);
-});
-
-describe('immediateTacticalMove (ML tactical safety net)', () => {
-  it('takes an immediate winning move', () => {
-    const board = createEmptyBoard();
-    setCell(board, 0, 5, 'player1');
-    setCell(board, 1, 5, 'player1');
-    setCell(board, 2, 5, 'player1');
-    expect(immediateTacticalMove({ ...base, board })).toBe(3);
-  });
-
-  it('blocks an immediate opponent win', () => {
-    const board = createEmptyBoard();
-    setCell(board, 0, 5, 'player2');
-    setCell(board, 1, 5, 'player2');
-    setCell(board, 2, 5, 'player2');
-    expect(immediateTacticalMove({ ...base, board })).toBe(3);
-  });
-
-  it('prefers winning over blocking when both are available', () => {
-    const board = createEmptyBoard();
-    setCell(board, 0, 5, 'player1');
-    setCell(board, 1, 5, 'player1');
-    setCell(board, 2, 5, 'player1');
-    setCell(board, 6, 5, 'player2');
-    setCell(board, 6, 4, 'player2');
-    setCell(board, 6, 3, 'player2');
-    expect(immediateTacticalMove({ ...base, board })).toBe(3);
-  });
-
-  it('returns null when there is no forced move', () => {
-    const board = createEmptyBoard();
-    setCell(board, 3, 5, 'player1');
-    expect(immediateTacticalMove({ ...base, board })).toBeNull();
-  });
 });
 
 describe('makeAIMove', () => {

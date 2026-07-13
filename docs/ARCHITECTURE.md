@@ -22,20 +22,20 @@ Dependencies point inward toward the domain. Components may depend on stores, pr
 
 ## Required Pattern Catalog
 
-| Pattern                           | Rule                                                           | Primary implementation                                              | Enforcement                                               |
-| --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
-| Schema-first domain model         | Define domain values once and import them through one facade   | `src/lib/schemas.ts`, `src/lib/types.ts`                            | Strict TypeScript, Zod tests, restricted-import lint rule |
-| Functional core, imperative shell | Keep decisions pure; keep effects at adapters and stores       | `src/lib/game-logic.ts`, `src/lib/logic/*`, `src/lib/game-store.ts` | Vitest covers extracted logic                             |
-| Command store                     | Components issue named commands rather than constructing state | `GameStore.actions`                                                 | Zustand + Immer                                           |
-| Selector read model               | Every component subscribes only to the state it renders        | `useGameState`, `useGameActions`, inline selectors                  | Lint rejects zero-argument store hooks                    |
-| Explicit state machine            | Turn eligibility and transitions use shared predicates         | `src/lib/game-state-machine.ts`                                     | State-machine and store tests                             |
-| Generation token                  | Delayed work must prove it still belongs to the active game    | `gameGeneration` and `isSameTurn`                                   | Async store tests                                         |
-| Presentation model                | Derive text, tone, and semantic icons outside React            | `src/lib/game-presentation.ts`                                      | Pure unit tests; components only map semantics to UI      |
-| Contract-first boundary           | Validate every untrusted or cross-runtime message              | `src/lib/ml-ai-worker-protocol.ts`                                  | Shared Zod schemas on both worker sides                   |
-| Adapter / anti-corruption layer   | Browser and Rust representations do not leak into the domain   | `src/lib/wasm-ai-service.ts`, generated `bindings.ts`               | Conversion occurs at the adapter edge                     |
-| Strategy with fallback            | Select an AI explicitly and degrade in a fixed order           | `src/lib/logic/ai-logic.ts`                                         | Exhaustive `AIType`; AI tests                             |
-| Versioned snapshot                | Persist only stable state and validate on restore              | `src/lib/game-store-state.ts`                                       | Schema validation and migration tests                     |
-| Generated artifact boundary       | Generated and build outputs are never hand-edited              | `bindings.ts`, `public/wasm`, `out`                                 | Generation scripts and ignore files                       |
+| Pattern                           | Rule                                                           | Primary implementation                                           | Enforcement                                               |
+| --------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| Schema-first domain model         | Define domain values once and import them through one facade   | `src/lib/schemas.ts`, `src/lib/types.ts`                         | Strict TypeScript, Zod tests, restricted-import lint rule |
+| Functional core, imperative shell | Keep decisions pure; keep effects at adapters and stores       | `game-logic.ts`, `game-state-machine.ts`, `logic/board-logic.ts` | Layer lint rules; Vitest covers extracted logic           |
+| Command store                     | Components issue named commands rather than constructing state | `GameStore.actions`                                              | Zustand + Immer                                           |
+| Selector read model               | Every component subscribes only to the state it renders        | `useGameState`, `useGameActions`, inline selectors               | Lint rejects zero-argument store hooks                    |
+| Explicit state machine            | Turn eligibility and transitions use shared predicates         | `src/lib/game-state-machine.ts`                                  | State-machine and store tests                             |
+| Generation token                  | Delayed work must prove it still belongs to the active game    | `gameGeneration` and `isSameTurn`                                | Async store tests                                         |
+| Presentation model                | Derive text, tone, and semantic icons outside React            | `src/lib/game-presentation.ts`                                   | Pure unit tests; components only map semantics to UI      |
+| Contract-first boundary           | Validate every untrusted or cross-runtime message              | `src/lib/ml-ai-worker-protocol.ts`                               | Shared Zod schemas on both worker sides                   |
+| Adapter / anti-corruption layer   | Browser and Rust representations do not leak into the domain   | `src/lib/wasm-ai-service.ts`, generated `bindings.ts`            | Conversion occurs at the adapter edge                     |
+| Strategy with fallback            | Select an AI explicitly and degrade in a fixed order           | `logic/ai-logic.ts`, `worker/src/ml_ai.rs`                       | Exhaustive `AIType`; TypeScript and Rust AI tests         |
+| Versioned snapshot                | Persist only stable state and validate on restore              | `src/lib/game-store-state.ts`                                    | Schema validation and migration tests                     |
+| Generated artifact boundary       | Generated and build outputs are never hand-edited              | `bindings.ts`, `public/wasm`, `out`                              | Generation scripts and ignore files                       |
 
 ## Pattern Details
 
@@ -54,7 +54,7 @@ When adding a domain value:
 
 ### Functional core, imperative shell
 
-Pure functions own board updates, win detection, turn rules, AI tactics, and presentation decisions. They accept values and return values without reading stores or browser globals.
+Pure functions own board updates, win detection, turn rules, and presentation decisions. Rust owns AI tactics and search. These modules accept values and return values without reading stores or browser globals.
 
 The shell owns effects:
 
@@ -107,6 +107,8 @@ The same rule applies to local storage, fetched JSON, generated WASM responses, 
 3. Random valid column.
 4. User-visible error when no valid move exists.
 
+The Rust ML strategy checks immediate wins, then immediate blocks, before invoking MCTS. Assertion-based Rust tests protect both tactical guarantees independently of model weights.
+
 ### Versioned persistence
 
 The persisted key is `rowspire-game-storage`. Only the current game, mode, and AI selections are stored. Animation state, pending moves, actions, errors, and loading flags are reconstructed.
@@ -121,7 +123,8 @@ The persisted key is `rowspire-game-storage`. Only the current game, mode, and A
 | `src/hooks`                                           | Reusable React lifecycle coordination                  |
 | `src/lib/schemas.ts`                                  | Domain schemas and inferred domain types               |
 | `src/lib/types.ts`                                    | Public domain-model facade                             |
-| `src/lib/logic`, `src/lib/game-logic.ts`              | Pure game and AI decisions                             |
+| `src/lib/game-logic.ts`, `logic/board-logic.ts`       | Pure game rules                                        |
+| `src/lib/logic/ai-logic.ts`                           | Effectful AI strategy dispatch and fallback            |
 | `src/lib/game-state-machine.ts`                       | Turn and transition predicates                         |
 | `src/lib/game-presentation.ts`                        | Pure UI projections                                    |
 | `src/lib/*-store.ts`                                  | Commands, state coordination, persistence wiring       |
@@ -153,7 +156,7 @@ Source diagrams live in `docs/diagrams/*.dot`. Run `npm run diagrams` after chan
 
 `npm run check` is the executable architecture policy. It runs:
 
-- ESLint, including selector and domain-import boundaries.
+- ESLint, including selector and dependency-direction boundaries.
 - Strict TypeScript with unchecked-index and optional-property checks.
 - Strict Clippy across Rust targets and features.
 - Vitest coverage for pure logic and adapters.
@@ -161,3 +164,5 @@ Source diagrams live in `docs/diagrams/*.dot`. Run `npm run diagrams` after chan
 - Brand and generated-output audits.
 - Architecture diagram source and render validation.
 - Playwright end-to-end flows.
+
+ESLint enforces three dependency directions: library code cannot import UI, UI cannot import generated bindings or worker/WASM adapters, and the pure core cannot import stores, UI frameworks, the AI shell, or external adapters.

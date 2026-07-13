@@ -1,38 +1,11 @@
-import type { GameState, Player, AIType, Board } from '../types';
+import type { GameState, AIType } from '../types';
 import { MLMoveEvaluation, MoveEvaluationWasm } from '../bindings';
 import { SEARCH_AI_DEPTH } from '../constants';
 import { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
-import { getValidMoves, printBoard, checkWin } from './board-logic';
-
-export function otherPlayer(player: Player): Player {
-  return player === 'player1' ? 'player2' : 'player1';
-}
+import { getValidMoves, printBoard } from './board-logic';
 
 function isValidColumn(move: number | null | undefined): move is number {
   return move !== null && move !== undefined && move >= 0 && move < 7;
-}
-
-function wouldWin(board: Board, col: number, player: Player): boolean {
-  const row = board[col]?.lastIndexOf(null) ?? -1;
-  if (row === -1) return false;
-  const newBoard = board.map((c, i) =>
-    i === col ? [...c.slice(0, row), player, ...c.slice(row + 1)] : c,
-  );
-  return checkWin(newBoard, col, row, player) !== null;
-}
-
-export function immediateTacticalMove(gameState: GameState): number | null {
-  const me = gameState.currentPlayer;
-  const opponent = otherPlayer(me);
-  const valid = getValidMoves(gameState.board);
-
-  for (const col of valid) {
-    if (wouldWin(gameState.board, col, me)) return col;
-  }
-  for (const col of valid) {
-    if (wouldWin(gameState.board, col, opponent)) return col;
-  }
-  return null;
 }
 
 async function fallbackMove(gameState: GameState): Promise<number | null> {
@@ -83,12 +56,6 @@ export async function makeAIMove(gameState: GameState, aiType: AIType = 'search'
         response = await wasmAI.getBestMove(gameState, SEARCH_AI_DEPTH);
         break;
       case 'ml': {
-        const tactical = immediateTacticalMove(gameState);
-        if (tactical !== null) {
-          console.log(`🛡️ ML AI: forced tactical move at column ${tactical}`);
-          return tactical;
-        }
-
         const mlResponse = await wasmAI.getMLMove(gameState);
         if (mlResponse.thinking) {
           console.log(`🧠 ML AI Thinking: ${mlResponse.thinking}`);

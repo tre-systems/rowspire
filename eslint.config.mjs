@@ -5,6 +5,53 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 
+const domainFacadeImports = [
+  {
+    group: ['**/schemas'],
+    message: 'Import the consolidated domain model from types.ts.',
+  },
+];
+
+const uiLayerImports = [
+  {
+    group: [
+      '@/components/**',
+      '@/hooks/**',
+      '@/app/**',
+      '**/components/**',
+      '**/hooks/**',
+      '**/app/**',
+    ],
+    message: 'Library code must not depend on UI layers.',
+  },
+];
+
+const adapterImports = [
+  {
+    group: ['**/bindings', '**/ai.worker', '**/ml-ai-worker-*', '**/wasm-ai-service'],
+    message: 'UI code must use stores and application services instead of low-level adapters.',
+  },
+];
+
+const shellImports = [
+  {
+    group: [
+      'react',
+      'react/**',
+      'zustand',
+      'zustand/**',
+      'immer',
+      '**/*-store',
+      '**/*-service',
+      '**/*-client',
+      '**/*.worker',
+      '**/bindings',
+      '**/logic/ai-logic',
+    ],
+    message: 'Pure core code must not depend on stores, UI frameworks, or external adapters.',
+  },
+];
+
 export default tseslint.config(
   {
     ignores: [
@@ -77,12 +124,47 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          patterns: [
-            {
-              group: ['**/schemas'],
-              message: 'Import the consolidated domain model from types.ts.',
-            },
-          ],
+          patterns: domainFacadeImports,
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/lib/**/*.{ts,tsx}'],
+    ignores: ['src/lib/types.ts', 'src/lib/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [...domainFacadeImports, ...uiLayerImports],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/components/**/*.{ts,tsx}', 'src/hooks/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [...domainFacadeImports, ...adapterImports],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      'src/lib/schemas.ts',
+      'src/lib/game-logic.ts',
+      'src/lib/game-presentation.ts',
+      'src/lib/game-state-machine.ts',
+      'src/lib/logic/board-logic.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [...domainFacadeImports, ...uiLayerImports, ...shellImports],
         },
       ],
     },

@@ -8,6 +8,7 @@ pub mod features;
 pub mod genetic_params;
 pub mod mcts;
 pub mod ml_ai;
+mod ml_tactics;
 pub mod neural_network;
 pub mod solver;
 

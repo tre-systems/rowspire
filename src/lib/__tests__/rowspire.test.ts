@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { initializeGame, makeMove, checkWin, makeAIMove, isDraw } from '../game-logic';
+import { initializeGame, makeMove, checkWin, isDraw } from '../game-logic';
+import { makeAIMove } from '../logic/ai-logic';
 import { Board } from '../schemas';
 import { emptyGameState } from '../game-store-state';
 import type { GameState } from '../types';

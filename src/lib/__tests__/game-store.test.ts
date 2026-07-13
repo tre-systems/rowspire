@@ -7,8 +7,8 @@ const { calculateAIMove } = vi.hoisted(() => ({
   calculateAIMove: vi.fn<() => Promise<number>>(),
 }));
 
-vi.mock('../game-logic', async () => {
-  const actual = await vi.importActual<typeof import('../game-logic')>('../game-logic');
+vi.mock('../logic/ai-logic', async () => {
+  const actual = await vi.importActual<typeof import('../logic/ai-logic')>('../logic/ai-logic');
   return { ...actual, makeAIMove: calculateAIMove };
 });
 

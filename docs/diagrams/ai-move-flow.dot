@@ -51,7 +51,7 @@ digraph AiMoveFlow {
   D1 [label=<<B>aiType?</B>>, shape=diamond, style=filled, width=2.7, height=1.05, fillcolor="#ffffff", color="#1f2f46", penwidth=2.4];
 
   C1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Bitboard solver</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">getBestMove(depth 5)</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-  C2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML-MCTS</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">getMLMove()</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+  C2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML strategy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">win / block guard &rarr; MCTS</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 
   D2 [label=<<B>valid move 0&ndash;6?</B>>, shape=diamond, style=filled, width=3.0, height=1.05, fillcolor="#ffffff", color="#1f2f46", penwidth=2.4];
 

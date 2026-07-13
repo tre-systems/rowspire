@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { AIType } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -50,12 +49,3 @@ export const isDevelopment = () => {
     hostname === 'localhost' || hostname === '127.0.0.1' || process.env.NODE_ENV === 'development'
   );
 };
-
-const AI_TYPE_LABELS = {
-  search: 'Search AI',
-  ml: 'ML AI',
-} satisfies Record<AIType, string>;
-
-export function getAITypeLabel(aiType: AIType): string {
-  return AI_TYPE_LABELS[aiType];
-}
