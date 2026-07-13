@@ -36,4 +36,23 @@ describe('AI worker', () => {
 
     expect(postMessage).not.toHaveBeenCalled();
   });
+
+  it('rejects messages outside the dedicated worker channel', async () => {
+    const postMessage = vi.fn();
+    const workerScope = { onmessage: null, postMessage };
+    vi.stubGlobal('self', workerScope);
+    await import('../ai.worker');
+
+    const onmessage = workerScope.onmessage as unknown as (
+      event: MessageEvent<unknown>,
+    ) => Promise<void>;
+    await onmessage(
+      new MessageEvent('message', {
+        data: { id: 7, type: 'ml', state: {} },
+        origin: 'https://example.com',
+      }),
+    );
+
+    expect(postMessage).not.toHaveBeenCalled();
+  });
 });

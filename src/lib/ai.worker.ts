@@ -48,6 +48,8 @@ async function initializeAI(): Promise<WASMAIInstance> {
 }
 
 ctx.onmessage = async event => {
+  if (event.origin !== '') return;
+
   const request = AIWorkerRequestSchema.safeParse(event.data);
   if (!request.success) {
     const id = workerMessageId(event.data);

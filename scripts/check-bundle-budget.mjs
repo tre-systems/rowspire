@@ -1,5 +1,5 @@
 import { gzipSync } from 'node:zlib';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 
 const budgets = new Map([
@@ -12,14 +12,15 @@ const budgets = new Map([
 function files(path) {
   return readdirSync(path, { withFileTypes: true }).flatMap(entry => {
     const target = join(path, entry.name);
-    return entry.isDirectory() ? files(target) : [target];
+    if (entry.isDirectory()) return files(target);
+    return entry.isFile() ? [target] : [];
   });
 }
 
 const totals = new Map();
 for (const file of files('out/client')) {
   const extension = extname(file);
-  if (!budgets.has(extension) || !statSync(file).isFile()) continue;
+  if (!budgets.has(extension)) continue;
   const compressed = gzipSync(readFileSync(file)).byteLength;
   totals.set(extension, (totals.get(extension) ?? 0) + compressed);
 }

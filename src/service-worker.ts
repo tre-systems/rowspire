@@ -61,5 +61,6 @@ scope.addEventListener('fetch', event => {
 });
 
 scope.addEventListener('message', event => {
+  if (event.origin !== scope.location.origin) return;
   if (event.data?.type === 'SKIP_WAITING') void scope.skipWaiting();
 });
