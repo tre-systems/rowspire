@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 authors = ["Robert Gilks"]
 description = "Rowspire AI core logic"
-license-file = "../LICENSE"
+license-file = "LICENSE"
 repository = "https://github.com/tre-systems/rowspire"
 
 [lints.rust]
