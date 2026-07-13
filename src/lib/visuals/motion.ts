@@ -7,4 +7,4 @@ export const MOTION = {
 };
 
 export const PIECE_DROP_DURATION_MS = 560;
-export const WIN_REVEAL_DURATION_MS = 1100;
+export const WIN_REVEAL_DURATION_MS = 2600;

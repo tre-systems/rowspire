@@ -27,6 +27,56 @@ async function playColumn(page: Page, column: number) {
   await expectNoError(page);
 }
 
+async function seedHorizontalWin(page: Page) {
+  const emptyColumn = [null, null, null, null, null, null];
+  const gameState = {
+    board: [
+      [...emptyColumn.slice(0, 5), 'player1'],
+      [...emptyColumn.slice(0, 5), 'player1'],
+      [...emptyColumn.slice(0, 5), 'player1'],
+      [...emptyColumn.slice(0, 5), 'player1'],
+      emptyColumn,
+      [...emptyColumn.slice(0, 5), 'player2'],
+      [...emptyColumn.slice(0, 4), 'player2', 'player2'],
+    ],
+    currentPlayer: 'player1',
+    gameStatus: 'finished',
+    winner: 'player1',
+    history: [
+      { player: 'player1', column: 0, row: 5 },
+      { player: 'player2', column: 6, row: 5 },
+      { player: 'player1', column: 1, row: 5 },
+      { player: 'player2', column: 6, row: 4 },
+      { player: 'player1', column: 2, row: 5 },
+      { player: 'player2', column: 5, row: 5 },
+      { player: 'player1', column: 3, row: 5 },
+    ],
+    winningLine: {
+      positions: [0, 1, 2, 3].map(column => ({ column, row: 5 })),
+      direction: 'horizontal',
+    },
+  };
+
+  await page.goto('/');
+  await page.evaluate(state => {
+    localStorage.setItem(
+      'rowspire-game-storage',
+      JSON.stringify({
+        state: {
+          gameState: state,
+          selectedAI: 'search',
+          player1AI: 'search',
+          player2AI: 'search',
+          difficulty: 'relaxed',
+          gameMode: 'human-vs-ai',
+        },
+        version: 5,
+      }),
+    );
+  }, gameState);
+  await page.reload();
+}
+
 test.describe('Core Game Functionality', () => {
   test('presents a clear opponent and difficulty choice', async ({ page }) => {
     await page.goto('/');
@@ -175,6 +225,18 @@ test.describe('Game Interactions', () => {
 });
 
 test.describe('Game Lifecycle', () => {
+  test('makes the exact winning line prominent before showing the result', async ({ page }) => {
+    await seedHorizontalWin(page);
+
+    await expect(page.getByTestId('winning-line-reveal')).toBeVisible();
+    await expect(page.getByTestId('winning-line-beam')).toHaveCount(1);
+    await expect(page.locator('[data-winning="true"]')).toHaveCount(4);
+    await expect(page.locator('[data-dimmed="true"]')).toHaveCount(3);
+    await expect(page.getByTestId('game-completion-overlay')).not.toBeVisible();
+
+    await expect(page.getByTestId('game-completion-overlay')).toBeVisible({ timeout: 4_000 });
+  });
+
   test('can reset game', async ({ page }) => {
     await startGame(page);
 

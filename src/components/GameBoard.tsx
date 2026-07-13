@@ -8,7 +8,7 @@ import { MOTION } from '@/lib/visuals/motion';
 import { useGameAnimations } from '@/hooks/useGameAnimations';
 
 import VictoryCelebration from './animations/VictoryCelebration';
-import WinningLineBurst from './animations/WinningLineBurst';
+import WinningLineReveal from './animations/WinningLineReveal';
 import DroppingPiece from './game/DroppingPiece';
 import GameColumn from './game/GameColumn';
 import GameCompletionOverlay from './game/GameCompletionOverlay';
@@ -56,6 +56,7 @@ export default function GameBoard({
       ? gameState.winningLine.positions.map(pos => `${pos.column},${pos.row}`)
       : [],
   );
+  const hasWinningLine = winningSet.size >= 4;
   const canPlay = isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode;
 
   return (
@@ -98,6 +99,7 @@ export default function GameBoard({
                   cells={cells}
                   column={column}
                   canPlay={canPlay}
+                  hasWinningLine={hasWinningLine}
                   winningPositions={winningSet}
                   onSelect={handleColumnClick}
                 />
@@ -119,7 +121,11 @@ export default function GameBoard({
 
             <AnimatePresence>
               {showWinAnimation && gameState.winningLine && gameState.winner && (
-                <WinningLineBurst onComplete={handleWinAnimationComplete} />
+                <WinningLineReveal
+                  line={gameState.winningLine}
+                  player={gameState.winner}
+                  onComplete={handleWinAnimationComplete}
+                />
               )}
             </AnimatePresence>
           </div>

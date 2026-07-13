@@ -7,9 +7,16 @@ interface GameSquareProps {
   row: number;
   player: Player | null;
   isWinning?: boolean;
+  isDimmed?: boolean;
 }
 
-export default function GameSquare({ column, row, player, isWinning = false }: GameSquareProps) {
+export default function GameSquare({
+  column,
+  row,
+  player,
+  isWinning = false,
+  isDimmed = false,
+}: GameSquareProps) {
   return (
     <div
       className="board-square"
@@ -23,9 +30,12 @@ export default function GameSquare({ column, row, player, isWinning = false }: G
             key={`${player}-${column}-${row}`}
             className="h-[84%] w-[84%]"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: isDimmed ? 0.2 : 1, scale: isDimmed ? 0.88 : 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
             data-testid={`piece-${column}-${row}`}
+            data-winning={isWinning ? 'true' : undefined}
+            data-dimmed={isDimmed ? 'true' : undefined}
           >
             <GamePiece player={player} isWinning={isWinning} />
           </motion.div>

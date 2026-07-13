@@ -73,6 +73,10 @@
   .game-drop-layer {
     inset: 0.45rem;
   }
+
+  .winning-line {
+    inset: 0.45rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

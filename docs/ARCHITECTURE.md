@@ -122,7 +122,7 @@ Opponent selection keeps the primary path limited to difficulty, playing style, 
 
 ### Motion
 
-Shared timings live in `visuals/motion.ts`; UI transitions use transforms and opacity. The ambient canvas uses frame-rate-independent steps, pauses in hidden tabs, and renders a static frame when reduced motion is requested. Counter drops and win effects communicate state changes rather than decorating idle board elements.
+Shared timings live in `visuals/motion.ts`; UI transitions use transforms and opacity. The ambient canvas uses frame-rate-independent steps, pauses in hidden tabs, and renders a static frame when reduced motion is requested. Counter drops and win effects communicate state changes rather than decorating idle board elements. A win first mutes unrelated counters, highlights every winning counter, and connects their centres using geometry derived by a pure presentation function; only then does the completion dialog appear.
 
 ### Observability
 

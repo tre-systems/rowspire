@@ -7,6 +7,7 @@ interface GameColumnProps {
   cells: GameState['board'][number];
   column: number;
   canPlay: boolean;
+  hasWinningLine: boolean;
   winningPositions: ReadonlySet<string>;
   onSelect: (column: number) => void;
 }
@@ -15,6 +16,7 @@ export default function GameColumn({
   cells,
   column,
   canPlay,
+  hasWinningLine,
   winningPositions,
   onSelect,
 }: GameColumnProps) {
@@ -38,6 +40,7 @@ export default function GameColumn({
           row={row}
           player={player}
           isWinning={winningPositions.has(`${column},${row}`)}
+          isDimmed={hasWinningLine && !winningPositions.has(`${column},${row}`)}
         />
       ))}
     </motion.button>
