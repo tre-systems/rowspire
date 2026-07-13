@@ -45,3 +45,4 @@ if (redirect.status !== 301 || redirect.headers.get('location') !== `${origin}/`
   throw new Error('Canonical host redirect smoke check failed');
 }
 console.log('Canonical host redirect smoke check passed');
+process.exit(0);
