@@ -78,7 +78,7 @@ digraph BuildDeployFlow {
       margin=20
     ];
 
-    TYPES [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>generate:types</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ts-rs &rarr; bindings.ts</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
+    TYPES [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>check:types</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ts-rs &harr; committed bindings.ts</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
     WASM [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>wasm-pack</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust &rarr; public/wasm</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
     COPY [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Copy model assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">resources/ai &rarr; public/ml</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
     SW [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>generate:sw</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">versioned offline cache policy</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
@@ -88,12 +88,12 @@ digraph BuildDeployFlow {
   }
 
   OUT [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Versioned out/ artifact</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">client assets + Worker bundle + deploy config</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
-  E2E [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Production preview</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Playwright + bundle budgets</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+  E2E [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Artifact verification</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">bundle budgets + Playwright preview</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
   WRANGLER [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Wrangler deploy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Workers Static Assets manifest</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
   CF [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare edge</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">versioned immutable deployment</FONT></TD></TR></TABLE>>, fillcolor="#d8f5de:#effcf2", color="#15803d", penwidth=3.0];
   SMOKE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Production smoke</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">shell &middot; PWA &middot; WASM &middot; model &middot; redirect</FONT></TD></TR></TABLE>>, fillcolor="#d8f5de:#effcf2", color="#15803d", penwidth=3.0];
 
-  RUST -> TYPES [label="explicit codegen", style=dashed, color="#6b7280", fontcolor="#6b7280"];
+  RUST -> TYPES [label="export contract", style=dashed, color="#6b7280", fontcolor="#6b7280"];
   RUST -> WASM [label="compile"];
   MODELS -> COPY [label="stage"];
   COMMIT -> SW [label="version cache"];

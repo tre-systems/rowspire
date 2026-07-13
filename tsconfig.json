@@ -31,6 +31,6 @@
       "/wasm/*": ["public/wasm/*"]
     }
   },
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "worker-configuration.d.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "worker-configuration.d.ts"],
   "exclude": ["node_modules", "worker"]
 }

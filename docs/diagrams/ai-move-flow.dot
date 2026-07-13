@@ -62,7 +62,7 @@ digraph AiMoveFlow {
   D4 [label=<<B>any valid moves?</B>>, shape=diamond, style=filled, width=3.0, height=1.05, fillcolor="#ffffff", color="#1f2f46", penwidth=2.4];
 
   OK [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Return column</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">store animates &rarr; makeMove</FONT></TD></TR></TABLE>>, fillcolor="#d8f5de:#effcf2", color="#15803d", penwidth=3.0];
-  ERR [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Throw &rarr; showError</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ui-store error modal &middot; prompt refresh</FONT></TD></TR></TABLE>>, fillcolor="#fde2e1:#fff5f5", color="#c53030", penwidth=3.0];
+  ERR [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Throw &rarr; showError</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">UI store opens the error modal</FONT></TD></TR></TABLE>>, fillcolor="#fde2e1:#fff5f5", color="#c53030", penwidth=3.0];
 
   A -> B [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">delegate</FONT></TD></TR></TABLE>>];
   B -> W [label="post message"];

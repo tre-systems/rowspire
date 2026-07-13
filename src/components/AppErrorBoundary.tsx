@@ -27,7 +27,8 @@ export default class AppErrorBoundary extends Component<Props, State> {
           <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Rowspire</p>
           <h1 className="text-3xl font-bold">The game hit a problem.</h1>
           <p className="text-base leading-7 text-slate-300">
-            Reset the board view and try again. The error has been reported without personal data.
+            Reset the board view and try again. When enabled, diagnostics filter saved game context
+            and common sensitive fields.
           </p>
           <button
             type="button"
