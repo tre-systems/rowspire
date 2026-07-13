@@ -1,150 +1,82 @@
 import type { GameState } from './types';
-import type { WasmBestMoveResponse, WasmHeuristicResponse, WasmMLResponse } from './bindings';
+import type {
+  GameState as WasmGameState,
+  GeneticParams,
+  WasmBestMoveResponse,
+  WasmMLResponse,
+} from './bindings';
 import { DEFAULT_GENETIC_PARAMS } from './constants';
-import { MLAIWorkerClient } from './ml-ai-worker-client';
+import { AIWorkerClient } from './ai-worker-client';
+import { GeneticParamsSchema, WasmGameStateSchema } from './wasm-ai-boundary';
 
-interface WASMAIInstance {
-  get_best_move: (state: unknown, depth: number) => WasmBestMoveResponse;
-  get_heuristic_move: (state: unknown) => WasmHeuristicResponse;
-  evaluate_position: (state: unknown) => number;
-  clear_transposition_table: () => void;
-  get_transposition_table_size: () => number;
-}
-
-interface WASMModule {
-  default: () => Promise<unknown>;
-  RowspireAI: new () => WASMAIInstance;
-}
-
-class WASMAIService {
-  private ai: WASMAIInstance | null = null;
+export default class WASMAIService {
   private isLoaded = false;
   private loadPromise: Promise<void> | null = null;
-  private readonly mlClient = new MLAIWorkerClient();
+  private geneticParamsPromise: Promise<GeneticParams> | null = null;
+
+  constructor(private readonly client = new AIWorkerClient()) {}
 
   async initialize(): Promise<void> {
-    if (this.isLoaded) return;
+    if (this.isLoaded || typeof window === 'undefined') return;
     if (this.loadPromise) return this.loadPromise;
 
-    this.loadPromise = this._initialize();
+    this.loadPromise = this.client.initialize();
     try {
       await this.loadPromise;
+      this.isLoaded = true;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load WASM AI: ${detail}`, { cause: error });
     } finally {
       this.loadPromise = null;
     }
   }
 
-  private async _initialize(): Promise<void> {
-    if (typeof window === 'undefined') {
-      console.log('🔄 Skipping WASM AI initialization in non-browser environment');
-      return;
-    }
-
-    try {
-      const wasmModulePath = '/wasm/rowspire_ai_core.js';
-      const wasmModule = (await import(/* webpackIgnore: true */ wasmModulePath)) as WASMModule;
-
-      await wasmModule.default();
-      this.ai = new wasmModule.RowspireAI();
-      this.isLoaded = true;
-      console.log('✅ WASM AI loaded successfully');
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to load WASM AI: ${detail}`, { cause: error });
-    }
-  }
-
-  private async convertGameStateToWASM(gameState: GameState): Promise<unknown> {
-    const board = gameState.board.map(col => col.map(cell => cell ?? 'empty'));
-
-    const geneticParams = await this.loadGeneticParams();
-
-    return {
-      board,
-      current_player: gameState.currentPlayer,
-      genetic_params: geneticParams,
-    };
-  }
-
-  private async loadGeneticParams(): Promise<Record<string, string | number | string[]>> {
-    try {
-      const response = await fetch('/ml/data/genetic_params/evolved.json');
-      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      console.warn('Failed to load evolved genetic parameters, using defaults:', error);
-    }
-    return DEFAULT_GENETIC_PARAMS;
-  }
-
-  async getBestMove(gameState: GameState, depth: number = 1): Promise<WasmBestMoveResponse> {
-    if (!this.isLoaded || !this.ai) {
-      throw new Error('WASM AI not loaded');
-    }
-
-    try {
-      const wasmState = await this.convertGameStateToWASM(gameState);
-      return this.ai.get_best_move(wasmState, depth);
-    } catch (error) {
-      throw new Error(`WASM AI failed: ${String(error)}`, { cause: error });
-    }
-  }
-
-  async getHeuristicMove(gameState: GameState): Promise<WasmHeuristicResponse> {
-    if (!this.isLoaded || !this.ai) {
-      throw new Error('WASM AI not loaded');
-    }
-
-    try {
-      const wasmState = await this.convertGameStateToWASM(gameState);
-      return this.ai.get_heuristic_move(wasmState);
-    } catch (error) {
-      throw new Error(`WASM heuristic AI failed: ${String(error)}`, { cause: error });
-    }
+  async getBestMove(gameState: GameState, depth = 1): Promise<WasmBestMoveResponse> {
+    await this.initialize();
+    const state = await this.convertGameState(gameState);
+    return this.client.search(state, depth);
   }
 
   async getMLMove(gameState: GameState): Promise<WasmMLResponse> {
-    const wasmState = await this.convertGameStateToWASM(gameState);
-    return this.mlClient.request(wasmState);
-  }
-
-  async evaluatePosition(gameState: GameState): Promise<number> {
-    if (!this.isLoaded || !this.ai) {
-      throw new Error('WASM AI not loaded');
-    }
-
-    try {
-      const wasmState = await this.convertGameStateToWASM(gameState);
-      return this.ai.evaluate_position(wasmState);
-    } catch (error) {
-      throw new Error(`WASM position evaluation failed: ${String(error)}`, { cause: error });
-    }
+    await this.initialize();
+    const state = await this.convertGameState(gameState);
+    return this.client.ml(state);
   }
 
   get isReady(): boolean {
     return this.isLoaded;
   }
 
-  clearTranspositionTable(): void {
-    if (this.isLoaded && this.ai) {
-      this.ai.clear_transposition_table();
-    }
+  private async convertGameState(gameState: GameState): Promise<WasmGameState> {
+    return WasmGameStateSchema.parse({
+      board: gameState.board.map(column => column.map(cell => cell ?? 'empty')),
+      current_player: gameState.currentPlayer,
+      genetic_params: await this.loadGeneticParams(),
+    });
   }
 
-  getTranspositionTableSize(): number {
-    if (this.isLoaded && this.ai) {
-      return this.ai.get_transposition_table_size();
+  private loadGeneticParams(): Promise<GeneticParams> {
+    this.geneticParamsPromise ??= this.fetchGeneticParams();
+    return this.geneticParamsPromise;
+  }
+
+  private async fetchGeneticParams(): Promise<GeneticParams> {
+    try {
+      const response = await fetch('/ml/data/genetic_params/evolved.json');
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+      return GeneticParamsSchema.parse(await response.json());
+    } catch (error) {
+      console.warn('Failed to load evolved genetic parameters, using defaults:', error);
+      return GeneticParamsSchema.parse(DEFAULT_GENETIC_PARAMS);
     }
-    return 0;
   }
 }
 
 let wasmAIInstance: WASMAIService | null = null;
 
 export function getWASMAIService(): WASMAIService {
-  if (!wasmAIInstance) {
-    wasmAIInstance = new WASMAIService();
-  }
+  wasmAIInstance ??= new WASMAIService();
   return wasmAIInstance;
 }
 
@@ -155,5 +87,3 @@ export function resetWASMAIService(): void {
 export async function initializeWASMAI(): Promise<void> {
   await getWASMAIService().initialize();
 }
-
-export default WASMAIService;

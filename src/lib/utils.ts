@@ -33,7 +33,7 @@ export function getPlayerId(): string {
 
 export const isProduction = () => {
   if (typeof window === 'undefined') {
-    return process.env.NODE_ENV === 'production';
+    return import.meta.env.PROD;
   }
 
   return PRODUCTION_HOSTNAMES.has(window.location.hostname);
@@ -41,11 +41,9 @@ export const isProduction = () => {
 
 export const isDevelopment = () => {
   if (typeof window === 'undefined') {
-    return process.env.NODE_ENV === 'development';
+    return import.meta.env.DEV;
   }
 
   const hostname = window.location.hostname;
-  return (
-    hostname === 'localhost' || hostname === '127.0.0.1' || process.env.NODE_ENV === 'development'
-  );
+  return hostname === 'localhost' || hostname === '127.0.0.1' || import.meta.env.DEV;
 };

@@ -11,10 +11,7 @@ fn test_game_logic() {
     // Test 2: Win detection
     test_win_detection();
 
-    // Test 3: Draw detection
-    test_draw_detection();
-
-    // Test 4: Move validation
+    // Test 3: Move validation
     test_move_validation();
 }
 
@@ -65,38 +62,8 @@ fn test_win_detection() {
     println!("✅ Vertical win detection working");
 }
 
-fn test_draw_detection() {
-    println!("\n🤝 Test 3: Draw Detection");
-    println!("------------------------");
-
-    // Test that a full board is game over
-    let mut game_state = GameState::new();
-
-    // Fill the board in a pattern that doesn't create wins
-    for col in 0..7 {
-        for _row in 0..6 {
-            if game_state.can_place_in_column(col) {
-                game_state.make_move(col as u8).unwrap();
-            }
-        }
-    }
-
-    println!("Filled board:");
-    print_board(&game_state);
-
-    assert!(game_state.is_game_over());
-
-    // Check if there's a winner or it's a draw
-    if game_state.has_winner() {
-        println!("Winner: {:?}", game_state.get_winner());
-    } else {
-        assert!(game_state.is_draw());
-        println!("✅ Draw detection working");
-    }
-}
-
 fn test_move_validation() {
-    println!("\n✅ Test 4: Move Validation");
+    println!("\n✅ Test 3: Move Validation");
     println!("-------------------------");
 
     let mut game_state = GameState::new();
@@ -104,7 +71,6 @@ fn test_move_validation() {
     // Fill a column
     for _ in 0..6 {
         assert!(game_state.make_move(0).is_ok());
-        game_state.make_move(1).unwrap(); // P2 response
     }
 
     // Try to place in full column

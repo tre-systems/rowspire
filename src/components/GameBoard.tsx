@@ -1,7 +1,5 @@
-'use client';
-
-import React, { useRef } from 'react';
-import { GameState, GameMode } from '@/lib/types';
+import { useRef } from 'react';
+import type { GameState, GameMode } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameActions, useGameStore } from '@/lib/game-store';
 

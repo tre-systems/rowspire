@@ -24,7 +24,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `NODE_ENV=development PORT=${e2ePort} npm run dev`,
+    command: `npm run preview -- --host 127.0.0.1 --port ${e2ePort}`,
     url: baseURL,
     reuseExistingServer: false,
   },

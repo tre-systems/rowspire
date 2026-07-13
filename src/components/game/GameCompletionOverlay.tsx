@@ -1,9 +1,7 @@
-'use client';
-
 import { motion } from 'framer-motion';
 import { Trophy, Zap, Brain, Cpu, Crown, XCircle, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { GameState, GameMode } from '@/lib/types';
+import type { GameState, GameMode } from '@/lib/types';
 import { useGameStore } from '@/lib/game-store';
 import { presentGameCompletion, type GameIcon, type GameTone } from '@/lib/game-presentation';
 

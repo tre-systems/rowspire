@@ -6,8 +6,6 @@ use std::path::PathBuf;
 fn main() {
     let mut ml_ai = MLAI::new();
     ml_ai.mcts_simulations = 4000;
-
-    // Load weights
     let mut weights_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     weights_path.push("../../public/ml/data/weights/ml_ai_weights_best.json");
 
@@ -23,17 +21,11 @@ fn main() {
     println!("✅ Weights loaded.");
 
     let mut state = GameState::new();
-
-    // Move 1: Teal (P1) plays Col 3
     println!("🟢 Teal plays column 3");
     state.make_move(3).unwrap();
-
-    // Move 2: Violet (P2 / ML AI) plays
     println!("🚀 ML AI thinking for Violet...");
     let res = ml_ai.get_best_move(&state);
     println!("💭 Thinking: {}", res.thinking);
-
-    // In the browser, it chose Col 4. Let's see if our local one chooses Col 4.
     if let Some(mv) = res.r#move {
         state.make_move(mv).unwrap();
     }

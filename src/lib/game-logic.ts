@@ -1,20 +1,16 @@
 import type { GameState, Player, Board, MoveRecord } from './types';
-import { createEmptyBoard, printBoard, isDraw, checkWin } from './logic/board-logic';
+import { createEmptyBoard, isDraw, checkWin } from './logic/board-logic';
 
 export { checkWin, isDraw };
 
 const COLS = 7;
 
-function getPlayerName(player: Player) {
-  return player === 'player1' ? 'Teal' : 'Violet';
-}
-
 function otherPlayer(player: Player): Player {
   return player === 'player1' ? 'player2' : 'player1';
 }
 
-export function initializeGame(): GameState {
-  const startingPlayer: Player = Math.random() < 0.5 ? 'player1' : 'player2';
+export function initializeGame(random: () => number = Math.random): GameState {
+  const startingPlayer: Player = random() < 0.5 ? 'player1' : 'player2';
   const gameState = {
     board: createEmptyBoard(),
     currentPlayer: startingPlayer,
@@ -22,10 +18,7 @@ export function initializeGame(): GameState {
     winner: null,
     history: [],
     winningLine: null,
-  };
-
-  console.log(`🎮 Game started - ${getPlayerName(startingPlayer)} goes first`);
-  printBoard(gameState.board);
+  } satisfies GameState;
 
   return gameState;
 }
@@ -61,22 +54,7 @@ export function makeMove(gameState: GameState, column: number): GameState {
     winner,
     history: newHistory,
     winningLine: winResult,
-  } as GameState;
-
-  const playerName = getPlayerName(gameState.currentPlayer);
-  const moveInfo = `${playerName} placed in column ${column} (row ${row})`;
-
-  if (winner) {
-    console.log(`🏆 ${moveInfo} - ${playerName} WINS!`);
-    printBoard(newBoard, moveInfo);
-  } else if (isDrawn) {
-    console.log(`🤝 ${moveInfo} - Game is a DRAW!`);
-    printBoard(newBoard, moveInfo);
-  } else {
-    const nextPlayer = getPlayerName(newGameState.currentPlayer);
-    console.log(`${moveInfo} - ${nextPlayer}'s turn`);
-    printBoard(newBoard, moveInfo);
-  }
+  } satisfies GameState;
 
   return newGameState;
 }

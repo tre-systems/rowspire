@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "boardEncoding": {
+    "rowOrder": "top-to-bottom",
+    "cells": {
+      ".": "empty",
+      "1": "player1",
+      "2": "player2"
+    }
+  },
+  "cases": [
+    {
+      "name": "empty board",
+      "moves": [],
+      "expectedBoard": [".......", ".......", ".......", ".......", ".......", "......."],
+      "expectedCurrentPlayer": "player1",
+      "expectedValidMoves": [0, 1, 2, 3, 4, 5, 6],
+      "expectedWinner": null,
+      "expectedDraw": false,
+      "expectedGameOver": false
+    },
+    {
+      "name": "two pieces in one column",
+      "moves": [3, 3],
+      "expectedBoard": [".......", ".......", ".......", ".......", "...2...", "...1..."],
+      "expectedCurrentPlayer": "player1",
+      "expectedValidMoves": [0, 1, 2, 3, 4, 5, 6],
+      "expectedWinner": null,
+      "expectedDraw": false,
+      "expectedGameOver": false
+    },
+    {
+      "name": "full column",
+      "moves": [0, 0, 0, 0, 0, 0],
+      "expectedBoard": ["2......", "1......", "2......", "1......", "2......", "1......"],
+      "expectedCurrentPlayer": "player1",
+      "expectedValidMoves": [1, 2, 3, 4, 5, 6],
+      "expectedWinner": null,
+      "expectedDraw": false,
+      "expectedGameOver": false
+    },
+    {
+      "name": "vertical win",
+      "moves": [0, 1, 0, 1, 0, 1, 0],
+      "expectedBoard": [".......", ".......", "1......", "12.....", "12.....", "12....."],
+      "expectedCurrentPlayer": "player1",
+      "expectedValidMoves": [0, 1, 2, 3, 4, 5, 6],
+      "expectedWinner": "player1",
+      "expectedDraw": false,
+      "expectedGameOver": true
+    },
+    {
+      "name": "diagonal win",
+      "moves": [0, 1, 1, 2, 4, 2, 2, 3, 4, 3, 4, 3, 3],
+      "expectedBoard": [".......", ".......", "...1...", "..121..", ".1221..", "12221.."],
+      "expectedCurrentPlayer": "player1",
+      "expectedValidMoves": [0, 1, 2, 3, 4, 5, 6],
+      "expectedWinner": "player1",
+      "expectedDraw": false,
+      "expectedGameOver": true
+    },
+    {
+      "name": "draw",
+      "moves": [
+        0, 1, 6, 1, 0, 1, 5, 4, 4, 6, 3, 4, 1, 5, 5, 0, 5, 2, 3, 2, 0, 3, 2, 0, 4, 1, 0, 5, 2, 5, 1,
+        3, 2, 2, 3, 6, 3, 6, 6, 4, 4, 6
+      ],
+      "expectedBoard": ["1121122", "2211221", "1112112", "2212212", "1221122", "1221211"],
+      "expectedCurrentPlayer": "player2",
+      "expectedValidMoves": [],
+      "expectedWinner": null,
+      "expectedDraw": true,
+      "expectedGameOver": true
+    }
+  ]
+}

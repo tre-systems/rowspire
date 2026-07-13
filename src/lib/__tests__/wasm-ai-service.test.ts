@@ -1,107 +1,73 @@
-import { describe, it, expect } from 'vitest';
-import type { GameState } from '../types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { initializeGame } from '../game-logic';
+import type { AIWorkerClient } from '../ai-worker-client';
 
-interface WASMGameState {
-  board: string[][];
-  current_player: string;
-  genetic_params: {
-    center_control_weight: number;
-    piece_count_weight: number;
-    threat_weight: number;
-    mobility_weight: number;
-    vertical_control_weight: number;
-    horizontal_control_weight: number;
-  };
-}
+vi.unmock('../wasm-ai-service');
 
-describe('WASM AI Service - Player Value Conversion', () => {
-  const convertGameStateToWASM = (gameState: GameState): WASMGameState => {
-    const board = gameState.board.map(col => col.map(cell => cell ?? 'empty'));
+const geneticParams = {
+  id: 'test',
+  parent_ids: [],
+  generation: 0,
+  win_score: 10,
+  loss_score: -10,
+  center_column_value: 1,
+  adjacent_center_value: 1,
+  outer_column_value: 1,
+  edge_column_value: 1,
+  row_height_weight: 1,
+  center_control_weight: 1,
+  piece_count_weight: 1,
+  threat_weight: 1,
+  mobility_weight: 1,
+  vertical_control_weight: 1,
+  horizontal_control_weight: 1,
+  defensive_weight: 1,
+};
 
-    return {
-      board,
-      current_player: gameState.currentPlayer,
-      genetic_params: {
-        center_control_weight: 1.0,
-        piece_count_weight: 0.5,
-        threat_weight: 2.0,
-        mobility_weight: 0.8,
-        vertical_control_weight: 1.2,
-        horizontal_control_weight: 1.0,
-      },
-    };
-  };
-
-  it('should convert player values correctly for WASM', () => {
-    const gameState: GameState = {
-      board: [
-        [null, null, null, null, null, 'player1'],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-      ],
-      currentPlayer: 'player2',
-      gameStatus: 'playing',
-      winner: null,
-      history: [],
-      winningLine: null,
-    };
-
-    const wasmState = convertGameStateToWASM(gameState);
-
-    expect(wasmState.board[0]?.[5]).toBe('player1');
-    expect(wasmState.current_player).toBe('player2');
+describe('WASM AI service', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('should handle empty cells correctly', () => {
-    const gameState: GameState = {
-      board: [
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-      ],
-      currentPlayer: 'player1',
-      gameStatus: 'playing',
-      winner: null,
-      history: [],
-      winningLine: null,
+  it('uses one worker client and fetches genetic parameters once', async () => {
+    const client = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      search: vi.fn().mockResolvedValue({
+        move: 3,
+        evaluations: [],
+        nodesEvaluated: 1,
+        transpositionHits: 0,
+      }),
+      ml: vi.fn().mockResolvedValue({
+        move: 3,
+        evaluation: 0,
+        thinking: '',
+        diagnostics: {
+          validMoves: [3],
+          moveEvaluations: [],
+          valueNetworkOutput: 0,
+          policyNetworkOutputs: [0, 0, 0, 1, 0, 0, 0],
+        },
+      }),
     };
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(JSON.stringify(geneticParams)));
+    const { default: WASMAIService } = await import('../wasm-ai-service');
+    const service = new WASMAIService(client as unknown as AIWorkerClient);
+    const game = initializeGame();
 
-    const wasmState = convertGameStateToWASM(gameState);
+    await service.getBestMove(game, 5);
+    await service.getMLMove(game);
 
-    expect(wasmState.board[0]?.[0]).toBe('empty');
-    expect(wasmState.current_player).toBe('player1');
-  });
-
-  it('should convert both player types correctly', () => {
-    const gameState: GameState = {
-      board: [
-        [null, null, null, null, null, 'player1'],
-        [null, null, null, null, null, 'player2'],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-      ],
-      currentPlayer: 'player1',
-      gameStatus: 'playing',
-      winner: null,
-      history: [],
-      winningLine: null,
-    };
-
-    const wasmState = convertGameStateToWASM(gameState);
-
-    expect(wasmState.board[0]?.[5]).toBe('player1');
-    expect(wasmState.board[1]?.[5]).toBe('player2');
-    expect(wasmState.current_player).toBe('player1');
+    expect(client.initialize).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(client.search).toHaveBeenCalledWith(
+      expect.objectContaining({ genetic_params: geneticParams }),
+      5,
+    );
+    expect(client.ml).toHaveBeenCalledWith(
+      expect.objectContaining({ genetic_params: geneticParams }),
+    );
   });
 });

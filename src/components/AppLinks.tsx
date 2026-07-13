@@ -1,5 +1,3 @@
-'use client';
-
 import { Github } from 'lucide-react';
 import { APP_NAME, REPOSITORY_URL, SUPPORT_URL } from '@/lib/brand';
 

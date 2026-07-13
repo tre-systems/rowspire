@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 async function expectNoError(page: Page) {
   await expect(page.getByTestId('error-modal')).not.toBeVisible();
@@ -33,6 +33,45 @@ test.describe('Core Game Functionality', () => {
     await expect(page.getByTestId('game-board')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rowspire' })).toBeVisible();
     await expect(page.getByText('Drop counters. Plan ahead. Make four in a row.')).toBeVisible();
+  });
+
+  test('loads WebAssembly under the production security policy', async ({ page }) => {
+    const initializationFailures: string[] = [];
+    page.on('console', message => {
+      if (message.text().includes('Failed to initialize WASM AI')) {
+        initializationFailures.push(message.text());
+      }
+    });
+
+    const response = await page.goto('/');
+    await page.getByTestId('ai-selection-search').click();
+    await expect(page.getByTestId('column-3')).toBeEnabled({ timeout: 20_000 });
+
+    expect(response?.headers()['content-security-policy']).toContain("'wasm-unsafe-eval'");
+    expect(initializationFailures).toEqual([]);
+  });
+
+  test('runs the ML strategy through the shared worker', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('ai-selection-ml').click();
+    await expect(page.getByTestId('game-board')).toBeVisible();
+    await expect(page.getByTestId('column-3')).toBeEnabled({ timeout: 20_000 });
+
+    const pieces = page.locator('[data-testid^="piece-"]');
+    const initialPieceCount = await pieces.count();
+    await page.getByTestId('column-3').click();
+
+    await expect
+      .poll(() => pieces.count(), { timeout: 20_000 })
+      .toBeGreaterThanOrEqual(initialPieceCount + 2);
+    await expectNoError(page);
+  });
+
+  test('serves the offline fallback route', async ({ page }) => {
+    await page.goto('/offline');
+
+    await expect(page.getByTestId('offline-page')).toBeVisible();
+    await expect(page.getByTestId('offline-retry')).toBeVisible();
   });
 });
 

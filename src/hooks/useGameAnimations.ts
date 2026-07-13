@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Player, GameState } from '@/lib/types';
+import type { Player, GameState } from '@/lib/types';
 import { useGameActions, useGameStore } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
 

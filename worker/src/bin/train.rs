@@ -31,12 +31,8 @@ type BatchResult = (NetworkResult, NetworkResult);
 fn main() {
     println!("🚀 Starting ML AI Supervised Training Pipeline - Phase 3 (Enhanced)");
     let start_time = Instant::now();
-
-    // 1. Initialize Model
     let mut ml_ai = MLAI::new();
     println!("✅ Model initialized with 4x128 ResNet-lite architecture");
-
-    // 2. Load or Generate Dataset
     const NUM_RAW_SAMPLES: usize = 250000; // Will be 500,000 with symmetry
     const SOLVER_DEPTH: i32 = 12;
 
@@ -55,7 +51,6 @@ fn main() {
             .collect();
         println!("✅ Loaded {} samples from disk", dataset.len());
     } else {
-        // Curriculum: distribute across game phases
         const EARLY_GAME_RATIO: f32 = 0.40; // 0-8 moves
         const MID_GAME_RATIO: f32 = 0.40; // 9-20 moves
         const LATE_GAME_RATIO: f32 = 0.20; // 21+ moves
@@ -76,8 +71,6 @@ fn main() {
         let progress_counter = AtomicUsize::new(0);
         let progress_interval = NUM_RAW_SAMPLES / 1000; // Log every 0.1%
         let gen_start = Instant::now();
-
-        // Print initial progress immediately
         eprintln!("   📈 Progress:   0% (    0/{NUM_RAW_SAMPLES} samples) | Starting...");
 
         dataset = (0..NUM_RAW_SAMPLES)
@@ -86,8 +79,6 @@ fn main() {
             THREAD_SOLVER.with(|s| {
                 let mut solver = s.borrow_mut();
                 let mut state = GameState::new_random_first_player();
-
-                // Curriculum Learning: determine game phase for this sample
                 let phase_selector = (sample_idx as f32) / (NUM_RAW_SAMPLES as f32);
                 let num_random_moves = if phase_selector < EARLY_GAME_RATIO {
                     rand::random::<usize>() % 9
@@ -112,8 +103,6 @@ fn main() {
                 let bitboard = Bitboard::from_game_state(&state);
 
                 let count = progress_counter.fetch_add(1, Ordering::Relaxed);
-
-                // Periodically reset solver if cache grows too large
                 if solver.tt_size() > 500_000 {
                     solver.reset();
                 }
@@ -145,8 +134,6 @@ fn main() {
             dataset.len(),
             gen_duration
         );
-
-        // Save dataset for future runs
         println!("💾 Saving dataset to: {dataset_path:?}");
         let samples_to_save: Vec<TrainingSample> = dataset
             .iter()
@@ -163,8 +150,6 @@ fn main() {
         fs::write(&dataset_path, json).expect("Failed to write dataset to disk");
         println!("✅ Dataset saved successfully");
     }
-
-    // 3. Training Loop with LR Warmup and Decay
     const EPOCHS: usize = 50;
     const WARMUP_EPOCHS: usize = 10;
     const BASE_LR: f32 = 0.001;
@@ -179,9 +164,7 @@ fn main() {
     println!("🎲 Dataset shuffled ({total_samples} samples)");
 
     for epoch in 1..=EPOCHS {
-        // LR Schedule: Warmup → Base → Decay at 60% and 85%
         let current_lr = if epoch <= WARMUP_EPOCHS {
-            // Linear warmup from WARMUP_LR to BASE_LR
             WARMUP_LR + (BASE_LR - WARMUP_LR) * (epoch as f32 / WARMUP_EPOCHS as f32)
         } else if epoch > (EPOCHS * 85 / 100) {
             BASE_LR * 0.01 // Final decay
@@ -197,25 +180,18 @@ fn main() {
         const BATCH_SIZE: usize = 128;
 
         for batch in dataset.chunks(BATCH_SIZE) {
-            // Process batch in parallel to compute gradients
             let batch_results: Vec<BatchResult> = batch
                 .into_par_iter()
                 .map(|(features, value_label, policy_label)| {
                     let input = Array1::from_vec(features.clone());
-
-                    // Value Network Gradients
                     let v_target = Array1::from_vec(vec![*value_label]);
                     let v_res = ml_ai.value_network.compute_gradients(&input, &v_target);
-
-                    // Policy Network Gradients
                     let p_target = Array1::from_vec(policy_label.clone());
                     let p_res = ml_ai.policy_network.compute_gradients(&input, &p_target);
 
                     (v_res, p_res)
                 })
                 .collect();
-
-            // Accumulate Batch Value Gradients
             let mut v_batch_grads: Option<Vec<LayerGradient>> = None;
             for ((v_loss, v_grads), _) in &batch_results {
                 total_value_loss += v_loss;
@@ -228,8 +204,6 @@ fn main() {
                     v_batch_grads = Some(v_grads.clone());
                 }
             }
-
-            // Accumulate Batch Policy Gradients
             let mut p_batch_grads: Option<Vec<LayerGradient>> = None;
             for (_, (p_loss, p_grads)) in &batch_results {
                 total_policy_loss += p_loss;
@@ -242,8 +216,6 @@ fn main() {
                     p_batch_grads = Some(p_grads.clone());
                 }
             }
-
-            // Apply Average Gradients to Networks
             if let Some(mut v_grads) = v_batch_grads {
                 for grad in &mut v_grads {
                     grad.0 /= batch.len() as f32;
@@ -260,8 +232,6 @@ fn main() {
                 ml_ai.policy_network.apply_gradients(&p_grads, current_lr);
             }
         }
-
-        // Log every 5 epochs, plus first and last
         if epoch % 5 == 0 || epoch == 1 || epoch == EPOCHS {
             let elapsed = train_start.elapsed().as_secs_f32();
             let eta = elapsed / (epoch as f32) * ((EPOCHS - epoch) as f32);
@@ -276,8 +246,6 @@ fn main() {
             );
         }
     }
-
-    // 4. Save Optimized Weights
     save_model(&ml_ai, total_samples, EPOCHS);
     println!(
         "🎉 Phase 3 Training Complete! Total Time: {:?}",
@@ -290,7 +258,6 @@ fn process_labels(evals: &[(usize, i32)]) -> (f32, Vec<f32>) {
     let mut policy_scores = [-100.0; 7];
 
     for &(col, score) in evals {
-        // Normalize score to [-1, 1] based on max board capacity (21 moves per player)
         let norm_score = (score as f32).clamp(-21.0, 21.0) / 21.0;
         if norm_score > best_score {
             best_score = norm_score;

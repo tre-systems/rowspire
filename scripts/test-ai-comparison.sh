@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# AI Comparison Test Script
-# Tests different AI types against each other
-
 set -e
 
 echo "🤖 Running AI Comparison Tests..."
@@ -17,4 +14,4 @@ cd worker
 cargo test test_ai_matrix -- --ignored --nocapture
 cd ..
 
-echo "✅ AI Comparison Tests Complete!" 
+echo "✅ AI Comparison Tests Complete!"

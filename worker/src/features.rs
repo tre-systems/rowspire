@@ -13,13 +13,8 @@ impl GameFeatures {
     pub fn from_game_state(state: &GameState) -> Self {
         let mut features = [0.0; SIZE];
         let mut idx = 0;
-
-        // Board occupancy (42 features - 6 rows × 7 columns)
-        // Current Player pieces = 1.0, Opponent = -1.0
         let current_player = state.current_player;
         let opponent = state.current_player.opponent();
-
-        // Plane 1: Current Player pieces (42 features)
         for col in 0..COLS {
             for row in 0..ROWS {
                 if state.board[col][row] == Cell::from_player(current_player) {
@@ -28,8 +23,6 @@ impl GameFeatures {
                 idx += 1;
             }
         }
-
-        // Plane 2: Opponent pieces (42 features)
         for col in 0..COLS {
             for row in 0..ROWS {
                 if state.board[col][row] == Cell::from_player(opponent) {
@@ -38,9 +31,6 @@ impl GameFeatures {
                 idx += 1;
             }
         }
-
-        // 3. Strategic features (Relative to current player)
-        // Indices 84-98
         features[idx] = Self::center_control_score(state, current_player) as f32 / 10.0;
         idx += 1;
         features[idx] = Self::center_control_score(state, opponent) as f32 / 10.0;
@@ -77,8 +67,6 @@ impl GameFeatures {
         idx += 1;
 
         features[idx] = Self::blocking_score(state, current_player) as f32 / 10.0;
-
-        // Current player indication (Index 99)
         features[99] = if current_player == Player::Player1 {
             1.0
         } else {
@@ -106,7 +94,6 @@ impl GameFeatures {
 
     fn center_control_score(state: &GameState, player: Player) -> i32 {
         let mut score = 0;
-        // Center columns (2, 3, 4) are most valuable
         for col in [2, 3, 4] {
             for row in 0..ROWS {
                 if state.board[col][row] == Cell::from_player(player) {
@@ -126,13 +113,10 @@ impl GameFeatures {
         for col in 0..COLS {
             for row in 0..ROWS {
                 if state.board[col][row] == Cell::from_player(player) {
-                    // Check for potential winning lines
                     let directions = [(1, 0), (0, 1), (1, 1), (1, -1)];
                     for (dcol, drow) in directions {
                         let mut consecutive = 1;
                         let mut blocked = 0;
-
-                        // Count in positive direction
                         let mut c = col as i32 + dcol;
                         let mut r = row as i32 + drow;
                         while c >= 0 && c < COLS as i32 && r >= 0 && r < ROWS as i32 {
@@ -147,8 +131,6 @@ impl GameFeatures {
                                 break;
                             }
                         }
-
-                        // Count in negative direction
                         c = col as i32 - dcol;
                         r = row as i32 - drow;
                         while c >= 0 && c < COLS as i32 && r >= 0 && r < ROWS as i32 {
@@ -163,8 +145,6 @@ impl GameFeatures {
                                 break;
                             }
                         }
-
-                        // Score based on consecutive pieces and blocking
                         match consecutive {
                             4 => threats += 1000, // Winning line
                             3 => {
@@ -194,10 +174,8 @@ impl GameFeatures {
         let mut mobility = 0;
         for col in 0..COLS {
             if state.can_place_in_column(col) {
-                // Test the move
                 let mut test_state = state.clone();
                 if test_state.make_move(col as u8).is_ok() {
-                    // Check if this creates a threat
                     let threat_score = Self::threat_score(&test_state, player);
                     mobility += threat_score / 10; // Normalize
                 }
@@ -268,8 +246,6 @@ impl GameFeatures {
     fn blocking_score(state: &GameState, player: Player) -> i32 {
         let opponent = player.opponent();
         let mut blocks = 0;
-
-        // Count how many opponent threats we can block
         for col in 0..COLS {
             if state.can_place_in_column(col) {
                 let mut test_state = state.clone();
@@ -298,8 +274,6 @@ mod tests {
     fn test_empty_board_features() {
         let state = GameState::new();
         let features = GameFeatures::from_game_state(&state);
-
-        // First 42 features should be 0.0 (empty board)
         for i in 0..42 {
             assert_eq!(features.features[i], 0.0);
         }
@@ -316,15 +290,11 @@ mod tests {
         state.make_move(4).unwrap(); // First player places another piece
 
         let _features = GameFeatures::from_game_state(&state);
-
-        // Should have 2 pieces for the first player (Player1)
-        // If current_player is P1, P1 pieces are at 44 (Current). If P2, P1 pieces are at 45 (Opponent).
         let _p1_pieces_idx = if state.current_player == Player::Player1 {
             44
         } else {
             45
         };
-        // assert!(val > 0.05 && val < 0.15, "Piece count feature {} out of range: {}", p1_pieces_idx, val);
     }
 
     #[test]
@@ -335,8 +305,6 @@ mod tests {
         state.make_move(3).unwrap(); // First player places in center
 
         let features = GameFeatures::from_game_state(&state);
-
-        // Center control should be computed for the first player (Player1)
         let center_control_idx = if state.current_player == Player::Player1 {
             42
         } else {
@@ -349,7 +317,6 @@ mod tests {
     #[ignore]
     fn test_threat_score_features() {
         let mut state = GameState::new();
-        // Create a threat
         state.make_move(0).unwrap();
         state.current_player = Player::Player1;
         state.make_move(1).unwrap();
@@ -357,9 +324,6 @@ mod tests {
         state.make_move(2).unwrap();
 
         let features = GameFeatures::from_game_state(&state);
-
-        // Threat score should be computed
-        // P1 has threats, but current_player is P2. So P1 is opponent (Index 47).
         let threat_score_idx = 47;
         assert!(features.features[threat_score_idx] > 0.0);
     }
@@ -368,8 +332,6 @@ mod tests {
     fn test_features_normalization() {
         let state = GameState::new();
         let features = GameFeatures::from_game_state(&state);
-
-        // All features should be within bounds
         for (i, &feature) in features.features.iter().enumerate() {
             assert!(feature >= -10.0, "Feature {} is too low: {}", i, feature);
             assert!(feature <= 10.0, "Feature {} is too high: {}", i, feature);

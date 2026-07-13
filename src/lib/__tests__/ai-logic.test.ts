@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeAIMove as chooseAIMove } from '../logic/ai-logic';
 import { createEmptyBoard } from '../logic/board-logic';
 import type { Board, GameState } from '../types';
-import WASMAIService, { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
+import type WASMAIService from '../wasm-ai-service';
+import { getWASMAIService, initializeWASMAI } from '../wasm-ai-service';
 
 const base: Omit<GameState, 'board'> = {
   currentPlayer: 'player1',
@@ -25,14 +26,12 @@ const service = {
   isReady: true,
   getBestMove: vi.fn(),
   getMLMove: vi.fn(),
-  clearTranspositionTable: vi.fn(),
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   service.getBestMove.mockReset();
   service.getMLMove.mockReset();
-  service.clearTranspositionTable.mockReset();
   vi.mocked(initializeWASMAI).mockClear();
   service.isReady = true;
   vi.mocked(getWASMAIService).mockReturnValue(service as unknown as WASMAIService);
@@ -43,7 +42,6 @@ describe('makeAIMove', () => {
     service.getBestMove.mockResolvedValue(bestMoveResponse(3));
 
     await expect(chooseAIMove(gameState(), 'search')).resolves.toBe(3);
-    expect(service.clearTranspositionTable).toHaveBeenCalledOnce();
   });
 
   it('initializes an unloaded service', async () => {

@@ -1,6 +1,5 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import nextPlugin from '@next/eslint-plugin-next';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
@@ -28,7 +27,7 @@ const uiLayerImports = [
 
 const adapterImports = [
   {
-    group: ['**/bindings', '**/ai.worker', '**/ml-ai-worker-*', '**/wasm-ai-service'],
+    group: ['**/bindings', '**/ai.worker', '**/ai-worker-*', '**/wasm-ai-service'],
     message: 'UI code must use stores and application services instead of low-level adapters.',
   },
 ];
@@ -55,12 +54,10 @@ const shellImports = [
 export default tseslint.config(
   {
     ignores: [
-      '.next/**',
-      '.open-next/**',
       '.wrangler/**',
       'node_modules/**',
-      'next-env.d.ts',
       '*.config.mjs',
+      'worker-configuration.d.ts',
       'public/**',
       'src/lib/wasm/**',
       'out/**',
@@ -77,7 +74,6 @@ export default tseslint.config(
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
-      '@next/next': nextPlugin,
     },
     languageOptions: {
       globals: {
@@ -94,19 +90,19 @@ export default tseslint.config(
       react: {
         version: 'detect',
       },
-      next: {
-        rootDir: ['./'],
-      },
     },
     rules: {
-      ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs['core-web-vitals'].rules,
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { fixStyle: 'inline-type-imports', prefer: 'type-imports' },
+      ],
+      '@typescript-eslint/no-import-type-side-effects': 'error',
       'no-restricted-syntax': [
         'error',
         {

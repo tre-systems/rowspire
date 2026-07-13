@@ -15,18 +15,17 @@ src/lib/wasm/
 public/wasm/
 
 # Build outputs
-.next/
 out/
 dist/
 build/
 worker/build/
 worker/dist/
-.open-next/
 
 # Test results and coverage
 coverage/
 test-results/
 playwright-report/
+.playwright-cli/
 
 # Local database and cache
 local.db
@@ -41,7 +40,7 @@ local.db
 .venv/
 .wrangler/
 .vercel/
-next-env.d.ts
+worker-configuration.d.ts
 
 # Design source art (large, not referenced by the build)
 design/

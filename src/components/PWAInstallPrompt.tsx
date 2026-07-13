@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 import { APP_NAME } from '@/lib/brand';
@@ -58,13 +56,7 @@ export default function PWAInstallPrompt() {
 
     try {
       await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === 'accepted') {
-        console.log('PWA installation accepted');
-      } else {
-        console.log('PWA installation dismissed');
-      }
+      await deferredPrompt.userChoice;
     } catch (error) {
       console.error('Error during PWA installation:', error);
     }

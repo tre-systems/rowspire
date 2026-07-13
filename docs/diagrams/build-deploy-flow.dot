@@ -14,7 +14,7 @@ digraph BuildDeployFlow {
     label=<
       <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
         <TR><TD><FONT POINT-SIZE="34"><B>Build and Deployment Flow</B></FONT></TD></TR>
-        <TR><TD><FONT POINT-SIZE="14" COLOR="#5b6b80">Source contracts and model data become one versioned static export.</FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="14" COLOR="#5b6b80">Build once; test, deploy, and smoke-test the same versioned artifact.</FONT></TD></TR>
       </TABLE>
     >,
     labelloc=t,
@@ -82,14 +82,16 @@ digraph BuildDeployFlow {
     WASM [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>wasm-pack</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust &rarr; public/wasm</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
     COPY [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Copy model assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">resources/ai &rarr; public/ml</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
     SW [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>generate:sw</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">versioned offline cache policy</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-    BUILD [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Next.js static build</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated sources + generated public assets</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
+    BUILD [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare Vite build</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">React client + canonical-host Worker</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
 
     { rank=same; TYPES; WASM; COPY; SW; }
   }
 
-  OUT [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>out/ static export</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; models &middot; service worker</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+  OUT [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Versioned out/ artifact</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">client assets + Worker bundle + deploy config</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+  E2E [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Production preview</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Playwright + bundle budgets</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
   WRANGLER [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Wrangler deploy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Workers Static Assets manifest</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
   CF [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare edge</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">versioned immutable deployment</FONT></TD></TR></TABLE>>, fillcolor="#d8f5de:#effcf2", color="#15803d", penwidth=3.0];
+  SMOKE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Production smoke</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">shell &middot; PWA &middot; WASM &middot; model &middot; redirect</FONT></TD></TR></TABLE>>, fillcolor="#d8f5de:#effcf2", color="#15803d", penwidth=3.0];
 
   RUST -> TYPES [label="explicit codegen", style=dashed, color="#6b7280", fontcolor="#6b7280"];
   RUST -> WASM [label="compile"];
@@ -101,6 +103,8 @@ digraph BuildDeployFlow {
   COPY -> BUILD [label="public asset"];
   SW -> BUILD [label="public asset"];
   BUILD -> OUT [label="export"];
-  OUT -> WRANGLER [label="upload"];
+  OUT -> E2E [label="preview exact artifact"];
+  E2E -> WRANGLER [label="promote unchanged"];
   WRANGLER -> CF [label="deploy"];
+  CF -> SMOKE [label="verify live"];
 }

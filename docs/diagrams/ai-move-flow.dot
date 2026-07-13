@@ -47,6 +47,7 @@ digraph AiMoveFlow {
 
   A [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>game-store.makeAIMove()</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">AI turn detected &middot; sets aiThinking</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
   B [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ai-logic.makeAIMove(state, aiType)</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">strategy dispatcher</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
+  W [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Validated AI worker request</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">one worker + WASM instance</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 
   D1 [label=<<B>aiType?</B>>, shape=diamond, style=filled, width=2.7, height=1.05, fillcolor="#ffffff", color="#1f2f46", penwidth=2.4];
 
@@ -64,14 +65,15 @@ digraph AiMoveFlow {
   ERR [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Throw &rarr; showError</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ui-store error modal &middot; prompt refresh</FONT></TD></TR></TABLE>>, fillcolor="#fde2e1:#fff5f5", color="#c53030", penwidth=3.0];
 
   A -> B [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">delegate</FONT></TD></TR></TABLE>>];
-  B -> D1;
+  B -> W [label="post message"];
+  W -> D1;
   D1 -> C1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">search</FONT></TD></TR></TABLE>>];
   D1 -> C2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">ml</FONT></TD></TR></TABLE>>];
   C1 -> D2;
   C2 -> D2;
   D2 -> OK [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">Yes</FONT></TD></TR></TABLE>>];
   D2 -> F1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">No / invalid</FONT></TD></TR></TABLE>>];
-  B -> F1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">on any WASM exception</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
+  W -> F1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">on any WASM exception</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
   F1 -> D3;
   D3 -> OK [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">Yes</FONT></TD></TR></TABLE>>];
   D3 -> F2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">No</FONT></TD></TR></TABLE>>];

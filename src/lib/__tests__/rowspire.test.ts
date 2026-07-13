@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { initializeGame, makeMove, checkWin, isDraw } from '../game-logic';
 import { makeAIMove } from '../logic/ai-logic';
-import { Board } from '../schemas';
+import type { Board } from '../schemas';
 import { emptyGameState } from '../game-store-state';
 import type { GameState } from '../types';
 
@@ -104,7 +104,6 @@ describe('Rowspire Game Logic', () => {
       expect(aiMove).toBeLessThan(7);
       expect(game.board[aiMove]?.some(cell => cell === null)).toBe(true);
     } catch (error) {
-      // WASM AI may be unavailable in the test environment
       expect(error).toBeInstanceOf(Error);
       expect((error as Error).message).toContain('WASM AI not loaded');
     }
@@ -112,8 +111,6 @@ describe('Rowspire Game Logic', () => {
 
   it('should detect win with manual board setup', () => {
     const game = initializeGame();
-
-    // Horizontal win for player1 along the top row (index 0) of cols 0-3
     const winningBoard: Board = game.board.map((col, i) =>
       i < 4 ? ['player1', null, null, null, null, null] : col,
     );
@@ -128,8 +125,6 @@ describe('Rowspire Game Logic', () => {
     const game = initializeGame();
     let currentGame = game;
     const firstPlayer = currentGame.currentPlayer;
-
-    // first player builds row 5 across cols 0-3; second player fills row 4
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 1);
@@ -143,7 +138,6 @@ describe('Rowspire Game Logic', () => {
   });
 
   it('should test win detection with simple case', () => {
-    // board[column][row]; row 0 is the top and row 5 is the bottom
     const testBoard: Board = [
       [null, null, null, null, null, 'player1'],
       [null, null, null, null, null, 'player1'],
@@ -164,8 +158,6 @@ describe('Rowspire Game Logic', () => {
     const game = initializeGame();
     let currentGame = game;
     const firstPlayer = currentGame.currentPlayer;
-
-    // first player builds the winning row 5 across cols 0-3
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 1);
@@ -193,8 +185,6 @@ describe('Rowspire Game Logic', () => {
     const game = initializeGame();
     let currentGame = game;
     const firstPlayer = currentGame.currentPlayer;
-
-    // first player builds the winning row 5 across cols 0-3
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 0);
     currentGame = makeMove(currentGame, 1);

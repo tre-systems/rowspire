@@ -7,25 +7,16 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS)]
 #[ts(export)]
 pub struct GeneticParams {
-    // Unique identifier for tracking individuals across generations
     pub id: String,
-
-    // Ancestor tracking for lineage analysis
     pub parent_ids: Vec<String>,
     pub generation: usize,
-
-    // Win/loss scores
     pub win_score: i32,
     pub loss_score: i32,
-
-    // Position evaluation weights
     pub center_column_value: i32,
     pub adjacent_center_value: i32,
     pub outer_column_value: i32,
     pub edge_column_value: i32,
     pub row_height_weight: f64,
-
-    // Feature weights
     pub center_control_weight: f64,
     pub piece_count_weight: f64,
     pub threat_weight: f64,
@@ -286,8 +277,6 @@ mod tests {
         assert!(params.center_column_value >= 50 && params.center_column_value < 200);
         assert!(params.center_control_weight >= 0.0 && params.center_control_weight < 3.0);
         assert!(params.threat_weight >= 0.5 && params.threat_weight < 5.0);
-
-        // Test that ID is a valid UUID format (36 characters with hyphens)
         assert_eq!(params.id.len(), 36);
         assert!(params.id.contains('-'));
         assert!(params.id.matches('-').count() == 4);
@@ -297,20 +286,12 @@ mod tests {
     fn test_uuid_ids_are_short() {
         let params1 = GeneticParams::random();
         let params2 = GeneticParams::random();
-
-        // UUIDs should be 36 characters (much shorter than the old format)
         assert_eq!(params1.id.len(), 36);
         assert_eq!(params2.id.len(), 36);
-
-        // IDs should be unique
         assert_ne!(params1.id, params2.id);
-
-        // Test mutation creates new UUID
         let mutated = params1.random_mutation(0.5, 0.3);
         assert_ne!(params1.id, mutated.id);
         assert_eq!(mutated.id.len(), 36);
-
-        // Test crossover creates new UUID
         let crossed = params1.crossover(&params2, 0.5);
         assert_ne!(params1.id, crossed.id);
         assert_ne!(params2.id, crossed.id);
@@ -326,8 +307,6 @@ mod tests {
         let loaded_params = GeneticParams::load_from_file(temp_path).unwrap();
 
         assert_eq!(params, loaded_params);
-
-        // Clean up
         std::fs::remove_file(temp_path).unwrap();
     }
 
@@ -335,8 +314,6 @@ mod tests {
     fn test_mutation() {
         let original = GeneticParams::default();
         let mutated = original.random_mutation(1.0, 0.1);
-
-        // Mutation should change values
         assert_ne!(original.win_score, mutated.win_score);
         assert_ne!(
             original.center_control_weight,
@@ -368,8 +345,6 @@ mod tests {
         };
 
         let child = parent1.crossover(&parent2, 1.0);
-
-        // With 100% crossover rate, child should inherit from parent2
         assert_eq!(child.win_score, parent2.win_score);
         assert_eq!(child.center_control_weight, parent2.center_control_weight);
     }

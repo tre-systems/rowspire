@@ -16,7 +16,6 @@ export const DEFAULT_GENETIC_PARAMS = {
   vertical_control_weight: 2.862,
   horizontal_control_weight: 1.344,
   defensive_weight: 1.372,
-  horizontal_connection_weight: 1.344,
 };
 
 export const SEARCH_AI_DEPTH = 5;

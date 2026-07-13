@@ -5,11 +5,11 @@ describe('Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('window', undefined);
-    delete process.env.GITHUB_SHA;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   describe('cn', () => {
@@ -53,14 +53,16 @@ describe('Utils', () => {
   describe('environment detection', () => {
     it('should detect production environment', () => {
       vi.stubGlobal('window', undefined);
-      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('PROD', true);
+      vi.stubEnv('DEV', false);
       expect(isProduction()).toBe(true);
       expect(isDevelopment()).toBe(false);
     });
 
     it('should detect development environment', () => {
       vi.stubGlobal('window', { location: { hostname: 'localhost' } });
-      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('PROD', false);
+      vi.stubEnv('DEV', true);
       expect(isProduction()).toBe(false);
       expect(isDevelopment()).toBe(true);
     });

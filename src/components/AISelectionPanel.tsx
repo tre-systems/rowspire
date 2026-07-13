@@ -1,5 +1,3 @@
-'use client';
-
 import { motion } from 'framer-motion';
 import { Brain, Cpu, Eye } from 'lucide-react';
 import { useGameActions } from '../lib/game-store';

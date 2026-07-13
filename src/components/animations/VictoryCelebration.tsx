@@ -1,7 +1,5 @@
-'use client';
-
 import { motion } from 'framer-motion';
-import { Player } from '@/lib/types';
+import type { Player } from '@/lib/types';
 
 interface VictoryCelebrationProps {
   position: { x: number; y: number };

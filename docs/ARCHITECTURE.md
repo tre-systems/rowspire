@@ -1,87 +1,73 @@
 # Architecture
 
-Rowspire is a static, client-only game. React renders projections of Zustand state, pure TypeScript owns game rules, and adapters isolate persistence, Web Workers, and Rust/WebAssembly.
+Rowspire is a static, client-only React game built by Vite and served through Cloudflare Workers Static Assets. TypeScript owns the browser domain and application shell; Rust/WebAssembly owns AI search and inference.
 
 ## System Shape
 
 ```mermaid
 flowchart LR
-  UI["React rendering shell"] --> Read["Selector read models"]
+  UI["React rendering shell"] --> Reads["Selector read models"]
   UI --> Commands["Zustand command store"]
-  Read --> Presentation["Pure presentation models"]
+  Reads --> Presentation["Pure presentation model"]
   Commands --> Core["Pure game core"]
-  Commands --> AI["AI strategy dispatcher"]
-  Commands --> Storage["Validated localStorage snapshot"]
-  AI --> Wasm["WASM adapter"]
-  Wasm --> Search["Search AI"]
-  Wasm --> Protocol["Validated worker protocol"]
-  Protocol --> Worker["ML Web Worker + WASM"]
+  Commands --> Snapshot["Validated snapshot"]
+  Commands --> Port["Injected AI port"]
+  Port --> Contract["Validated worker contract"]
+  Contract --> Worker["AI Web Worker"]
+  Worker --> Wasm["Rust/WASM facade"]
+  Wasm --> Search["Search strategy"]
+  Wasm --> ML["Tactical guard + MCTS"]
 ```
 
-Dependencies point inward toward the domain. Components may depend on stores, presentation models, and domain types. The domain never depends on React, Zustand, browser storage, workers, or generated WASM bindings.
-
-The compact Mermaid view shows dependency direction. The detailed Graphviz view shows runtime ownership and cross-boundary calls:
+Dependencies point inward. The domain does not depend on React, Zustand, browser storage, workers, generated bindings, or WebAssembly. The detailed runtime view is maintained as Graphviz:
 
 ![Rowspire runtime architecture](diagrams/system-overview.png)
 
 ## Required Pattern Catalog
 
-| Pattern                           | Rule                                                           | Primary implementation                                           | Enforcement                                               |
-| --------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------- |
-| Schema-first domain model         | Define domain values once and import them through one facade   | `src/lib/schemas.ts`, `src/lib/types.ts`                         | Strict TypeScript, Zod tests, restricted-import lint rule |
-| Functional core, imperative shell | Keep decisions pure; keep effects at adapters and stores       | `game-logic.ts`, `game-state-machine.ts`, `logic/board-logic.ts` | Layer lint rules; Vitest covers extracted logic           |
-| Command store                     | Components issue named commands rather than constructing state | `GameStore.actions`                                              | Zustand + Immer                                           |
-| Selector read model               | Every component subscribes only to the state it renders        | `useGameState`, `useGameActions`, inline selectors               | Lint rejects zero-argument store hooks                    |
-| Explicit state machine            | Turn eligibility and transitions use shared predicates         | `src/lib/game-state-machine.ts`                                  | State-machine and store tests                             |
-| Generation token                  | Delayed work must prove it still belongs to the active game    | `gameGeneration` and `isSameTurn`                                | Async store tests                                         |
-| Presentation model                | Derive text, tone, and semantic icons outside React            | `src/lib/game-presentation.ts`                                   | Pure unit tests; components only map semantics to UI      |
-| Contract-first boundary           | Validate every untrusted or cross-runtime message              | `src/lib/ml-ai-worker-protocol.ts`                               | Shared Zod schemas on both worker sides                   |
-| Adapter / anti-corruption layer   | Browser and Rust representations do not leak into the domain   | `src/lib/wasm-ai-service.ts`, generated `bindings.ts`            | Conversion occurs at the adapter edge                     |
-| Strategy with fallback            | Select an AI explicitly and degrade in a fixed order           | `logic/ai-logic.ts`, `worker/src/ml_ai.rs`                       | Exhaustive `AIType`; TypeScript and Rust AI tests         |
-| Versioned snapshot                | Persist only stable state and validate on restore              | `src/lib/game-store-state.ts`                                    | Schema validation and migration tests                     |
-| Generated artifact boundary       | Generated and build outputs are never hand-edited              | `bindings.ts`, `public/wasm`, `out`                              | Generation scripts and ignore files                       |
+| Pattern                           | Rule                                              | Implementation                                   | Enforcement                         |
+| --------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ----------------------------------- |
+| Schema-first domain model         | Define domain values once                         | `schemas.ts`, `types.ts`                         | Zod, strict TypeScript, import lint |
+| Aggregate invariant               | Validate relationships, not only shape            | `game-state-invariants.ts`                       | Replay and malformed-state tests    |
+| Functional core, imperative shell | Keep decisions pure and effects at edges          | `game-logic.ts`, `logic/*`, stores and adapters  | Dependency lint and Vitest          |
+| Command store                     | UI issues named commands                          | `GameStore.actions`                              | Zustand + Immer                     |
+| Selector read model               | Subscribe only to rendered state                  | Named and inline selectors                       | Zero-argument store-hook lint       |
+| Explicit state machine            | Centralize turn and transition predicates         | `game-state-machine.ts`                          | State-machine and store tests       |
+| Generation token                  | Reject stale asynchronous results                 | `gameGeneration`, `isSameTurn`                   | Async race tests                    |
+| Presentation model                | Derive semantics outside React                    | `game-presentation.ts`                           | Pure tests and Playwright           |
+| Ports and adapters                | Construct effects explicitly                      | `GameStoreDependencies`, `wasm-ai-service.ts`    | Store factory tests                 |
+| Deterministic effects             | Inject clocks and randomness                      | Store dependencies and seeded Rust RNG           | Reproducibility tests               |
+| Contract-first boundary           | Validate both sides of cross-runtime calls        | `ai-worker-protocol.ts`, `wasm-ai-boundary.ts`   | Strict Zod protocol tests           |
+| Strategy with fallback            | Select engines explicitly and degrade predictably | `ai-logic.ts`, Rust strategies                   | Exhaustive types and AI tests       |
+| Versioned snapshot                | Persist only stable, validated state              | `game-store-state.ts`                            | Migration and aggregate tests       |
+| Executable conformance            | Keep TypeScript and Rust rules aligned            | Shared rule fixtures                             | Vitest and Cargo tests              |
+| Artifact promotion                | Build once, test and deploy the same output       | Vite/Cloudflare workflow                         | Playwright production preview       |
+| Fitness function                  | Turn architecture constraints into gates          | lint, types, coverage, bundle and diagram audits | `npm run check`                     |
 
-## Pattern Details
+## Domain and Application Patterns
 
-### Schema-first domain model
+### Schema-first aggregate
 
-`src/lib/schemas.ts` is the source of truth for game-domain values. Every schema exports its inferred TypeScript type, eliminating parallel interfaces. Application code imports schemas and types from `src/lib/types.ts`; only schema-focused tests and that facade import `schemas.ts` directly.
+`schemas.ts` is the domain source of truth and exports inferred types through `types.ts`. A valid `GameState` must also satisfy aggregate invariants: gravity, alternating history, board/history agreement, current turn, terminal result and winning coordinates. Persistence accepts `unknown`, validates once and passes trusted values inward.
 
-Generated Rust transport types remain in `src/lib/bindings.ts`. They are boundary contracts, not domain types, and are translated by adapters before reaching game logic.
+Generated Rust transport types in `bindings.ts` are boundary contracts, not browser-domain types. `wasm-ai-boundary.ts` validates and translates between the models.
 
-When adding a domain value:
+### Functional core and command shell
 
-1. Add or extend its Zod schema.
-2. Infer the type from the schema.
-3. Re-export both through `types.ts`.
-4. Validate the value at input and persistence boundaries.
+Pure functions own moves, wins, draws, turn rules and display decisions. The shell owns effects:
 
-### Functional core, imperative shell
+- The Zustand store coordinates commands and asynchronous turns.
+- `wasm-ai-service.ts` translates domain state and caches fetched parameters.
+- `ai-worker-client.ts` owns worker lifecycle, correlation, timeout and failure fan-out.
+- React owns rendering, accessibility, animation timing and user events.
 
-Pure functions own board updates, win detection, turn rules, and presentation decisions. Rust owns AI tactics and search. These modules accept values and return values without reading stores or browser globals.
+UI components do not receive unit tests. Extract decisions into `src/lib`, test them with Vitest and cover rendered behavior with Playwright.
 
-The shell owns effects:
+### Store ports and race safety
 
-- Zustand coordinates commands and asynchronous turns.
-- `wasm-ai-service.ts` loads modules and model data.
-- `ml-ai-worker-client.ts` owns worker lifecycle and timeouts.
-- React owns rendering, animation timing, and user events.
+`createGameStore` builds a vanilla Zustand store from four small ports: AI, wait, random and error reporting. Production supplies browser adapters; tests supply deterministic functions. This is dependency injection without a container.
 
-New decision logic belongs in `src/lib`; a component should normally choose only which pure result to render.
-
-### Command store and selector read models
-
-The game store is the application coordinator. Components call stable actions such as `makeMove`, `completeMove`, `makeAIMove`, and `reset`. Store updates use Immer and preserve the action vocabulary.
-
-Store reads always use a selector. Whole-store subscription is prohibited because it hides dependencies and causes unrelated renders. Repeated or meaningful selections should become named hooks; one-off scalar selections may remain inline.
-
-Transient display-only state stays local to a component unless several unrelated components coordinate through it. Shared ephemeral UI state belongs in `ui-store`; game state never does.
-
-### Explicit state machine and race guards
-
-`GameStatus`, `GameMode`, the current player, and pending move form a small state machine. Shared predicates answer whether a human or AI may act and whether a pending result is current. Components and effects must not reproduce those rules.
-
-The state machine is intentionally represented by typed values and predicates rather than a framework. A generation token invalidates delayed AI work after reset or replacement. The result is committed only when the generation and turn identity still match.
+`GameStatus`, `GameMode`, current player and pending move form a small state machine represented by closed types and shared predicates:
 
 ```mermaid
 stateDiagram-v2
@@ -94,96 +80,82 @@ stateDiagram-v2
   finished --> not_started: reset
 ```
 
-`pendingMove` and `aiThinking` are transient substates of `playing`, not persisted game statuses. The closed status set is `not_started`, `playing`, and `finished`; schema validation rejects every other value.
+`pendingMove` and `aiThinking` are transient substates. A generation token invalidates delayed AI work after reset, and a result commits only when its generation and turn identity still match.
 
-### Presentation model
+## Boundary Patterns
 
-`game-presentation.ts` converts game and AI state into semantic display values. React maps those values to Lucide icons and Tailwind classes. This keeps copy and outcome rules consistent between status and completion views while allowing animation and markup to remain component concerns.
+### Unified AI worker
 
-Do not unit-test UI components. Extract decisions into a presentation model or another pure library function, test that function with Vitest, and cover the rendered flow with Playwright.
+Search and ML use one worker, one WebAssembly instance and one discriminated protocol. Requests validate the full 7×6 board, player and genetic parameters. Rust results are validated before posting, and the client validates them again before resolving a request. Invalid fatal responses reject all pending work and replace the worker on demand.
 
-### Contract-first worker boundary
+The AI strategy fallback is fixed:
 
-Worker messages are untrusted even though both ends are in this repository. `ml-ai-worker-protocol.ts` defines request, success, error, and ML response schemas. The client and worker both import that contract:
-
-- Requests are checked before invoking WASM.
-- Engine output is checked before posting it.
-- Client responses are checked before resolving a pending request.
-- Invalid, failed, or timed-out workers are terminated and recreated on demand.
-
-The same rule applies to local storage, fetched JSON, generated WASM responses, URL state, and future network calls: accept `unknown`, validate once at the edge, and pass trusted types inward.
-
-### Adapter and AI strategy patterns
-
-`wasm-ai-service.ts` is an anti-corruption layer between camel-case TypeScript domain state and the generated Rust/WASM representation. No component imports generated bindings or calls WASM directly.
-
-`AIType` is a closed strategy set: `search` or `ml`. Dispatch is exhaustive, so adding an AI type creates compile errors at every required mapping. The failure chain is deterministic:
-
-1. Selected engine.
-2. Shallow Search AI.
-3. Random valid column.
-4. User-visible error when no valid move exists.
-
-The Rust ML strategy checks immediate wins, then immediate blocks, before invoking MCTS. Assertion-based Rust tests protect both tactical guarantees independently of model weights.
+1. Selected Search or ML strategy.
+2. Shallow Search strategy.
+3. Seedable random valid column.
+4. User-visible error when no move exists.
 
 ![AI strategy dispatch and fallback](diagrams/ai-move-flow.png)
 
 ### Versioned persistence
 
-The persisted key is `rowspire-game-storage`. Only the current game, mode, and AI selections are stored. Animation state, pending moves, actions, errors, and loading flags are reconstructed.
+`rowspire-game-storage` contains only the game aggregate, mode and AI selections. Actions, animation state, pending work and errors are reconstructed. Incompatible changes increment `LATEST_VERSION` and require migration tests.
 
-`parsePersistedState` validates each field and supplies safe defaults for missing or malformed legacy data. Any incompatible change increments `LATEST_VERSION` and adds a migration test.
+### Offline boundary
+
+`service-worker.ts` is a generated, versioned module whose cache decisions live in `service-worker-policy.ts`. Static application, WASM and model assets are cache-first; documents are network-first with an offline fallback. Registration and update UI stay in React rather than inline scripts.
 
 ## Code Ownership
 
-| Location                                              | Responsibility                                         |
-| ----------------------------------------------------- | ------------------------------------------------------ |
-| `src/components`                                      | Rendering, accessibility, event wiring, animation      |
-| `src/hooks`                                           | Reusable React lifecycle coordination                  |
-| `src/lib/schemas.ts`                                  | Domain schemas and inferred domain types               |
-| `src/lib/types.ts`                                    | Public domain-model facade                             |
-| `src/lib/game-logic.ts`, `logic/board-logic.ts`       | Pure game rules                                        |
-| `src/lib/logic/ai-logic.ts`                           | Effectful AI strategy dispatch and fallback            |
-| `src/lib/game-state-machine.ts`                       | Turn and transition predicates                         |
-| `src/lib/game-presentation.ts`                        | Pure UI projections                                    |
-| `src/lib/*-store.ts`                                  | Commands, state coordination, persistence wiring       |
-| `src/lib/*protocol.ts`, `*-service.ts`, `*-client.ts` | External boundary contracts and adapters               |
-| `worker`                                              | Rust AI engine and training code                       |
-| `scripts`                                             | Build, code generation, audits, and deployment support |
+| Location                                                               | Responsibility                                       |
+| ---------------------------------------------------------------------- | ---------------------------------------------------- |
+| `src/components`                                                       | Rendering, accessibility, event wiring and animation |
+| `src/hooks`                                                            | Reusable React lifecycle coordination                |
+| `src/lib/schemas.ts`, `types.ts`                                       | Domain schemas and public domain facade              |
+| `src/lib/logic`, `game-logic.ts`                                       | Pure rules and invariant validation                  |
+| `src/lib/game-store-core.ts`                                           | Application commands over injected ports             |
+| `src/lib/game-store.ts`                                                | Production store construction and persistence        |
+| `src/lib/*protocol.ts`, `*-boundary.ts`, `*-service.ts`, `*-client.ts` | External contracts and adapters                      |
+| `src/service-worker.ts`                                                | Offline runtime shell                                |
+| `worker/src/game.rs`, `rules.rs`                                       | Rust game model and rules                            |
+| `worker/src/search_ai.rs`, `ml_ai.rs`, `mcts.rs`                       | AI strategies                                        |
+| `worker/src/wasm_api.rs`                                               | Narrow WebAssembly facade                            |
+| `scripts`                                                              | Generation, audits and delivery support              |
 
-Prefer files under 200 lines and functions under 20 lines. Split by responsibility, not by arbitrary size: a useful extraction creates a named pattern boundary and a unit-testable API.
+Prefer code files under 200 lines and functions under 20 lines. Split by stable responsibility, not arbitrary size.
 
-## Patterns Not Currently Warranted
+## Patterns Not Warranted
 
-The audit found and added three missing patterns: a shared worker contract, selector-only store reads, and a presentation model. Larger patterns would currently add indirection without solving an observed problem:
+- A state-machine framework would duplicate the current closed types and predicates.
+- CQRS, event sourcing and a domain event bus do not fit one local aggregate without audit requirements.
+- Repository abstractions are unnecessary with one versioned local snapshot.
+- A dependency-injection container would obscure four explicit ports.
+- Micro-frontends, an application server and distributed-system patterns do not fit a static game.
+- Preact compatibility or framework-free rendering would add ecosystem and lifecycle risk without addressing a measured bottleneck.
 
-- A state-machine library is unnecessary while typed predicates describe every transition clearly.
-- CQRS, event sourcing, and a domain event bus are unnecessary for one local aggregate with no audit or replay requirement.
-- Repository interfaces are unnecessary while there is one versioned local snapshot and no interchangeable data source.
-- A dependency-injection container is unnecessary while adapters are few, explicit, and easy to replace in tests.
-- Micro-frontends, server layers, and distributed-system patterns do not fit a static client-only game.
-
-Introduce one of these only when its trigger appears: multiple implementations, replay or audit requirements, independently deployed domains, or dependency construction that is no longer explicit. Name the pattern and its trade-off here when adopting it.
+Introduce a larger pattern only when its trigger exists, and document both the trigger and trade-off here.
 
 ## Build and Deployment
 
-`npm run build:wasm-assets` compiles Rust to `public/wasm` and copies model assets to `public/ml`. `npm run build` generates the service worker, builds the static export in `out`, and runs the brand audit. Wrangler serves `out` through Workers Static Assets; there is no app server, database, or server-side AI call.
+`wasm-pack` compiles Rust into `public/wasm`; source model assets are staged into `public/ml`; a dedicated Vite build emits the versioned service worker. The Cloudflare Vite plugin then creates `out/client` and a Worker bundle/config under `out/rowspire_main`.
+
+CI validates source, builds once, previews that exact artifact for Playwright, deploys the same artifact and smoke-tests production. Concurrency cancellation prevents an older `main` run deploying after a newer one.
 
 ![Build and deployment flow](diagrams/build-deploy-flow.png)
 
-Source diagrams live in `docs/diagrams/*.dot`; [the diagram standard](diagrams/README.md) defines when to use Mermaid or Graphviz and the shared visual language. Run `npm run diagrams` after changing a diagram and `npm run check:diagrams` to validate rendering and style.
+Graphviz sources live in `docs/diagrams/*.dot`; Mermaid is reserved for compact local flows. Run `npm run diagrams` after changing Graphviz and `npm run check:diagrams` to validate style and rendering.
 
 ## Architecture Fitness Functions
 
-`npm run check` is the executable architecture policy. It runs:
+`npm run check` enforces:
 
-- ESLint, including selector and dependency-direction boundaries.
-- Strict TypeScript with unchecked-index and optional-property checks.
-- Strict Clippy across Rust targets and features.
-- Vitest coverage for pure logic and adapters.
-- Rust AI matrix tests.
-- Brand and generated-output audits.
-- Architecture diagram source and render validation.
-- Playwright end-to-end flows.
+- ESLint dependency direction, Zustand selectors and type-only imports.
+- Strict TypeScript and generated Rust binding drift.
+- Strict Clippy across targets and features.
+- Vitest coverage and shared TypeScript/Rust rule conformance.
+- Rust AI matrix behavior.
+- Bundle budgets for JavaScript, CSS, WASM and model JSON.
+- Branding, Graphviz source and render checks.
+- Playwright against the production Cloudflare/Vite artifact.
 
-ESLint enforces three dependency directions: library code cannot import UI, UI cannot import generated bindings or worker/WASM adapters, and the pure core cannot import stores, UI frameworks, the AI shell, or external adapters.
+Deployment adds live HTML, manifest, WASM, model and canonical-host smoke checks.

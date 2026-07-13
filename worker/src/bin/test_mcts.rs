@@ -11,10 +11,7 @@ fn main() {
 
     let mut mcts = MCTS::new(1.0, 10);
     let value_fn = |state: &GameState| ai.evaluate_position(state);
-    let policy_fn = |_state: &GameState| {
-        // Simple random policy for testing
-        vec![1.0 / 7.0; 7]
-    };
+    let policy_fn = |_state: &GameState| vec![1.0 / 7.0; 7];
 
     let (best_move, move_probs) = mcts.search(game_state, &value_fn, &policy_fn, 0.0, false);
 

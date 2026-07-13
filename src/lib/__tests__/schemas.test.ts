@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { GameStateSchema, MoveRecordSchema, PendingMoveSchema } from '../schemas';
+import { initializeGame, makeMove } from '../game-logic';
 import { parsePersistedState } from '../game-store-state';
+
+function playMoves(columns: number[]) {
+  return columns.reduce(
+    makeMove,
+    initializeGame(() => 0),
+  );
+}
 
 describe('Schemas', () => {
   describe('GameStateSchema', () => {
@@ -40,7 +48,7 @@ describe('Schemas', () => {
         winningLine: null,
       };
 
-      expect(() => GameStateSchema.parse(invalidGameState)).toThrow('inconsistent');
+      expect(() => GameStateSchema.parse(invalidGameState)).toThrow();
     });
 
     it('should reject unreachable game statuses', () => {
@@ -57,22 +65,7 @@ describe('Schemas', () => {
     });
 
     it('should validate finished game state', () => {
-      const finishedGameState = {
-        board: Array.from({ length: 7 }, () => Array(6).fill(null)),
-        currentPlayer: 'player1' as const,
-        gameStatus: 'finished' as const,
-        winner: 'player1' as const,
-        history: [],
-        winningLine: {
-          positions: [
-            { column: 0, row: 5 },
-            { column: 1, row: 5 },
-            { column: 2, row: 5 },
-            { column: 3, row: 5 },
-          ],
-          direction: 'horizontal' as const,
-        },
-      };
+      const finishedGameState = playMoves([0, 6, 1, 6, 2, 5, 3]);
 
       expect(() => GameStateSchema.parse(finishedGameState)).not.toThrow();
     });

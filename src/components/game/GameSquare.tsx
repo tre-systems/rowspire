@@ -1,8 +1,6 @@
-'use client';
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, isDevelopment } from '@/lib/utils';
-import { Player } from '@/lib/types';
+import type { Player } from '@/lib/types';
 import GamePiece from './GamePiece';
 
 interface GameSquareProps {

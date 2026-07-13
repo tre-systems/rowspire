@@ -1,8 +1,6 @@
-'use client';
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { GameState, GameMode } from '@/lib/types';
+import type { GameState, GameMode } from '@/lib/types';
 import { Crown, Zap, Trophy, XCircle, Brain, Cpu, type LucideIcon } from 'lucide-react';
 import { useGameStore } from '@/lib/game-store';
 import { useHydrated } from '@/hooks/useHydrated';

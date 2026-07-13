@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useGameStore } from '../game-store';
+import { createGameStore, useGameStore, type GameStoreDependencies } from '../game-store';
 import { emptyGameState } from '../game-store-state';
 import { initializeWASMAI } from '../wasm-ai-service';
+import type * as AILogic from '../logic/ai-logic';
 
 const { calculateAIMove } = vi.hoisted(() => ({
   calculateAIMove: vi.fn<() => Promise<number>>(),
 }));
 
 vi.mock('../logic/ai-logic', async () => {
-  const actual = await vi.importActual<typeof import('../logic/ai-logic')>('../logic/ai-logic');
+  const actual = await vi.importActual<typeof AILogic>('../logic/ai-logic');
   return { ...actual, makeAIMove: calculateAIMove };
 });
 
@@ -30,6 +31,55 @@ describe('Game Store', () => {
       player2AI: 'search',
       gameMode: 'human-vs-ai',
     }));
+  });
+
+  it('supports deterministic injected application ports', async () => {
+    const random = vi.fn(() => 0.25);
+    const chooseMove = vi.fn().mockResolvedValue(4);
+    const dependencies: GameStoreDependencies = {
+      ai: { initialize: vi.fn().mockResolvedValue(undefined), chooseMove },
+      wait: vi.fn().mockResolvedValue(undefined),
+      random,
+      reportError: vi.fn(),
+    };
+    const store = createGameStore(dependencies);
+    store.getState().actions.startGame();
+
+    expect(random).toHaveBeenCalledOnce();
+    expect(store.getState().gameState.currentPlayer).toBe('player1');
+
+    store.setState(state => {
+      state.gameState = playingGame();
+      state.gameState.currentPlayer = 'player2';
+    });
+
+    await store.getState().actions.makeAIMove();
+
+    expect(chooseMove).toHaveBeenCalledWith(expect.any(Object), 'search', random);
+    expect(store.getState().pendingMove?.column).toBe(4);
+  });
+
+  it('reports AI failures through the injected error port', async () => {
+    const reportError = vi.fn();
+    const dependencies: GameStoreDependencies = {
+      ai: {
+        initialize: vi.fn().mockResolvedValue(undefined),
+        chooseMove: vi.fn().mockRejectedValue(new Error('offline')),
+      },
+      wait: vi.fn().mockResolvedValue(undefined),
+      random: Math.random,
+      reportError,
+    };
+    const store = createGameStore(dependencies);
+    store.setState(state => {
+      state.gameState = playingGame();
+      state.gameState.currentPlayer = 'player2';
+    });
+
+    await store.getState().actions.makeAIMove();
+
+    expect(reportError).toHaveBeenCalledWith('AI calculation failed: offline.');
+    expect(store.getState().aiThinking).toBe(false);
   });
 
   afterEach(() => {

@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useSyncExternalStore } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
@@ -164,7 +162,7 @@ export default function RowspireGame() {
             >
               <h1 className="text-4xl font-bold text-white mb-2 title-glow">{APP_NAME}</h1>
               <p className="text-gray-300 text-sm">{APP_TAGLINE}</p>
-              {process.env.NODE_ENV === 'development' && isMounted && (
+              {import.meta.env.DEV && isMounted && (
                 <div className="text-xs text-gray-500 mt-2">
                   Status: {gameState.gameStatus} | Player: {gameState.currentPlayer} | AI Thinking:{' '}
                   {aiThinking ? 'Yes' : 'No'}

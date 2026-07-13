@@ -1,75 +1,72 @@
 # Rowspire
 
-Rowspire is an independent browser strategy game with Rust/WebAssembly AI opponents. It runs entirely client-side as a static Next.js 15 app on Cloudflare.
+Rowspire is an independent browser strategy game with Rust/WebAssembly AI opponents. It is a static React application built by Vite and served through Cloudflare Workers.
 
 ![Rowspire screenshot](screenshot.png)
 
 ## Features
 
-- Two AI opponents compiled from Rust to WebAssembly:
-  - Search AI: negamax with alpha-beta pruning over a compact bitboard engine.
-  - ML AI: deterministic tactical guard followed by MCTS over value and policy networks.
-- Human vs AI and AI vs AI watch mode.
-- Procedural Web Audio effects for moves, wins, losses, and watch-mode AI turns.
-- Persistent animated canvas background effects across setup, play, and completed games.
-- Validated game persistence that resumes the board, mode, and selected opponents after navigation.
-- Offline-first PWA with service worker caching.
-- Responsive React 19 UI with Zustand, Immer, Tailwind, and Framer Motion.
-- Brand audit that blocks legacy or third-party naming in source, docs, generated worker code, and exported pages.
+- Search and ML strategies running off the main thread in one validated AI worker.
+- Rust/WebAssembly bitboard search, tactical guards and neural MCTS.
+- Human vs AI and AI vs AI watch modes.
+- Zustand + Immer command state with versioned, aggregate-validated persistence.
+- Seedable AI and application effects for reproducible tests.
+- Offline-first service worker with versioned WASM and model caching.
+- Responsive React 19 UI with Tailwind and Motion.
+- Executable TypeScript/Rust rule conformance and production bundle budgets.
 
 ## Quick Start
 
+Requires Node 22.12+, Rust, Cargo, `wasm-pack` 0.15 and `wasm-bindgen-cli` 0.2.122.
+
 ```bash
 npm install
-npm run build:wasm-assets
 npm run dev
 ```
 
-The dev server runs at [http://localhost:3000](http://localhost:3000). Requires Node 22.12+, Rust + Cargo, and `wasm-pack`.
+Vite runs at [http://localhost:5173](http://localhost:5173).
 
 ## Commands
 
-| Command                 | Description                                                                         |
-| ----------------------- | ----------------------------------------------------------------------------------- |
-| `npm run dev`           | Build AI assets, generate the service worker, and start the dev server              |
-| `npm run build`         | Generate assets, export the static app, and run the brand audit                     |
-| `npm run brand:audit`   | Scan source, docs, generated public assets, and exported pages for blocked branding |
-| `npm run check`         | Lint, Clippy, types, Rust AI matrix, coverage, audits, diagrams, and Playwright     |
-| `npm run lint:rust`     | Run strict Clippy checks across every Rust target and feature                       |
-| `npm run test`          | Run Vitest unit tests                                                               |
-| `npm run test:coverage` | Run unit tests with enforced coverage thresholds                                    |
-| `npm run test:e2e`      | Run Playwright end-to-end tests                                                     |
-| `npm run test:rust`     | Run Rust tests                                                                      |
-| `npm run diagrams`      | Render standardized Graphviz architecture diagrams                                  |
-| `npm run train`         | Run model training under `caffeinate`                                               |
-| `npm run deploy`        | Build, commit-version the PWA cache, and deploy the static site with Wrangler       |
+| Command                    | Description                                                                |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`              | Build AI/PWA assets and start Vite with the Cloudflare runtime             |
+| `npm run build`            | Validate and create the deployable Vite/Worker artifact                    |
+| `npm run check`            | Run lint, types, Rust, coverage, audits, build and production-artifact E2E |
+| `npm run test`             | Run Vitest unit tests                                                      |
+| `npm run test:rust`        | Run Rust tests                                                             |
+| `npm run test:e2e`         | Build and run Playwright against the production preview                    |
+| `npm run check:types`      | Reject stale generated Rust transport bindings                             |
+| `npm run audit:bundle`     | Enforce compressed JS, CSS, WASM and model budgets                         |
+| `npm run diagrams`         | Render standardized Graphviz architecture diagrams                         |
+| `npm run train`            | Run feature-gated model training under `caffeinate`                        |
+| `npm run deploy`           | Build and deploy with Wrangler                                             |
+| `npm run smoke:production` | Verify the live shell, PWA, AI assets and canonical redirect               |
 
 ## Architecture
 
-- Frontend: Next.js 15 / React 19 with state in Zustand + Immer.
-- AI: Rust in `worker/`, compiled to WebAssembly in `public/wasm/`.
-- ML worker: `src/lib/ai.worker.ts` runs slow ML searches away from the main thread.
-- Persistence: validated game state and opponent configuration in `localStorage` under `rowspire-game-storage`.
-- Hosting: static export served by Cloudflare Workers Static Assets.
+- UI: React 19 built by Vite.
+- State: vanilla Zustand store factory, Immer commands and injected application ports.
+- Domain: Zod schemas plus replay-based game aggregate invariants.
+- AI: one Web Worker and one narrow Rust/WebAssembly facade for both strategies.
+- Persistence: validated `localStorage` snapshot under `rowspire-game-storage`.
+- Offline: typed service worker source and pure cache policy.
+- Hosting: Cloudflare Worker for canonical redirects plus Workers Static Assets.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/diagrams/README.md](docs/diagrams/README.md), and [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md).
-
-## Branding
-
-This project uses an original name and visual identity. Avoid using third-party board-game names, logos, packaging, rulebook text, or trade dress in the app, documentation, screenshots, metadata, or marketing copy.
-
-Run `npm run brand:audit` before shipping brand-facing changes.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md) and [docs/diagrams/README.md](docs/diagrams/README.md).
 
 ## Deployment
 
-Pushing to `main` runs the deploy workflow. Wrangler provisions custom domains for `rowspire.com`, `rowspire.net`, `rowspire.org`, their `www` hosts, and `rowspire.tre.systems`.
+Pushing to `main` validates the project, builds one artifact, tests that artifact with Playwright, deploys it and smoke-tests production. The workflow cancels superseded runs so only the newest commit can deploy.
 
-## Documentation
+Wrangler provisions `rowspire.com`, alternate domains and the project host. The Worker redirects alternate hosts to the canonical origin before serving static assets.
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): required pattern catalog, dependency rules, and system design
-- [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md): AI engines, model assets, and training notes
-- [docs/BACKLOG.md](docs/BACKLOG.md): planned work
-- [AGENTS.md](AGENTS.md): repo conventions
+## Project Rules
+
+- Keep the architecture pattern catalog synchronized with executable enforcement.
+- Keep the README and concise documentation current.
+- Avoid third-party board-game names, logos, text and trade dress.
+- Run `npm run check` before shipping.
 
 ## License
 

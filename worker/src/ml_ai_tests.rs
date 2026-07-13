@@ -10,6 +10,21 @@ fn creates_both_networks() {
 }
 
 #[test]
+fn seeded_initialization_is_reproducible() {
+    let first = MLAI::new_with_seed(42);
+    let second = MLAI::new_with_seed(42);
+
+    assert_eq!(
+        first.value_network.save_weights(),
+        second.value_network.save_weights()
+    );
+    assert_eq!(
+        first.policy_network.save_weights(),
+        second.policy_network.save_weights()
+    );
+}
+
+#[test]
 fn evaluates_an_empty_board() {
     let mut ai = MLAI::new();
     let response = ai.get_best_move(&GameState::new());

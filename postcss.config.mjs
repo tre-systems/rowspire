@@ -1,3 +1,5 @@
+import tailwindcss from '@tailwindcss/postcss';
+
 export default {
-  plugins: process.env.VITEST ? [] : ['@tailwindcss/postcss'],
+  plugins: process.env.VITEST ? [] : [tailwindcss()],
 };

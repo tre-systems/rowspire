@@ -72,14 +72,6 @@ export interface WasmBestMoveResponse {
   transpositionHits: number;
 }
 
-// Generated from WasmHeuristicResponse.ts
-
-export interface WasmHeuristicResponse {
-  move: number | null;
-  evaluations: Array<MoveEvaluationWasm>;
-  nodesEvaluated: number;
-}
-
 // Generated from WasmMLResponse.ts
 
 export interface WasmMLResponse {

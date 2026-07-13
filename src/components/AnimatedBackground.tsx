@@ -1,5 +1,3 @@
-'use client';
-
 import { useAnimatedBackground } from '../hooks/useAnimatedBackground';
 
 export default function AnimatedBackground() {

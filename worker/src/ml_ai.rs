@@ -24,8 +24,7 @@ pub struct MLDiagnostics {
     pub policy_network_outputs: Vec<f32>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, TS)]
-#[ts(export)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MLResponse {
     pub r#move: Option<u8>,
@@ -38,6 +37,7 @@ pub struct MLAI {
     pub value_network: NeuralNetwork,
     pub policy_network: NeuralNetwork,
     pub mcts_simulations: usize,
+    mcts_seed: Option<u64>,
 }
 
 fn tactical_response(valid_moves: Vec<u8>, column: u8, move_type: &str) -> MLResponse {
@@ -66,6 +66,14 @@ impl Default for MLAI {
 
 impl MLAI {
     pub fn new() -> Self {
+        Self::create(None)
+    }
+
+    pub fn new_with_seed(seed: u64) -> Self {
+        Self::create(Some(seed))
+    }
+
+    fn create(seed: Option<u64>) -> Self {
         let value_config = NetworkConfig {
             input_size: 100,
             hidden_sizes: vec![128, 128, 128, 128],
@@ -81,10 +89,14 @@ impl MLAI {
 
         let simulations = if cfg!(debug_assertions) { 200 } else { 4000 };
 
-        MLAI {
-            value_network: NeuralNetwork::new(value_config),
-            policy_network: NeuralNetwork::new(policy_config),
+        let value_network = network(value_config, seed);
+        let policy_network = network(policy_config, seed.map(|value| value.wrapping_add(1)));
+
+        Self {
+            value_network,
+            policy_network,
             mcts_simulations: simulations,
+            mcts_seed: seed,
         }
     }
 
@@ -127,7 +139,10 @@ impl MLAI {
         let raw_value = self.value_network.forward(&features.to_array())[0];
         let raw_policy = self.policy_network.forward(&features.to_array());
 
-        let mut mcts = super::mcts::MCTS::new(1.41, self.mcts_simulations);
+        let mut mcts = match self.mcts_seed {
+            Some(seed) => super::mcts::MCTS::new_with_seed(1.41, self.mcts_simulations, seed),
+            None => super::mcts::MCTS::new(1.41, self.mcts_simulations),
+        };
 
         let value_net = &self.value_network;
         let policy_net = &self.policy_network;
@@ -185,6 +200,13 @@ impl MLAI {
     pub fn load_weights(&mut self, value_weights: &[f32], policy_weights: &[f32]) {
         self.value_network.load_weights(value_weights);
         self.policy_network.load_weights(policy_weights);
+    }
+}
+
+fn network(config: NetworkConfig, seed: Option<u64>) -> NeuralNetwork {
+    match seed {
+        Some(seed) => NeuralNetwork::new_with_seed(config, seed),
+        None => NeuralNetwork::new(config),
     }
 }
 

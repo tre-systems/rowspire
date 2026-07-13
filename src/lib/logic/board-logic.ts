@@ -1,35 +1,10 @@
-import type { Board, Player } from '../types';
+import type { Board, Player, WinningLine } from '../types';
 
 const ROWS = 6;
 const COLS = 7;
 
-export interface WinningLine {
-  positions: Array<{ column: number; row: number }>;
-  direction: 'horizontal' | 'vertical' | 'diagonal';
-}
-
 export function createEmptyBoard(): Board {
   return Array.from({ length: COLS }, () => Array.from({ length: ROWS }, () => null));
-}
-
-export function printBoard(board: Board, moveInfo?: string) {
-  const header = moveInfo ? `\n${moveInfo}` : '\nBoard:';
-  console.log(header);
-
-  for (let row = 0; row < ROWS; row++) {
-    let rowStr = '';
-    for (let col = 0; col < COLS; col++) {
-      const cell = board[col]?.[row];
-      if (cell === 'player1') {
-        rowStr += '🟢';
-      } else if (cell === 'player2') {
-        rowStr += '🟣';
-      } else {
-        rowStr += '⚫';
-      }
-    }
-    console.log(rowStr);
-  }
 }
 
 export function getValidMoves(board: Board): number[] {

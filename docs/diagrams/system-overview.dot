@@ -14,7 +14,7 @@ digraph SystemOverview {
     label=<
       <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
         <TR><TD><FONT POINT-SIZE="34"><B>Rowspire &mdash; Runtime Architecture</B></FONT></TD></TR>
-        <TR><TD><FONT POINT-SIZE="14" COLOR="#5b6b80">Static delivery; gameplay, state, and AI execute entirely in the browser.</FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="14" COLOR="#5b6b80">Vite-built static delivery; gameplay, state, and AI execute entirely in the browser.</FONT></TD></TR>
       </TABLE>
     >,
     labelloc=t,
@@ -47,7 +47,7 @@ digraph SystemOverview {
   ];
 
   CF [
-    label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare Static Assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; model JSON</FONT></TD></TR></TABLE>>,
+    label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare edge Worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">canonical redirect &rarr; Static Assets</FONT></TD></TR></TABLE>>,
     fillcolor="#e6fffb:#ffffff",
     color="#0f766e"
   ];
@@ -70,12 +70,13 @@ digraph SystemOverview {
     ];
 
     UI [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>React UI</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">events, accessibility, animation</FONT></TD></TR></TABLE>>, fillcolor="#edf7ff:#ffffff", color="#2f80ed"];
+    PWA [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>PWA service worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">versioned shell + AI asset cache</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
     STORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Game command store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand + Immer &middot; race guards</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
     UISTORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>UI store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ephemeral shared display state</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
     PRESENT [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Presentation model</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">pure semantic projections</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
     CORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Game core</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">pure rules, transitions, win checks</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
-    FACADE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>WASM AI facade</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">strategy + anti-corruption layer</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    WORKER [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML Web Worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated protocol &middot; timeout</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    FACADE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>AI gateway</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">domain translation + cached parameters</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    WORKER [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>AI Web Worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">one validated protocol + WASM instance</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
     STORAGE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>localStorage</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated versioned snapshot</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
 
     { rank=same; STORE; UISTORE; PRESENT; }
@@ -106,15 +107,16 @@ digraph SystemOverview {
     { rank=same; SEARCH; ML; }
   }
 
-  CF -> UI [label="serves app"];
+  CF -> PWA [label="serves assets"];
+  PWA -> UI [label="online / cached shell"];
   UI -> STORE [label="commands"];
   UI -> UISTORE [label="display effects"];
   UI -> PRESENT [label="derive display"];
   STORE -> CORE [label="apply move"];
   STORE -> FACADE [label="request AI move"];
   STORE -> STORAGE [label="persist"];
-  FACADE -> SEARCH [label="search"];
-  FACADE -> WORKER [label="validated ML request"];
-  WORKER -> ML [label="run MCTS"];
+  FACADE -> WORKER [label="validated request"];
+  WORKER -> SEARCH [label="search strategy"];
+  WORKER -> ML [label="ML strategy"];
   ML -> NETWORK [label="value / policy"];
 }

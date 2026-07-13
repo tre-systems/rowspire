@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { gameStateInvariantErrors } from './logic/game-state-invariants';
 
 export const PlayerSchema = z.enum(['player1', 'player2']);
 export type Player = z.infer<typeof PlayerSchema>;
@@ -40,7 +41,8 @@ export const WinningLineSchema = z.object({
         row: RowIndexSchema,
       }),
     )
-    .length(4),
+    .min(4)
+    .max(7),
   direction: z.enum(['horizontal', 'vertical', 'diagonal']),
 });
 export type WinningLine = z.infer<typeof WinningLineSchema>;
@@ -55,15 +57,8 @@ export const GameStateSchema = z
     winningLine: WinningLineSchema.nullable(),
   })
   .superRefine((state, context) => {
-    const hasWinningResult = state.winner !== null && state.winningLine !== null;
-    const isDraw = state.gameStatus === 'finished' && !state.winner && !state.winningLine;
-    const isActive = state.gameStatus !== 'finished' && !state.winner && !state.winningLine;
-
-    if (!hasWinningResult && !isDraw && !isActive) {
-      context.addIssue({ code: 'custom', message: 'Game result fields are inconsistent' });
-    }
-    if (hasWinningResult && state.gameStatus !== 'finished') {
-      context.addIssue({ code: 'custom', message: 'Only finished games can have a winner' });
+    for (const message of gameStateInvariantErrors(state)) {
+      context.addIssue({ code: 'custom', message });
     }
   });
 export type GameState = z.infer<typeof GameStateSchema>;

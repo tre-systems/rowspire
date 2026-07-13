@@ -17,17 +17,19 @@ crate-type = ["cdylib", "rlib"]
 name = "rowspire-ai-worker"
 path = "src/main.rs"
 
+[[bin]]
+name = "train"
+path = "src/bin/train.rs"
+required-features = ["training"]
+
 [features]
 default = []
 wasm = [
     "wasm-bindgen",
-    "console_error_panic_hook",
     "getrandom/js",
-    "dep:js-sys",
-    "dep:web-sys",
     "dep:serde-wasm-bindgen",
 ]
-training = []
+training = ["dep:chrono", "dep:rayon"]
 slow_tests = []
 
 [dependencies]
@@ -38,18 +40,15 @@ uuid = { version = "1.0", features = ["v4", "serde", "js"] }
 getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen = { version = "0.2.100", optional = true }
 serde-wasm-bindgen = { version = "0.6.5", optional = true }
-console_error_panic_hook = { version = "0.1.7", optional = true }
-js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", optional = true, features = ["console"] }
 lazy_static = "1.4"
 ndarray = "0.15"
-chrono = { version = "0.4", features = ["serde"] }
-rayon = "1.8"
-tempfile = "3.8"
+chrono = { version = "0.4", features = ["serde"], optional = true }
+rayon = { version = "1.8", optional = true }
 ts-rs = "7.0.0"
 
 [dev-dependencies]
 criterion = "0.6.0"
+rayon = "1.8"
 
 [profile.release]
 opt-level = 3

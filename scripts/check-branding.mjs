@@ -18,14 +18,13 @@ const roots = [
   'package.json',
   'package-lock.json',
   'wrangler.toml',
-  'next.config.mjs',
+  'vite.config.ts',
   'playwright.config.ts',
   'env.d.ts',
 ];
 
 const skipDirs = new Set([
   '.git',
-  '.next',
   '.wrangler',
   'coverage',
   'node_modules',
@@ -88,6 +87,14 @@ const allowedInfrastructureReferences = [
   },
   {
     file: 'src/lib/__tests__/canonical-host.test.ts',
+    text: 'connect-4.tre.systems',
+  },
+  {
+    file: 'out/rowspire_main/index.js',
+    text: 'connect-4.tre.systems',
+  },
+  {
+    file: 'out/rowspire_main/wrangler.json',
     text: 'connect-4.tre.systems',
   },
 ];

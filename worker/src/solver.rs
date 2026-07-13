@@ -1,119 +1,8 @@
-use crate::{Cell, GameState, Player, COLS, ROWS};
+pub use crate::bitboard::Bitboard;
+use crate::ROWS;
 use std::collections::HashMap;
 
 const WIDTH: usize = 7;
-const HEIGHT: usize = 6;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct Bitboard {
-    player_board: u64, // Bitmask of current player's pieces
-    mask: u64,         // Bitmask of all pieces
-    moves_count: u8,   // Number of moves played
-}
-
-impl Default for Bitboard {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Bitboard {
-    pub fn new() -> Self {
-        Bitboard {
-            player_board: 0,
-            mask: 0,
-            moves_count: 0,
-        }
-    }
-
-    pub fn can_play(&self, col: usize) -> bool {
-        (self.mask & top_mask(col)) == 0
-    }
-
-    pub fn play(&mut self, col: usize) {
-        self.player_board ^= self.mask;
-        self.mask |= self.mask + bottom_mask(col);
-        self.player_board ^= self.mask;
-        self.player_board ^= self.mask;
-        self.moves_count += 1;
-    }
-
-    pub fn is_win(&self) -> bool {
-        let previous_player_board = self.player_board ^ self.mask;
-        Self::alignment(previous_player_board)
-    }
-
-    pub fn alignment(pos: u64) -> bool {
-        // Horizontal
-        let mut m = pos & (pos >> 7);
-        if m & (m >> 14) != 0 {
-            return true;
-        }
-
-        // Diagonal \
-        m = pos & (pos >> 6);
-        if m & (m >> 12) != 0 {
-            return true;
-        }
-
-        // Diagonal /
-        m = pos & (pos >> 8);
-        if m & (m >> 16) != 0 {
-            return true;
-        }
-
-        // Vertical
-        m = pos & (pos >> 1);
-        if m & (m >> 2) != 0 {
-            return true;
-        }
-
-        false
-    }
-
-    pub fn key(&self) -> u64 {
-        self.player_board + self.mask
-    }
-
-    pub fn from_game_state(state: &GameState) -> Self {
-        // Map GameState (row 5 = bottom) to bit index col * 7 + (5 - row).
-        let mut p1: u64 = 0;
-        let mut p2: u64 = 0;
-
-        for col in 0..COLS {
-            for row in 0..ROWS {
-                let bit_index = col * 7 + (5 - row);
-                match state.board[col][row] {
-                    Cell::Player1 => p1 |= 1 << bit_index,
-                    Cell::Player2 => p2 |= 1 << bit_index,
-                    Cell::Empty => {}
-                }
-            }
-        }
-
-        let mask = p1 | p2;
-        let current_position = if state.current_player == Player::Player1 {
-            p1
-        } else {
-            p2
-        };
-
-        Bitboard {
-            player_board: current_position,
-            mask,
-            moves_count: mask.count_ones() as u8,
-        }
-    }
-}
-
-// Helper for bitmasks
-const fn top_mask(col: usize) -> u64 {
-    1 << (HEIGHT - 1 + col * (HEIGHT + 1))
-}
-
-const fn bottom_mask(col: usize) -> u64 {
-    1 << (col * (HEIGHT + 1))
-}
 
 pub struct Solver {
     transposition_table: HashMap<u64, (i8, u8)>, // Key -> (Score, Depth)
@@ -132,7 +21,6 @@ impl Solver {
         Solver {
             transposition_table: HashMap::with_capacity(1_000_000), // Pre-allocate some space
             nodes: 0,
-            // Search center columns first for better pruning
             column_order: [3, 2, 4, 1, 5, 0, 6],
         }
     }
@@ -149,8 +37,6 @@ impl Solver {
     pub fn tt_size(&self) -> usize {
         self.transposition_table.len()
     }
-
-    // Returns (best_move_column, expected_score). depth is recursive depth remaining.
     pub fn analyze(&mut self, position: &Bitboard, depth: i32) -> (Option<usize>, i32) {
         self.nodes = 0;
 
@@ -166,7 +52,7 @@ impl Solver {
                 if next_pos.is_win() {
                     return (
                         Some(col),
-                        (WIDTH * HEIGHT + 1 - position.moves_count as usize) as i32 / 2,
+                        (WIDTH * ROWS + 1 - position.moves_count as usize) as i32 / 2,
                     );
                 }
 
@@ -192,7 +78,7 @@ impl Solver {
                 next_pos.play(col);
 
                 if next_pos.is_win() {
-                    let score = (WIDTH * HEIGHT + 1 - next_pos.moves_count as usize) as i32 / 2;
+                    let score = (WIDTH * ROWS + 1 - next_pos.moves_count as usize) as i32 / 2;
                     evaluations.push((col, score));
                     continue;
                 }
@@ -208,7 +94,7 @@ impl Solver {
     fn negamax(&mut self, position: &Bitboard, depth: i32, mut alpha: i32, mut beta: i32) -> i32 {
         self.nodes += 1;
 
-        if position.moves_count >= (WIDTH * HEIGHT) as u8 {
+        if position.moves_count >= (WIDTH * ROWS) as u8 {
             return 0; // Draw
         }
 
@@ -222,9 +108,7 @@ impl Solver {
                 return val as i32;
             }
         }
-
-        // Upper bound on score given remaining moves; tightens the window.
-        let max_possible = (WIDTH * HEIGHT - position.moves_count as usize + 1) as i32 / 2;
+        let max_possible = (WIDTH * ROWS - position.moves_count as usize + 1) as i32 / 2;
         if beta > max_possible {
             beta = max_possible;
             if alpha >= beta {
@@ -239,8 +123,7 @@ impl Solver {
                 next_pos.play(col); // flips the player to move
 
                 if next_pos.is_win() {
-                    // The move we just played wins, so score it positively for us.
-                    let score = (WIDTH * HEIGHT + 1 - next_pos.moves_count as usize) as i32 / 2;
+                    let score = (WIDTH * ROWS + 1 - next_pos.moves_count as usize) as i32 / 2;
                     return score;
                 }
 
@@ -262,8 +145,6 @@ impl Solver {
 
         alpha
     }
-
-    // Heuristic for non-terminal leaves; deep search makes a flat score adequate.
     fn heuristic_score(&self, _position: &Bitboard) -> i32 {
         0
     }

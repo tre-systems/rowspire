@@ -7,8 +7,6 @@ fn main() {
     println!("========================");
 
     let mut ml_ai = MLAI::new();
-
-    // Load weights
     let weights_path = "../../public/ml/data/weights/ml_ai_weights_best.json";
     if let Ok(weights_data) = fs::read_to_string(weights_path) {
         if let Ok(weights) = serde_json::from_str::<serde_json::Value>(&weights_data) {
@@ -37,12 +35,8 @@ fn main() {
         println!("❌ Failed to load weights from {weights_path}");
         return;
     }
-
-    // Diagnostic Case 1: Empty board
     let state = GameState::new();
     inspect_state(&mut ml_ai, &state, "Empty Board");
-
-    // Diagnostic Case 2: Vertical threat (P1 has 3 in a row in col 3)
     let mut state2 = GameState::new();
     state2.current_player = Player::Player1;
     state2.make_move(3).unwrap(); // P1
@@ -52,8 +46,6 @@ fn main() {
     state2.make_move(3).unwrap(); // P1
     state2.make_move(0).unwrap(); // P2
     inspect_state(&mut ml_ai, &state2, "Vertical Win Threat (Col 3)");
-
-    // Diagnostic Case 3: Blocking move (P2 has 3 in a row, P1 must block)
     let mut state3 = GameState::new();
     state3.current_player = Player::Player1;
     state3.make_move(0).unwrap(); // P1 (waste)
