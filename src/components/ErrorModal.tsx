@@ -1,5 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertTriangle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertTriangle, X } from 'lucide-react';
+import { MOTION } from '@/lib/visuals/motion';
 
 interface ErrorModalProps {
   isOpen: boolean;
@@ -12,51 +13,52 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="modal-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={MOTION.quick}
           onClick={onClose}
           data-testid="error-modal"
         >
           <motion.div
-            className="glass mystical-glow rounded-xl p-6 max-w-md w-full"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="modal-card modal-card--compact"
+            initial={{ scale: 0.94, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={e => e.stopPropagation()}
+            exit={{ scale: 0.97, opacity: 0, y: 12 }}
+            transition={MOTION.spring}
+            onClick={event => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-amber-300" />
-                <h2 className="text-xl font-bold text-white neon-text">AI Error</h2>
+            <header className="modal-header">
+              <div>
+                <span className="modal-eyebrow modal-eyebrow--warning">AI interruption</span>
+                <h2>
+                  <AlertTriangle aria-hidden="true" /> Something went wrong
+                </h2>
               </div>
               <motion.button
+                type="button"
+                className="modal-close"
                 onClick={onClose}
-                className="p-1.5 glass-dark rounded-lg text-white/70 hover:text-white transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                aria-label="Close error"
                 data-testid="error-close"
               >
-                <X className="w-4 h-4" />
+                <X aria-hidden="true" />
               </motion.button>
-            </div>
-
-            <div className="mb-6">
-              <p className="text-white/80 text-sm leading-relaxed" data-testid="error-message">
-                {error}
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              <button
-                onClick={onClose}
-                className="px-6 py-2 bg-gradient-to-r from-teal-600 to-violet-600 text-white rounded-lg font-bold hover:from-teal-700 hover:to-violet-700 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
-                data-testid="error-close-bottom"
-              >
-                OK
-              </button>
-            </div>
+            </header>
+            <p className="modal-message" data-testid="error-message">
+              {error}
+            </p>
+            <button
+              type="button"
+              className="primary-action"
+              onClick={onClose}
+              data-testid="error-close-bottom"
+            >
+              Back to the game
+            </button>
           </motion.div>
         </motion.div>
       )}

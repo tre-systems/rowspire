@@ -8,7 +8,7 @@ export function drawBackground(
   lines: Line[],
   shapes: Shape[],
 ) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+  ctx.fillStyle = '#02040a';
   ctx.fillRect(0, 0, width, height);
 
   drawParticles(ctx, particles);

@@ -1,0 +1,116 @@
+.game-board-shell {
+  position: relative;
+  padding: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1.45rem;
+  background:
+    linear-gradient(145deg, rgba(var(--teal-rgb), 0.055), transparent 38%),
+    linear-gradient(325deg, rgba(var(--violet-rgb), 0.055), transparent 42%),
+    var(--surface);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(var(--teal-rgb), 0.09),
+    inset 0 1px rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(28px) saturate(125%);
+}
+
+.game-board-shell::before {
+  position: absolute;
+  top: 0;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(153, 246, 228, 0.7), transparent);
+  content: '';
+}
+
+.game-grid {
+  position: relative;
+  padding: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--teal-rgb), 0.08), transparent 48%),
+    rgba(3, 7, 14, 0.76);
+  box-shadow:
+    inset 0 18px 45px rgba(0, 0, 0, 0.42),
+    0 1px rgba(255, 255, 255, 0.04);
+}
+
+.game-grid__columns,
+.game-drop-layer {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.game-column {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-radius: 999px;
+  transition: background 160ms ease;
+}
+
+.game-column::before {
+  position: absolute;
+  z-index: 3;
+  top: -0.35rem;
+  right: 28%;
+  left: 28%;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 12px rgba(var(--teal-rgb), 0.9);
+  content: '';
+  opacity: 0;
+  transform: scaleX(0.3);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.game-column:not(:disabled):hover,
+.game-column:not(:disabled):focus-visible {
+  background: linear-gradient(180deg, rgba(var(--teal-rgb), 0.09), transparent 70%);
+}
+
+.game-column:not(:disabled):hover::before,
+.game-column:not(:disabled):focus-visible::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.board-square {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 13, 0.98));
+  box-shadow:
+    inset 0 5px 12px rgba(0, 0, 0, 0.72),
+    inset 0 -1px rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.game-column:not(:disabled):hover .board-square {
+  border-color: rgba(var(--teal-rgb), 0.26);
+  background: linear-gradient(145deg, rgba(15, 37, 46, 0.94), rgba(2, 9, 16, 0.98));
+}
+
+.game-drop-layer {
+  position: absolute;
+  z-index: 5;
+  inset: 0.6rem;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  pointer-events: none;
+}

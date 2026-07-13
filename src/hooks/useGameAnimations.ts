@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Player, GameState } from '@/lib/types';
 import { useGameActions, useGameStore } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
+import { PIECE_DROP_DURATION_MS } from '@/lib/visuals/motion';
 
 interface Celebration {
   id: string;
@@ -105,7 +106,7 @@ export function useGameAnimations(
 
     const completeMoveTimer = window.setTimeout(() => {
       actions.completeMove();
-    }, 800);
+    }, PIECE_DROP_DURATION_MS);
 
     return () => {
       window.clearTimeout(completeMoveTimer);

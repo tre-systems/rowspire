@@ -1,151 +1,29 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { MOTION } from '@/lib/visuals/motion';
 
 interface GamePieceProps {
   player: 'player1' | 'player2';
-  isClickable?: boolean;
   isWinning?: boolean;
 }
 
-const GamePiece = memo(function GamePiece({
-  player,
-  isClickable = false,
-  isWinning = false,
-}: GamePieceProps) {
-  const isPlayer1 = player === 'player1';
-  const colors = isPlayer1
-    ? {
-        bg: 'bg-teal-500',
-        border: 'border-teal-300',
-        shadow: 'shadow-teal-300/40',
-        glow: 'rgba(20,184,166,0.8)',
-        pulse: 'rgba(20,184,166,0.5)',
-        highlight: 'from-teal-300/40 to-transparent',
-        center: 'border-4 border-teal-100 bg-teal-700',
-      }
-    : {
-        bg: 'bg-violet-500',
-        border: 'border-violet-300',
-        shadow: 'shadow-violet-300/40',
-        glow: 'rgba(139,92,246,0.8)',
-        pulse: 'rgba(139,92,246,0.5)',
-        highlight: 'from-violet-300/40 to-transparent',
-        center: 'bg-violet-200 rotate-45',
-      };
-
+const GamePiece = memo(function GamePiece({ player, isWinning = false }: GamePieceProps) {
   return (
     <motion.div
-      className={`w-full h-full rounded-full border-2 relative overflow-hidden ${
-        isClickable ? 'cursor-pointer' : 'cursor-default'
-      } ${colors.bg} ${colors.border} ${colors.shadow}`}
-      whileHover={isClickable ? { scale: 1.1, boxShadow: `0 0 20px ${colors.glow}` } : {}}
-      whileTap={isClickable ? { scale: 0.95 } : {}}
-      animate={
-        isWinning
-          ? {
-              scale: [1, 1.15, 1],
-              boxShadow: [
-                `0 0 32px 12px ${colors.glow}, 0 0 64px 24px ${colors.glow}`,
-                `0 0 48px 18px ${colors.glow}, 0 0 96px 36px ${colors.glow}`,
-                `0 0 32px 12px ${colors.glow}, 0 0 64px 24px ${colors.glow}`,
-              ],
-            }
-          : {
-              scale: 1,
-              boxShadow: [
-                `0 0 8px ${colors.pulse}`,
-                `0 0 16px ${colors.pulse}`,
-                `0 0 8px ${colors.pulse}`,
-              ],
-            }
-      }
-      transition={{
-        type: 'spring',
-        stiffness: 400,
-        damping: 25,
-        scale: {
-          duration: isWinning ? 1.2 : 0.2,
-          repeat: isWinning ? Infinity : 0,
-          repeatType: 'loop',
-          ease: 'easeInOut',
-        },
-        boxShadow: {
-          duration: isWinning ? 1.2 : 2,
-          repeat: isWinning ? Infinity : 0,
-          repeatType: 'loop',
-          ease: 'easeInOut',
-        },
-      }}
-      data-testid={`game-piece-${player}-${isClickable ? 'clickable' : 'static'}`}
-    >
-      <div className={`absolute inset-0 bg-gradient-to-br ${colors.highlight}`} />
-      <div className="absolute inset-0 bg-gradient-to-tl from-black/30 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
-
-      <motion.div
-        className="absolute inset-0 rounded-full"
-        animate={{
-          boxShadow: [
-            'inset 0 0 8px rgba(255, 255, 255, 0.3)',
-            'inset 0 0 16px rgba(255, 255, 255, 0.1)',
-            'inset 0 0 8px rgba(255, 255, 255, 0.3)',
-          ],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {isClickable && (
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-white/60 pointer-events-none"
-          animate={{
-            boxShadow: ['0 0 0 0 rgba(255, 255, 255, 0.8)', '0 0 0 12px rgba(255, 255, 255, 0)'],
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
+      className={cn(
+        'game-piece',
+        player === 'player1' ? 'game-piece--teal' : 'game-piece--violet',
+        isWinning && 'game-piece--winning',
       )}
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div
-          className={`w-1/3 h-1/3 ${isPlayer1 ? 'rounded-full' : 'rounded-sm'} ${colors.center} shadow-inner`}
-          animate={{
-            boxShadow: [
-              'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-              'inset 0 1px 2px rgba(0, 0, 0, 0.2)',
-              'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-            ],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      </div>
-
-      <motion.div
-        className="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full"
-        animate={{
-          opacity: [0, 1, 0],
-          scale: [0, 1, 0],
-          x: [0, 2, 0],
-          y: [0, -2, 0],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          delay: 0.5,
-          ease: 'easeInOut',
-        }}
-      />
+      initial={{ opacity: 0.7, scale: 0.88 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={MOTION.spring}
+      data-testid={`game-piece-${player}-static`}
+    >
+      <span className="game-piece__face" aria-hidden="true" />
+      <span className="game-piece__mark" aria-hidden="true" />
+      <span className="game-piece__shine" aria-hidden="true" />
     </motion.div>
   );
 });

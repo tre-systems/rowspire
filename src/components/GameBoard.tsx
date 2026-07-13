@@ -9,11 +9,11 @@ import GameSquare from './game/GameSquare';
 import GameCompletionOverlay from './game/GameCompletionOverlay';
 import GameControls from './game/GameControls';
 import GameStatus from './game/GameStatus';
-import GamePiece from './game/GamePiece';
+import DroppingPiece from './game/DroppingPiece';
 import { useGameAnimations } from '@/hooks/useGameAnimations';
-import { useHydrated } from '@/hooks/useHydrated';
 import { soundEffects } from '@/lib/sound-effects';
 import { isHumanTurn } from '@/lib/game-state-machine';
+import { MOTION } from '@/lib/visuals/motion';
 
 interface GameBoardProps {
   gameState: GameState;
@@ -36,7 +36,6 @@ export default function GameBoard({
   watchMode = false,
   gameMode = 'human-vs-ai',
 }: GameBoardProps) {
-  const isMounted = useHydrated();
   const boardRef = useRef<HTMLDivElement>(null);
   const actions = useGameActions();
   const pendingMove = useGameStore(state => state.pendingMove);
@@ -78,94 +77,63 @@ export default function GameBoard({
           />
         )}
       </AnimatePresence>
-      <motion.div className="w-full max-w-md mx-auto space-y-3" data-testid="game-board">
-        <motion.div
-          ref={boardRef}
-          className="glass mystical-glow rounded-xl p-4 relative"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="text-center mb-3">
+      <motion.div
+        className="mx-auto w-full max-w-md"
+        initial={{ opacity: 0, y: 18, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.99 }}
+        transition={MOTION.entrance}
+        data-testid="game-board"
+      >
+        <motion.div ref={boardRef} className="game-board-shell" layout>
+          <div className="mb-3 text-center">
             <GameStatus gameState={gameState} aiThinking={aiThinking} gameMode={gameMode} />
           </div>
-          <div className="grid grid-cols-7 gap-1 bg-black/20 p-2 rounded-lg backdrop-blur relative">
-            {gameState.board.map((column, colIndex) => {
-              const hasSpace = column.some(cell => cell === null);
-              const isClickable =
-                isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode && hasSpace;
+          <div className="game-grid">
+            <div className="game-grid__columns">
+              {gameState.board.map((column, colIndex) => {
+                const hasSpace = column.some(cell => cell === null);
+                const isClickable =
+                  isHumanTurn(gameState, gameMode) && !pendingMove && !watchMode && hasSpace;
 
-              return (
-                <motion.button
-                  type="button"
-                  key={colIndex}
-                  className="flex flex-col gap-1 relative"
-                  onClick={() => handleColumnClick(colIndex)}
-                  disabled={!isClickable}
-                  aria-label={`Drop counter in column ${colIndex + 1}`}
-                  style={{ cursor: isClickable ? 'pointer' : 'default' }}
-                  whileHover={isClickable ? { scale: 1.02 } : {}}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  data-testid={`column-${colIndex}`}
-                >
-                  {column.map((cell, rowIndex) => (
-                    <GameSquare
-                      key={`${colIndex}-${rowIndex}`}
-                      column={colIndex}
-                      row={rowIndex}
-                      player={cell}
-                      isClickable={false}
-                      onColumnClick={handleColumnClick}
-                      isWinning={winningSet.has(`${colIndex},${rowIndex}`)}
-                    />
-                  ))}
+                return (
+                  <motion.button
+                    type="button"
+                    key={colIndex}
+                    className="game-column"
+                    onClick={() => handleColumnClick(colIndex)}
+                    disabled={!isClickable}
+                    aria-label={`Drop counter in column ${colIndex + 1}`}
+                    whileTap={isClickable ? { scale: 0.975 } : {}}
+                    transition={MOTION.spring}
+                    data-testid={`column-${colIndex}`}
+                  >
+                    {column.map((cell, rowIndex) => (
+                      <GameSquare
+                        key={`${colIndex}-${rowIndex}`}
+                        column={colIndex}
+                        row={rowIndex}
+                        player={cell}
+                        isWinning={winningSet.has(`${colIndex},${rowIndex}`)}
+                      />
+                    ))}
+                  </motion.button>
+                );
+              })}
+            </div>
 
-                  {isClickable && isMounted && (
-                    <motion.div
-                      className="absolute inset-0 rounded-lg border-2 border-green-400/50 pointer-events-none"
-                      animate={{
-                        boxShadow: [
-                          '0 0 0 0 rgba(34, 197, 94, 0.3)',
-                          '0 0 0 8px rgba(34, 197, 94, 0)',
-                        ],
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
-                  )}
-                </motion.button>
-              );
-            })}
-
-            {droppingPieces.map(drop => (
-              <motion.div
-                key={drop.id}
-                className="absolute z-20"
-                style={{
-                  left: `${(drop.column / 7) * 100}%`,
-                  width: 'calc(100% / 7 - 8px)',
-                  height: 'calc(100% / 6 - 4px)',
-                }}
-                initial={{ top: '0%', opacity: 0.8 }}
-                animate={{
-                  top: `${(drop.row / 6) * 100}%`,
-                  opacity: 1,
-                }}
-                transition={{
-                  top: {
-                    type: 'tween',
-                    ease: 'easeIn',
-                    duration: 0.8,
-                  },
-                  opacity: {
-                    duration: 0.3,
-                  },
-                }}
-              >
-                <div className="w-full h-full flex items-center justify-center">
-                  <GamePiece player={drop.player} isClickable={false} />
-                </div>
-              </motion.div>
-            ))}
+            <div className="game-drop-layer" aria-hidden="true">
+              <AnimatePresence>
+                {droppingPieces.map(drop => (
+                  <DroppingPiece
+                    key={drop.id}
+                    column={drop.column}
+                    row={drop.row}
+                    player={drop.player}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
 
             <AnimatePresence>
               {showWinAnimation && gameState.winningLine && gameState.winner && (

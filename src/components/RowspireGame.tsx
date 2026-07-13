@@ -1,10 +1,10 @@
 import { useState, useEffect, useSyncExternalStore } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import { useGameStore, useGameState, useGameActions } from '@/lib/game-store';
 import { soundEffects } from '@/lib/sound-effects';
 import { useUIStore } from '@/lib/ui-store';
-import { APP_NAME, APP_TAGLINE } from '@/lib/brand';
+import { APP_TAGLINE } from '@/lib/brand';
 import { useHydrated } from '@/hooks/useHydrated';
 import GameBoard from './GameBoard';
 import AnimatedBackground from './AnimatedBackground';
@@ -12,6 +12,8 @@ import HowToPlayPanel from './HowToPlayPanel';
 import ErrorModal from './ErrorModal';
 import AISelectionPanel from './AISelectionPanel';
 import AppLinks from './AppLinks';
+import BrandHeader from './BrandHeader';
+import { MOTION } from '@/lib/visuals/motion';
 
 function isStandalonePWA() {
   if (typeof window === 'undefined') return false;
@@ -111,10 +113,7 @@ export default function RowspireGame() {
     <>
       <AppLinks mode="floating" />
       <AnimatedBackground />
-      <div
-        className="relative min-h-screen w-full flex items-center justify-center p-4 pb-24"
-        data-testid="rowspire-game"
-      >
+      <div className="app-stage" data-testid="rowspire-game">
         {!isStandalone && (
           <div className="hidden md:block absolute top-4 right-4 z-50">
             <button
@@ -125,7 +124,7 @@ export default function RowspireGame() {
                   'width=420,height=800,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no',
                 );
               }}
-              className="glass-dark rounded-lg px-4 py-2 flex items-center space-x-2 text-white/80 hover:text-white font-semibold shadow-lg backdrop-blur-md border border-white/10 transition-colors"
+              className="compact-button"
               title="Open Compact Window"
               data-testid="compact-window-button"
             >
@@ -135,54 +134,52 @@ export default function RowspireGame() {
           </div>
         )}
 
-        {showAISelection ? (
-          <div className="w-full">
-            <motion.div
-              className="text-center mb-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+        <AnimatePresence mode="wait" initial={false}>
+          {showAISelection ? (
+            <motion.section
+              key="selection"
+              className="selection-stage"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.985 }}
+              transition={MOTION.quick}
+              data-testid="selection-stage"
             >
-              <h1 className="text-4xl font-bold text-white mb-2 title-glow">{APP_NAME}</h1>
-              <p className="text-gray-300 text-sm">
-                Challenge search-based and neural-network AI opponents.
-              </p>
-            </motion.div>
-
-            <AISelectionPanel onStartGame={handleStartGame} />
-            <AppLinks mode="inline" />
-          </div>
-        ) : (
-          <div className="w-full max-w-md">
-            <motion.div
-              className="text-center mb-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              <BrandHeader tagline="Challenge search-based and neural-network AI opponents." />
+              <AISelectionPanel onStartGame={handleStartGame} />
+              <AppLinks mode="inline" />
+            </motion.section>
+          ) : (
+            <motion.section
+              key="game"
+              className="game-stage"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.985 }}
+              transition={MOTION.quick}
+              data-testid="game-stage"
             >
-              <h1 className="text-4xl font-bold text-white mb-2 title-glow">{APP_NAME}</h1>
-              <p className="text-gray-300 text-sm">{APP_TAGLINE}</p>
+              <BrandHeader tagline={APP_TAGLINE} />
               {import.meta.env.DEV && isMounted && (
-                <div className="text-xs text-gray-500 mt-2">
+                <div className="mb-2 text-center text-xs text-gray-500">
                   Status: {gameState.gameStatus} | Player: {gameState.currentPlayer} | AI Thinking:{' '}
                   {aiThinking ? 'Yes' : 'No'}
                 </div>
               )}
-            </motion.div>
-
-            <GameBoard
-              gameState={gameState}
-              aiThinking={aiThinking}
-              onResetGame={handleReset}
-              soundEnabled={soundEnabled}
-              onToggleSound={toggleSound}
-              onShowHowToPlay={handleShowHowToPlay}
-              watchMode={gameMode === 'ai-vs-ai'}
-              gameMode={gameMode}
-            />
-            <AppLinks mode="inline" />
-          </div>
-        )}
+              <GameBoard
+                gameState={gameState}
+                aiThinking={aiThinking}
+                onResetGame={handleReset}
+                soundEnabled={soundEnabled}
+                onToggleSound={toggleSound}
+                onShowHowToPlay={handleShowHowToPlay}
+                watchMode={gameMode === 'ai-vs-ai'}
+                gameMode={gameMode}
+              />
+              <AppLinks mode="inline" />
+            </motion.section>
+          )}
+        </AnimatePresence>
       </div>
 
       <HowToPlayPanel isOpen={showHowToPlay} onClose={handleCloseHowToPlay} />

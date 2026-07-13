@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Download, X } from 'lucide-react';
 import { APP_NAME } from '@/lib/brand';
+import { MOTION } from '@/lib/visuals/motion';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -70,36 +72,38 @@ export default function PWAInstallPrompt() {
     window.localStorage.setItem('pwa-install-dismissed', 'true');
   };
 
-  if (isInstalled || !showPrompt || !deferredPrompt) {
-    return null;
-  }
-
   return (
-    <div
-      className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm"
-      data-testid="pwa-install-prompt"
-    >
-      <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
-              <Download className="h-5 w-5 text-blue-400" />
-              <h3 className="text-sm font-semibold text-white">Install {APP_NAME}</h3>
-            </div>
-            <p className="text-xs text-slate-300 mb-3">
-              Add to your home screen for easy access and offline play!
-            </p>
-            <div className="flex space-x-2">
-              <button
+    <AnimatePresence>
+      {!isInstalled && showPrompt && deferredPrompt && (
+        <motion.aside
+          className="install-prompt"
+          initial={{ opacity: 0, y: 24, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 14, scale: 0.98 }}
+          transition={MOTION.spring}
+          data-testid="pwa-install-prompt"
+        >
+          <div className="install-prompt__icon">
+            <Download aria-hidden="true" />
+          </div>
+          <div className="install-prompt__content">
+            <span className="modal-eyebrow">Play anywhere</span>
+            <h3>Install {APP_NAME}</h3>
+            <p>Add it to your home screen for instant access and offline play.</p>
+            <div className="install-prompt__actions">
+              <motion.button
+                type="button"
+                className="primary-action"
                 onClick={handleInstallClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors duration-200"
+                whileTap={{ scale: 0.97 }}
                 data-testid="install-pwa"
               >
                 Install
-              </button>
+              </motion.button>
               <button
+                type="button"
+                className="secondary-action"
                 onClick={handleDismiss}
-                className="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium py-2 px-3 rounded transition-colors duration-200"
                 data-testid="dismiss-pwa"
               >
                 Not now
@@ -107,14 +111,16 @@ export default function PWAInstallPrompt() {
             </div>
           </div>
           <button
+            type="button"
             onClick={handleDismiss}
-            className="text-slate-400 hover:text-slate-300 transition-colors"
+            className="install-prompt__close"
+            aria-label="Dismiss install prompt"
             data-testid="close-pwa"
           >
-            <X className="h-4 w-4" />
+            <X aria-hidden="true" />
           </button>
-        </div>
-      </div>
-    </div>
+        </motion.aside>
+      )}
+    </AnimatePresence>
   );
 }

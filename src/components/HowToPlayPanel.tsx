@@ -1,6 +1,60 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Crown, Star, Zap, Trophy, ArrowRight, Circle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, Circle, Crown, Star, Trophy, X, Zap, type LucideIcon } from 'lucide-react';
 import { APP_NAME, LEGAL_DISCLAIMER } from '@/lib/brand';
+import { MOTION } from '@/lib/visuals/motion';
+
+const GUIDE = [
+  {
+    title: 'Objective',
+    icon: Crown,
+    tone: 'amber',
+    body: 'Drop counters into columns and make four in a row horizontally, vertically or diagonally.',
+  },
+  {
+    title: 'Counters',
+    icon: Circle,
+    tone: 'teal',
+    items: ['You play the teal ring counters', 'Your opponent plays the violet diamond counters'],
+  },
+  {
+    title: 'Taking turns',
+    icon: ArrowRight,
+    tone: 'green',
+    items: [
+      'Choose a column to drop your counter',
+      'Counters settle in the lowest open space',
+      'The AI responds after your move lands',
+    ],
+  },
+  {
+    title: 'Winning',
+    icon: Zap,
+    tone: 'violet',
+    body: 'Line up four counters across, up, or diagonally before your opponent does.',
+  },
+  {
+    title: 'Play smarter',
+    icon: Star,
+    tone: 'amber',
+    items: [
+      'Control the center for more winning lines',
+      'Block immediate threats before building your own',
+      'Create two threats at once when you can',
+    ],
+  },
+  {
+    title: 'Game end',
+    icon: Trophy,
+    tone: 'violet',
+    body: 'A four-counter line wins. A full grid without a winner is a draw.',
+  },
+] satisfies ReadonlyArray<{
+  title: string;
+  icon: LucideIcon;
+  tone: string;
+  body?: string;
+  items?: readonly string[];
+}>;
 
 interface HowToPlayPanelProps {
   isOpen: boolean;
@@ -12,156 +66,70 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="modal-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={MOTION.quick}
           onClick={onClose}
           data-testid="help-panel"
         >
           <motion.div
-            className="glass mystical-glow rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            className="modal-card modal-card--scroll"
+            initial={{ scale: 0.94, opacity: 0, y: 24 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={e => e.stopPropagation()}
+            exit={{ scale: 0.97, opacity: 0, y: 12 }}
+            transition={MOTION.spring}
+            onClick={event => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white neon-text">How to Play {APP_NAME}</h2>
+            <header className="modal-header">
+              <div>
+                <span className="modal-eyebrow">Quick guide</span>
+                <h2>How to play {APP_NAME}</h2>
+              </div>
               <motion.button
+                type="button"
+                className="modal-close"
                 onClick={onClose}
-                className="p-1.5 glass-dark rounded-lg text-white/70 hover:text-white transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                aria-label="Close how to play"
                 data-testid="help-close"
               >
-                <X className="w-4 h-4" />
+                <X aria-hidden="true" />
               </motion.button>
+            </header>
+
+            <div className="help-grid">
+              {GUIDE.map(({ title, icon: Icon, tone, body, items }) => (
+                <section className="help-section" key={title} data-testid={`help-${tone}-${title}`}>
+                  <h3>
+                    <span className={`help-section__icon help-section__icon--${tone}`}>
+                      <Icon aria-hidden="true" />
+                    </span>
+                    {title}
+                  </h3>
+                  {body && <p>{body}</p>}
+                  {items && (
+                    <ul>
+                      {items.map(item => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+              ))}
             </div>
 
-            <div className="space-y-6 text-white/90">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Crown className="w-5 h-5 mr-2 text-amber-400" />
-                  Objective
-                </h3>
-                <p className="text-sm leading-relaxed">
-                  Drop counters into columns and be the first player to make four in a row
-                  horizontally, vertically, or diagonally.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Circle className="w-5 h-5 mr-2 text-teal-400" />
-                  Counters
-                </h3>
-                <div className="text-sm leading-relaxed mb-2">
-                  <p className="mb-2">Each player has their own counter style:</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="glass-dark p-2 rounded flex items-center">
-                      <div className="w-4 h-4 bg-teal-500 rounded-full mr-2"></div>
-                      Teal ring counters
-                    </div>
-                    <div className="glass-dark p-2 rounded flex items-center">
-                      <div className="w-4 h-4 bg-violet-500 rounded-full mr-2"></div>
-                      Violet moon counters
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <ArrowRight className="w-5 h-5 mr-2 text-green-400" />
-                  Taking Turns
-                </h3>
-                <ul className="text-sm space-y-2">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Players take turns dropping counters into the grid
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Click a column to drop your counter there
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Counters settle in the lowest open space in the column
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Zap className="w-5 h-5 mr-2 text-violet-400" />
-                  Winning Conditions
-                </h3>
-                <p className="text-sm leading-relaxed mb-2">
-                  You win by making four of your counters in a row:
-                </p>
-                <ul className="text-sm space-y-1">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-violet-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    <strong>Horizontally:</strong> four counters in a row across
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-violet-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    <strong>Vertically:</strong> four counters stacked in a column
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-violet-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    <strong>Diagonally:</strong> four counters in a diagonal line
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Star className="w-5 h-5 mr-2 text-amber-400" />
-                  Strategy Tips
-                </h3>
-                <ul className="text-sm space-y-2">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-amber-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Control the center columns for more winning opportunities
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-amber-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Block your opponent&apos;s potential winning moves
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-amber-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                    Look for multiple winning threats simultaneously
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
-                  <Trophy className="w-5 h-5 mr-2 text-violet-300" />
-                  Game End
-                </h3>
-                <p className="text-sm leading-relaxed">
-                  The game ends when a player makes four in a row, or when the grid is full. A full
-                  grid with no winner is a draw.
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-xs text-white/60 text-center">{LEGAL_DISCLAIMER}</p>
-              </div>
-
-              <div className="flex justify-center mt-6">
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2 bg-gradient-to-r from-teal-600 to-violet-600 text-white rounded-lg font-bold hover:from-teal-700 hover:to-violet-700 transition-all duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400"
-                  data-testid="help-close-bottom"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <p className="modal-legal">{LEGAL_DISCLAIMER}</p>
+            <button
+              type="button"
+              className="primary-action"
+              onClick={onClose}
+              data-testid="help-close-bottom"
+            >
+              Ready to play
+            </button>
           </motion.div>
         </motion.div>
       )}

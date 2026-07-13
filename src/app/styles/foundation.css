@@ -1,0 +1,142 @@
+:root {
+  --background: #02040a;
+  --foreground: #f8fafc;
+  --teal: #2dd4bf;
+  --teal-rgb: 45, 212, 191;
+  --violet: #a78bfa;
+  --violet-rgb: 167, 139, 250;
+  --surface: rgba(12, 17, 29, 0.82);
+  --surface-strong: rgba(18, 24, 38, 0.94);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: var(--background);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(var(--teal-rgb), 0.95);
+  outline-offset: 3px;
+}
+
+.app-stage {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  display: flex;
+  min-height: 100svh;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.25rem, 4vh, 3rem) 1rem max(5.5rem, env(safe-area-inset-bottom));
+}
+
+.app-stage::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(var(--teal-rgb), 0.1), transparent 28rem),
+    radial-gradient(circle at 64% 62%, rgba(var(--violet-rgb), 0.07), transparent 32rem);
+  content: '';
+  pointer-events: none;
+}
+
+.selection-stage {
+  width: 100%;
+}
+
+.game-stage {
+  width: min(100%, 28rem);
+}
+
+.brand-header {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto 1rem;
+  text-align: center;
+}
+
+.selection-stage .brand-header {
+  margin-bottom: 1.5rem;
+}
+
+.brand-mark {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin: 0 auto 0.55rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.2rem;
+  transform: rotate(45deg);
+  filter: drop-shadow(0 0 12px rgba(var(--teal-rgb), 0.45));
+}
+
+.brand-mark span {
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--teal), #0f766e);
+}
+
+.brand-mark span:nth-child(2),
+.brand-mark span:nth-child(3) {
+  background: linear-gradient(145deg, var(--violet), #6d28d9);
+}
+
+.brand-title {
+  margin: 0;
+  background: linear-gradient(120deg, #fff 14%, #ccfbf1 46%, #ddd6fe 82%);
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  filter: drop-shadow(0 8px 26px rgba(var(--teal-rgb), 0.2));
+}
+
+.game-stage .brand-title {
+  font-size: clamp(2.25rem, 7vw, 2.85rem);
+}
+
+.brand-tagline {
+  max-width: 36rem;
+  margin: 0.75rem auto 0;
+  color: rgba(226, 232, 240, 0.76);
+  font-size: clamp(0.84rem, 2vw, 0.95rem);
+  line-height: 1.55;
+}

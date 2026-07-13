@@ -24,9 +24,9 @@ describe('BackgroundEffects', () => {
 
     effects.update();
 
-    expect(effects.shapes).toHaveLength(30);
-    expect(effects.lines).toHaveLength(20);
-    expect(effects.particles).toHaveLength(40);
+    expect(effects.shapes).toHaveLength(18);
+    expect(effects.lines).toHaveLength(10);
+    expect(effects.particles).toHaveLength(28);
     expect(effects.shapes.every(shape => shape.targetOpacity > 0)).toBe(true);
     expect(effects.lines.every(line => line.targetOpacity > 0)).toBe(true);
     expect(effects.particles.every(particle => particle.targetOpacity > 0)).toBe(true);
@@ -36,6 +36,19 @@ describe('BackgroundEffects', () => {
     expect(effects.shapes.some(shape => shape.opacity > 0)).toBe(true);
     expect(effects.lines.some(line => line.opacity > 0)).toBe(true);
     expect(effects.particles.some(particle => particle.opacity > 0)).toBe(true);
+  });
+
+  it('normalizes movement to elapsed frame time', () => {
+    const effects = new BackgroundEffects(800, 600);
+    const particle = effects.particles[0]!;
+    particle.x = 100;
+    particle.y = 100;
+    particle.direction = { x: 2, y: -2 };
+
+    effects.update(0.5);
+
+    expect(particle.x).toBe(101);
+    expect(particle.y).toBe(99);
   });
 
   it('renders every background entity and shape type', () => {

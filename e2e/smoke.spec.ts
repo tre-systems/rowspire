@@ -203,3 +203,24 @@ test.describe('Mobile Responsiveness', () => {
     await expect(page.getByTestId('game-board')).toBeVisible();
   });
 });
+
+test.describe('Motion Accessibility', () => {
+  test('keeps ambient motion static while preserving gameplay', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    const background = page.getByTestId('animated-background');
+    await expect(background).toBeVisible();
+
+    const firstFrame = await background.evaluate(canvas =>
+      (canvas as HTMLCanvasElement).toDataURL(),
+    );
+    await page.waitForTimeout(150);
+    const secondFrame = await background.evaluate(canvas =>
+      (canvas as HTMLCanvasElement).toDataURL(),
+    );
+
+    expect(secondFrame).toBe(firstFrame);
+    await page.getByTestId('ai-selection-search').click();
+    await expect(page.getByTestId('game-board')).toBeVisible();
+  });
+});

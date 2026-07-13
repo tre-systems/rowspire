@@ -37,6 +37,7 @@ Dependencies point inward. The domain does not depend on React, Zustand, browser
 | Presentation model                | Derive semantics outside React                    | `game-presentation.ts`                           | Pure tests and Playwright           |
 | Ports and adapters                | Construct effects explicitly                      | `GameStoreDependencies`, `wasm-ai-service.ts`    | Store factory tests                 |
 | Deterministic effects             | Inject clocks and randomness                      | Store dependencies and seeded Rust RNG           | Reproducibility tests               |
+| Purposeful motion                 | Animate state changes, not idle decoration        | `visuals/motion.ts`, transform-based transitions | Playwright and reduced-motion tests |
 | Contract-first boundary           | Validate both sides of cross-runtime calls        | `ai-worker-protocol.ts`, `wasm-ai-boundary.ts`   | Strict Zod protocol tests           |
 | Strategy with fallback            | Select engines explicitly and degrade predictably | `ai-logic.ts`, Rust strategies                   | Exhaustive types and AI tests       |
 | Versioned snapshot                | Persist only stable, validated state              | `game-store-state.ts`                            | Migration and aggregate tests       |
@@ -62,6 +63,10 @@ Pure functions own moves, wins, draws, turn rules and display decisions. The she
 - React owns rendering, accessibility, animation timing and user events.
 
 UI components do not receive unit tests. Extract decisions into `src/lib`, test them with Vitest and cover rendered behavior with Playwright.
+
+### Purposeful motion
+
+Motion communicates entry, selection, counter placement and game completion. Shared timings and easing live in `visuals/motion.ts`; transitions use compositor-friendly transforms and opacity. Ambient canvas movement is frame-rate independent, pauses in hidden tabs and renders a static frame when reduced motion is requested. Idle board elements remain still so interaction and victory animation retain emphasis.
 
 ### Store ports and race safety
 

@@ -10,10 +10,10 @@ type WrappedEntity = {
   size: number;
 };
 
-function fadeIn(entity: { opacity: number; targetOpacity: number }) {
+function fadeIn(entity: { opacity: number; targetOpacity: number }, step: number) {
   if (entity.targetOpacity <= 0) return;
 
-  entity.opacity = Math.min(entity.opacity + 0.01, entity.targetOpacity);
+  entity.opacity = Math.min(entity.opacity + 0.01 * step, entity.targetOpacity);
 }
 
 export class BackgroundEffects {
@@ -34,9 +34,9 @@ export class BackgroundEffects {
   }
 
   init() {
-    for (let i = 0; i < 30; i++) this.shapes.push(this.createShape());
-    for (let i = 0; i < 20; i++) this.lines.push(this.createLine());
-    for (let i = 0; i < 40; i++) this.particles.push(this.createParticle());
+    this.shapes = Array.from({ length: 18 }, () => this.createShape());
+    this.lines = Array.from({ length: 10 }, () => this.createLine());
+    this.particles = Array.from({ length: 28 }, () => this.createParticle());
   }
 
   createShape(): Shape {
@@ -51,45 +51,47 @@ export class BackgroundEffects {
     return createParticle(this.width, this.height);
   }
 
-  update() {
-    this.updateShapes();
-    this.updateLines();
-    this.updateParticles();
+  update(step = 1) {
+    const normalizedStep = Math.min(Math.max(step, 0), 2);
+
+    this.updateShapes(normalizedStep);
+    this.updateLines(normalizedStep);
+    this.updateParticles(normalizedStep);
   }
 
-  updateShapes() {
+  updateShapes(step: number) {
     for (let i = this.shapes.length - 1; i >= 0; i--) {
       const shape = this.shapes[i];
       if (!shape) continue;
 
-      this.moveShape(shape);
+      this.moveShape(shape, step);
       if (shape.life <= 0.1 && !shape.fadeOut) this.startShapeFade(shape);
-      if (shape.fadeOut) this.fadeShape(i, shape);
-      else this.revealShape(shape);
+      if (shape.fadeOut) this.fadeShape(i, shape, step);
+      else this.revealShape(shape, step);
     }
   }
 
-  updateLines() {
+  updateLines(step: number) {
     for (let i = this.lines.length - 1; i >= 0; i--) {
       const line = this.lines[i];
       if (!line) continue;
 
-      line.life -= 0.002;
+      line.life -= 0.002 * step;
       if (line.life <= 0.1 && !line.fadeOut) this.startFade(line);
-      if (line.fadeOut) this.fadeLine(i, line);
-      else fadeIn(line);
+      if (line.fadeOut) this.fadeLine(i, line, step);
+      else fadeIn(line, step);
     }
   }
 
-  updateParticles() {
+  updateParticles(step: number) {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
       if (!particle) continue;
 
-      this.moveParticle(particle);
+      this.moveParticle(particle, step);
       if (particle.life <= 0.1 && !particle.fadeOut) this.startFade(particle);
-      if (particle.fadeOut) this.fadeParticle(i, particle);
-      else fadeIn(particle);
+      if (particle.fadeOut) this.fadeParticle(i, particle, step);
+      else fadeIn(particle, step);
     }
   }
 
@@ -97,19 +99,19 @@ export class BackgroundEffects {
     drawBackground(ctx, this.width, this.height, this.particles, this.lines, this.shapes);
   }
 
-  private moveShape(shape: Shape) {
-    shape.rotation += shape.speed;
-    shape.x += shape.direction.x;
-    shape.y += shape.direction.y;
-    shape.life -= 0.001;
-    shape.pulse += shape.pulseSpeed;
+  private moveShape(shape: Shape, step: number) {
+    shape.rotation += shape.speed * step;
+    shape.x += shape.direction.x * step;
+    shape.y += shape.direction.y * step;
+    shape.life -= 0.001 * step;
+    shape.pulse += shape.pulseSpeed * step;
     this.wrap(shape);
   }
 
-  private moveParticle(particle: Particle) {
-    particle.x += particle.direction.x;
-    particle.y += particle.direction.y;
-    particle.life -= 0.001;
+  private moveParticle(particle: Particle, step: number) {
+    particle.x += particle.direction.x * step;
+    particle.y += particle.direction.y * step;
+    particle.life -= 0.001 * step;
     this.wrap(particle);
   }
 
@@ -130,30 +132,30 @@ export class BackgroundEffects {
     entity.targetOpacity = 0;
   }
 
-  private revealShape(shape: Shape) {
-    fadeIn(shape);
-    shape.size = Math.min(shape.size * 1.01, shape.targetSize);
+  private revealShape(shape: Shape, step: number) {
+    fadeIn(shape, step);
+    shape.size = Math.min(shape.size * 1.01 ** step, shape.targetSize);
   }
 
-  private fadeShape(index: number, shape: Shape) {
-    shape.opacity = Math.max(0, shape.opacity - 0.02);
-    shape.size = Math.max(shape.size * 0.98, shape.targetSize);
+  private fadeShape(index: number, shape: Shape, step: number) {
+    shape.opacity = Math.max(0, shape.opacity - 0.02 * step);
+    shape.size = Math.max(shape.size * 0.98 ** step, shape.targetSize);
     if (shape.opacity > 0) return;
 
     this.shapes.splice(index, 1);
     this.shapes.push(this.createReplacementShape(shape));
   }
 
-  private fadeLine(index: number, line: Line) {
-    line.opacity = Math.max(0, line.opacity - 0.02);
+  private fadeLine(index: number, line: Line, step: number) {
+    line.opacity = Math.max(0, line.opacity - 0.02 * step);
     if (line.opacity > 0) return;
 
     this.lines.splice(index, 1);
     this.lines.push(this.createHiddenLine());
   }
 
-  private fadeParticle(index: number, particle: Particle) {
-    particle.opacity = Math.max(0, particle.opacity - 0.02);
+  private fadeParticle(index: number, particle: Particle, step: number) {
+    particle.opacity = Math.max(0, particle.opacity - 0.02 * step);
     if (particle.opacity > 0) return;
 
     this.particles.splice(index, 1);

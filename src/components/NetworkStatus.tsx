@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Wifi, WifiOff } from 'lucide-react';
+import { MOTION } from '@/lib/visuals/motion';
 
 export default function NetworkStatus() {
-  const [isOnline, setIsOnline] = useState(true);
-  const [showStatus, setShowStatus] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const [showStatus, setShowStatus] = useState(() => !navigator.onLine);
 
   useEffect(() => {
     let hideTimer: ReturnType<typeof setTimeout> | undefined;
@@ -15,8 +17,6 @@ export default function NetworkStatus() {
       hideTimer = setTimeout(() => setShowStatus(false), 3000);
     };
 
-    updateOnlineStatus();
-
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 
@@ -27,21 +27,26 @@ export default function NetworkStatus() {
     };
   }, []);
 
-  if (!showStatus) return null;
+  const Icon = isOnline ? Wifi : WifiOff;
 
   return (
-    <div
-      className="fixed top-4 left-4 z-50 p-2 rounded-full shadow-lg transition-all duration-300 bg-white/10 backdrop-blur-sm flex items-center justify-center"
-      role="status"
-      aria-live="polite"
-      aria-label={isOnline ? 'Online' : 'Offline'}
-      data-testid="network-status"
-    >
-      {isOnline ? (
-        <Wifi className="h-5 w-5 text-green-400" />
-      ) : (
-        <WifiOff className="h-5 w-5 text-red-400" />
+    <AnimatePresence>
+      {showStatus && (
+        <motion.div
+          className={`network-status network-status--${isOnline ? 'online' : 'offline'}`}
+          role="status"
+          aria-live="polite"
+          aria-label={isOnline ? 'Online' : 'Offline'}
+          initial={{ opacity: 0, scale: 0.9, y: -8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: -6 }}
+          transition={MOTION.spring}
+          data-testid="network-status"
+        >
+          <Icon aria-hidden="true" />
+          <span>{isOnline ? 'Back online' : 'Playing offline'}</span>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }

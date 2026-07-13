@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Volume2, VolumeX, HelpCircle, RotateCcw } from 'lucide-react';
+import { HelpCircle, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { MOTION } from '@/lib/visuals/motion';
 
 interface GameControlsProps {
   soundEnabled: boolean;
@@ -15,43 +16,47 @@ export default function GameControls({
   onResetGame,
 }: GameControlsProps) {
   return (
-    <div data-testid="game-controls">
-      <hr className="my-4 border-white/10" />
-      <div className="flex items-center justify-between w-full">
+    <div className="game-controls" data-testid="game-controls">
+      <motion.button
+        onClick={onResetGame}
+        className="control-button control-button--labelled"
+        whileHover={{ y: -2 }}
+        whileTap={{ scale: 0.96 }}
+        transition={MOTION.spring}
+        aria-label="Start a new game"
+        title="Start a new game"
+        data-testid="reset-game"
+      >
+        <RotateCcw className="h-4 w-4" aria-hidden="true" />
+        <span>New game</span>
+      </motion.button>
+
+      <div className="flex items-center gap-2.5">
         <motion.button
-          onClick={onResetGame}
-          className="p-3 glass-dark rounded-lg text-white/70 hover:text-white transition-colors button-glow"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          title="Reset Game"
-          data-testid="reset-game"
+          onClick={onToggleSound}
+          className="control-button"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.94 }}
+          transition={MOTION.spring}
+          aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
+          title={soundEnabled ? 'Mute Sound' : 'Unmute Sound'}
+          data-testid="toggle-sound"
         >
-          <RotateCcw className="w-5 h-5" />
+          {soundEnabled ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
         </motion.button>
 
-        <div className="flex items-center space-x-3">
-          <motion.button
-            onClick={onToggleSound}
-            className="p-3 glass-dark rounded-lg text-white/70 hover:text-white transition-colors button-glow"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title={soundEnabled ? 'Mute Sound' : 'Unmute Sound'}
-            data-testid="toggle-sound"
-          >
-            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-          </motion.button>
-
-          <motion.button
-            onClick={onShowHowToPlay}
-            className="p-3 glass-dark rounded-lg text-white/70 hover:text-white transition-colors button-glow"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="How to Play"
-            data-testid="how-to-play"
-          >
-            <HelpCircle className="w-5 h-5" />
-          </motion.button>
-        </div>
+        <motion.button
+          onClick={onShowHowToPlay}
+          className="control-button"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.94 }}
+          transition={MOTION.spring}
+          aria-label="How to play"
+          title="How to Play"
+          data-testid="how-to-play"
+        >
+          <HelpCircle aria-hidden="true" />
+        </motion.button>
       </div>
     </div>
   );

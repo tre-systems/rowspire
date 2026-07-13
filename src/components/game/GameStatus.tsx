@@ -1,10 +1,10 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import type { GameState, GameMode } from '@/lib/types';
-import { Crown, Zap, Trophy, XCircle, Brain, Cpu, type LucideIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Brain, Cpu, Crown, Trophy, XCircle, Zap, type LucideIcon } from 'lucide-react';
+import type { GameMode, GameState } from '@/lib/types';
 import { useGameStore } from '@/lib/game-store';
 import { useHydrated } from '@/hooks/useHydrated';
-import { presentGameStatus, type GameIcon, type GameTone } from '@/lib/game-presentation';
+import { presentGameStatus, type GameIcon } from '@/lib/game-presentation';
+import { MOTION } from '@/lib/visuals/motion';
 
 const STATUS_ICONS = {
   brain: Brain,
@@ -14,14 +14,6 @@ const STATUS_ICONS = {
   'x-circle': XCircle,
   zap: Zap,
 } satisfies Record<GameIcon, LucideIcon>;
-
-const STATUS_COLORS = {
-  gray: 'text-gray-400',
-  green: 'text-green-400',
-  pink: 'text-pink-400',
-  teal: 'text-teal-300',
-  violet: 'text-violet-300',
-} satisfies Record<GameTone, string>;
 
 interface GameStatusProps {
   gameState: GameState;
@@ -39,77 +31,44 @@ export default function GameStatus({
   const player2AI = useGameStore(state => state.player2AI);
   const status = presentGameStatus({ gameState, gameMode, aiThinking, player1AI, player2AI });
   const StatusIcon = STATUS_ICONS[status.icon];
-  const color = STATUS_COLORS[status.tone];
 
   if (!isMounted) {
     return (
-      <div className="text-center mb-3" data-testid="game-status-loading">
-        <div className="mt-2 h-10 flex flex-col justify-start relative pt-1">
-          <div className="flex items-center justify-center space-x-2 h-6">
-            <span className="font-bold text-lg text-gray-400">Loading...</span>
-          </div>
-        </div>
+      <div className="game-status game-status--gray" data-testid="game-status-loading">
+        <span>Preparing game</span>
       </div>
     );
   }
 
   return (
-    <div className="text-center mb-3" data-testid="game-status">
-      <div className="mt-2 h-10 flex flex-col justify-start relative pt-1">
+    <div className={`game-status game-status--${status.tone}`} data-testid="game-status">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          className="flex items-center justify-center space-x-2 h-6"
-          animate={{ scale: aiThinking ? [1, 1.05, 1] : 1 }}
-          transition={{ repeat: aiThinking ? Infinity : 0, duration: 1 }}
+          key={`${status.text}-${aiThinking}`}
+          className="game-status__message"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={MOTION.quick}
         >
-          <StatusIcon className={cn('w-4 h-4', color)} data-testid="game-status-icon" />
-          <span
-            className={cn('font-bold text-lg', color, 'neon-text')}
-            data-testid="game-status-text"
-          >
-            {status.text}
-          </span>
-        </motion.div>
-
-        {status.matchup && (
-          <motion.div
-            className="text-xs text-gray-400 mt-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            data-testid="game-status-matchup"
-          >
-            {status.matchup}
-          </motion.div>
-        )}
-
-        <AnimatePresence>
+          <StatusIcon className="h-4 w-4" aria-hidden="true" data-testid="game-status-icon" />
+          <span data-testid="game-status-text">{status.text}</span>
           {aiThinking && (
-            <motion.div
-              className="absolute bottom-1 left-0 right-0 flex justify-center space-x-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <span
+              className="thinking-dots"
               data-testid="game-status-thinking"
+              aria-label="Thinking"
             >
-              {[...Array(3)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1.5 h-1.5 bg-violet-300 rounded-full"
-                  animate={{
-                    y: [0, -6, 0],
-                    opacity: [0.3, 1, 0.3],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 0.8,
-                    delay: i * 0.2,
-                    ease: 'easeInOut',
-                  }}
-                />
-              ))}
-            </motion.div>
+              <i />
+              <i />
+              <i />
+            </span>
           )}
-        </AnimatePresence>
+        </motion.div>
+      </AnimatePresence>
+
+      <div className="game-status__matchup" data-testid="game-status-matchup">
+        {status.matchup ?? '\u00a0'}
       </div>
     </div>
   );

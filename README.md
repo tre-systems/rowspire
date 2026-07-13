@@ -12,7 +12,7 @@ Rowspire is an independent browser strategy game with Rust/WebAssembly AI oppone
 - Zustand + Immer command state with versioned, aggregate-validated persistence.
 - Seedable AI and application effects for reproducible tests.
 - Offline-first service worker with versioned WASM and model caching.
-- Responsive React 19 UI with Tailwind and Motion.
+- Responsive React 19 UI with purposeful, reduced-motion-aware animation.
 - Executable TypeScript/Rust rule conformance and production bundle budgets.
 
 ## Quick Start

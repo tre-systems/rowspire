@@ -5,8 +5,8 @@ function randomItem<T>(items: readonly [T, ...T[]]): T {
 }
 
 export function createShape(width: number, height: number): Shape {
-  const opacity = Math.random() * 0.7 + 0.3;
-  const size = Math.random() * 50 + 25;
+  const opacity = Math.random() * 0.35 + 0.18;
+  const size = Math.random() * 42 + 20;
 
   return {
     type: randomItem(SHAPE_TYPES),
@@ -14,16 +14,16 @@ export function createShape(width: number, height: number): Shape {
     y: Math.random() * height,
     size,
     rotation: Math.random() * Math.PI * 2,
-    speed: Math.random() * 0.03 + 0.008,
+    speed: Math.random() * 0.009 + 0.003,
     opacity,
     color: randomItem(COLORS),
     life: 1,
     direction: {
-      x: (Math.random() - 0.5) * 0.8,
-      y: (Math.random() - 0.5) * 0.8,
+      x: (Math.random() - 0.5) * 0.38,
+      y: (Math.random() - 0.5) * 0.38,
     },
     pulse: Math.random() * Math.PI * 2,
-    pulseSpeed: Math.random() * 0.05 + 0.02,
+    pulseSpeed: Math.random() * 0.025 + 0.01,
     fadeOut: false,
     targetSize: size,
     targetOpacity: opacity,
@@ -31,7 +31,7 @@ export function createShape(width: number, height: number): Shape {
 }
 
 export function createLine(width: number, height: number): Line {
-  const opacity = Math.random() * 0.3 + 0.1;
+  const opacity = Math.random() * 0.12 + 0.05;
 
   return {
     x1: Math.random() * width,
@@ -41,25 +41,25 @@ export function createLine(width: number, height: number): Line {
     opacity,
     color: randomItem(COLORS),
     life: 1,
-    width: Math.random() * 2 + 1,
+    width: Math.random() + 0.5,
     fadeOut: false,
     targetOpacity: opacity,
   };
 }
 
 export function createParticle(width: number, height: number): Particle {
-  const opacity = Math.random() * 0.6 + 0.2;
+  const opacity = Math.random() * 0.35 + 0.12;
 
   return {
     x: Math.random() * width,
     y: Math.random() * height,
-    size: Math.random() * 4 + 1,
+    size: Math.random() * 2.5 + 0.8,
     opacity,
     color: randomItem(COLORS),
     life: 1,
     direction: {
-      x: (Math.random() - 0.5) * 0.3,
-      y: (Math.random() - 0.5) * 0.3,
+      x: (Math.random() - 0.5) * 0.2,
+      y: (Math.random() - 0.5) * 0.2,
     },
     fadeOut: false,
     targetOpacity: opacity,
