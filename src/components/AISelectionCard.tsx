@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { ArrowUpRight, type LucideIcon } from 'lucide-react';
+import { ArrowRight, ChevronDown, type LucideIcon } from 'lucide-react';
+import type { OpponentProfile } from '@/lib/opponents';
 import type { AIType } from '@/lib/types';
 import { MOTION } from '@/lib/visuals/motion';
 
@@ -10,9 +11,7 @@ const CARD_VARIANTS = {
 
 interface AISelectionCardProps {
   aiType: AIType;
-  title: string;
-  description: string;
-  subtitle: string;
+  profile: OpponentProfile;
   onClick: () => void;
   icon: LucideIcon;
   'data-testid': string;
@@ -20,38 +19,47 @@ interface AISelectionCardProps {
 
 export default function AISelectionCard({
   aiType,
-  title,
-  description,
-  subtitle,
+  profile,
   onClick,
   icon: Icon,
   'data-testid': dataTestId,
 }: AISelectionCardProps) {
   return (
-    <motion.button
-      type="button"
-      onClick={onClick}
+    <motion.article
       className={`ai-card ai-card--${aiType}`}
       variants={CARD_VARIANTS}
       transition={MOTION.entrance}
       whileHover={{ y: -6, scale: 1.01 }}
-      whileTap={{ scale: 0.985 }}
-      data-testid={dataTestId}
     >
       <span className="ai-card__glow" aria-hidden="true" />
       <span className="ai-card__icon">
         <Icon aria-hidden="true" />
       </span>
       <span className="ai-card__content">
-        <span className="ai-card__eyebrow">Choose your challenger</span>
-        <span className="ai-card__title">{title}</span>
-        <span className="ai-card__subtitle">{subtitle}</span>
-        <span className="ai-card__description">{description}</span>
-        <span className="ai-card__action">
-          Play now
-          <ArrowUpRight aria-hidden="true" />
-        </span>
+        <span className="ai-card__eyebrow">Opponent</span>
+        <span className="ai-card__title">{profile.name}</span>
+        <span className="ai-card__description">{profile.description}</span>
+        <motion.button
+          type="button"
+          onClick={onClick}
+          className="ai-card__play"
+          whileTap={{ scale: 0.97 }}
+          data-testid={dataTestId}
+        >
+          {profile.action}
+          <ArrowRight aria-hidden="true" />
+        </motion.button>
+        <details className="technical-disclosure ai-card__details">
+          <summary data-testid={`ai-details-${aiType}`}>
+            How it works
+            <ChevronDown aria-hidden="true" />
+          </summary>
+          <div data-testid={`ai-details-content-${aiType}`}>
+            <strong>{profile.technicalName}</strong>
+            <p>{profile.technicalSummary}</p>
+          </div>
+        </details>
       </span>
-    </motion.button>
+    </motion.article>
   );
 }

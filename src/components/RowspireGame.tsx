@@ -116,11 +116,12 @@ export default function RowspireGame() {
               type="button"
               onClick={openCompactWindow}
               className="compact-button"
-              title="Open compact window"
+              title="Play in a small window"
+              aria-label="Play in a small window"
               data-testid="compact-window-button"
             >
               <ExternalLink className="mr-1 h-4 w-4" aria-hidden="true" />
-              <span>Compact window</span>
+              <span>Mini window</span>
             </button>
           </div>
         )}
@@ -136,7 +137,7 @@ export default function RowspireGame() {
               transition={MOTION.quick}
               data-testid="selection-stage"
             >
-              <BrandHeader tagline="Challenge search-based and neural-network AI opponents." />
+              <BrandHeader tagline="A quick strategy game with two very different opponents." />
               <AISelectionPanel onStartGame={handleStartGame} />
               <AppLinks mode="inline" />
             </motion.section>

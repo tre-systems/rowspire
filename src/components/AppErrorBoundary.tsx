@@ -27,9 +27,15 @@ export default class AppErrorBoundary extends Component<Props, State> {
           <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Rowspire</p>
           <h1 className="text-3xl font-bold">The game hit a problem.</h1>
           <p className="text-base leading-7 text-slate-300">
-            Reset the board view and try again. When enabled, diagnostics filter saved game context
-            and common sensitive fields.
+            Try resetting the game view. Your saved game will stay on this device.
           </p>
+          <details className="technical-disclosure">
+            <summary>Privacy and technical details</summary>
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              When diagnostics are enabled, saved game context and common sensitive fields are
+              filtered before a report is sent.
+            </p>
+          </details>
           <button
             type="button"
             onClick={() => this.setState({ failed: false })}

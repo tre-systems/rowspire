@@ -28,6 +28,20 @@ async function playColumn(page: Page, column: number) {
 }
 
 test.describe('Core Game Functionality', () => {
+  test('presents friendly choices with optional technical details', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByRole('heading', { name: 'Who would you like to play?' })).toBeVisible();
+    await expect(page.getByText('The Tactician', { exact: true })).toBeVisible();
+    await expect(page.getByText('The Neural Challenger', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('ko-fi-link-floating')).toContainText('Support Rowspire');
+
+    await page.getByTestId('ai-details-search').click();
+    await expect(page.getByTestId('ai-details-content-search')).toContainText(
+      'Minimax search with alpha–beta pruning',
+    );
+  });
+
   test('can start a game and see initial state', async ({ page }) => {
     await startGame(page);
     await expect(page.getByRole('heading', { name: 'Rowspire' })).toBeVisible();
@@ -99,6 +113,11 @@ test.describe('Game Interactions', () => {
     await page.getByTestId('how-to-play').click();
     await expect(page.getByTestId('help-panel')).toBeVisible();
     await expect(page.getByTestId('help-close')).toBeVisible();
+
+    await page.getByTestId('help-technical-details').click();
+    await expect(page.getByTestId('help-technical-content')).toContainText(
+      'policy-and-value neural network',
+    );
 
     await page.getByTestId('help-close').click();
     await expect(page.getByTestId('help-panel')).not.toBeVisible();

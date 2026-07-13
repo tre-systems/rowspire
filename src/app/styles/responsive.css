@@ -26,7 +26,7 @@
   }
 
   .ai-card {
-    min-height: 11.5rem;
+    min-height: 14rem;
     padding: 1.1rem;
     border-radius: 1.15rem;
   }
@@ -42,6 +42,15 @@
   .game-board-shell {
     padding: 0.8rem;
     border-radius: 1.25rem;
+  }
+
+  .game-controls {
+    gap: 0.45rem;
+  }
+
+  .control-button--labelled {
+    padding: 0 0.68rem;
+    font-size: 0.71rem;
   }
 
   .game-grid,

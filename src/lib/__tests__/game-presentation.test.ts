@@ -29,17 +29,22 @@ describe('game presentation', () => {
   it('presents setup and human turns', () => {
     const setup = context({ gameState: gameState({ gameStatus: 'not_started' }) });
     expect(presentGameStatus(setup)).toMatchObject({
-      text: 'Select AI and start game',
+      text: 'Choose an opponent to start',
       icon: 'crown',
       tone: 'gray',
     });
 
-    expect(presentGameStatus(context()).text).toBe("Teal's turn");
+    expect(presentGameStatus(context()).text).toBe("Your turn — you're Teal");
     expect(
       presentGameStatus(
         context({ gameState: gameState({ currentPlayer: 'player2' }), aiThinking: true }),
       ).text,
-    ).toBe('Violet thinking...');
+    ).toBe('Your opponent is thinking…');
+    expect(
+      presentGameStatus(
+        context({ gameState: gameState({ currentPlayer: 'player2' }), aiThinking: false }),
+      ).text,
+    ).toBe('Your opponent is thinking…');
   });
 
   it('presents AI watch mode with its matchup', () => {
@@ -52,34 +57,34 @@ describe('game presentation', () => {
     );
 
     expect(result).toEqual({
-      text: 'ML AI (Violet) thinking...',
+      text: 'Neural challenger (Violet) is thinking…',
       icon: 'brain',
       tone: 'violet',
-      matchup: 'Search AI vs ML AI',
+      matchup: 'Tactician vs Neural challenger',
     });
   });
 
   it('presents finished statuses', () => {
     const draw = context({ gameState: gameState({ gameStatus: 'finished' }) });
-    expect(presentGameStatus(draw).text).toBe('Draw!');
+    expect(presentGameStatus(draw).text).toBe("It's a draw!");
 
     const win = context({
       gameMode: 'ai-vs-ai',
       gameState: gameState({ gameStatus: 'finished', winner: 'player1' }),
     });
-    expect(presentGameStatus(win).text).toBe('Search AI (Teal) Wins!');
+    expect(presentGameStatus(win).text).toBe('Tactician wins as Teal!');
   });
 
   it('presents draws and human game results', () => {
     expect(
       presentGameCompletion(context({ gameState: gameState({ gameStatus: 'finished' }) })),
-    ).toMatchObject({ title: 'Draw!', icon: null, tone: 'gray' });
+    ).toMatchObject({ title: "It's a draw", icon: null, tone: 'gray' });
 
     const playerWin = context({
       gameState: gameState({ gameStatus: 'finished', winner: 'player1' }),
     });
     expect(presentGameCompletion(playerWin)).toMatchObject({
-      title: 'You Win!',
+      title: 'You win!',
       icon: 'trophy',
       tone: 'green',
     });
@@ -88,7 +93,7 @@ describe('game presentation', () => {
       gameState: gameState({ gameStatus: 'finished', winner: 'player2' }),
     });
     expect(presentGameCompletion(aiWin)).toMatchObject({
-      title: 'AI Wins!',
+      title: 'Your opponent wins',
       icon: 'zap',
       tone: 'pink',
     });
@@ -103,11 +108,11 @@ describe('game presentation', () => {
     );
 
     expect(result).toEqual({
-      title: 'ML AI (Violet) Wins!',
-      message: '🎉 AI Battle Complete! 🎉',
+      title: 'Neural challenger wins as Violet!',
+      message: 'The match is complete.',
       icon: 'brain',
       tone: 'violet',
-      matchup: 'Search AI vs ML AI',
+      matchup: 'Tactician vs Neural challenger',
     });
   });
 });

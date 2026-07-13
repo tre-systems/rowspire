@@ -36,7 +36,7 @@ export default function GameControls({
         <motion.button
           type="button"
           onClick={onToggleSound}
-          className="control-button"
+          className="control-button control-button--labelled"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.94 }}
           transition={MOTION.spring}
@@ -45,12 +45,13 @@ export default function GameControls({
           data-testid="toggle-sound"
         >
           {soundEnabled ? <Volume2 aria-hidden="true" /> : <VolumeX aria-hidden="true" />}
+          <span>{soundEnabled ? 'Sound on' : 'Sound off'}</span>
         </motion.button>
 
         <motion.button
           type="button"
           onClick={onShowHowToPlay}
-          className="control-button"
+          className="control-button control-button--labelled"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.94 }}
           transition={MOTION.spring}
@@ -59,6 +60,7 @@ export default function GameControls({
           data-testid="how-to-play"
         >
           <HelpCircle aria-hidden="true" />
+          <span>Help</span>
         </motion.button>
       </div>
     </div>

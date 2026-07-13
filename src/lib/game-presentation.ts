@@ -1,12 +1,8 @@
 import type { AIType, GameMode, GameState, Player } from './types';
+import { OPPONENTS } from './opponents';
 
 export type GameIcon = 'brain' | 'cpu' | 'crown' | 'trophy' | 'x-circle' | 'zap';
 type GameTone = 'gray' | 'green' | 'pink' | 'teal' | 'violet';
-
-const AI_TYPE_LABELS = {
-  search: 'Search AI',
-  ml: 'ML AI',
-} satisfies Record<AIType, string>;
 
 type PresentationContext = {
   gameState: GameState;
@@ -43,12 +39,12 @@ function aiIcon(aiType: AIType): GameIcon {
 }
 
 function getAITypeLabel(aiType: AIType): string {
-  return AI_TYPE_LABELS[aiType];
+  return OPPONENTS[aiType].shortName;
 }
 
 function aiWinnerText(context: PresentationContext, winner: Player): string {
   const ai = aiForPlayer(context, winner);
-  return `${getAITypeLabel(ai)} (${winner === 'player1' ? 'Teal' : 'Violet'}) Wins!`;
+  return `${getAITypeLabel(ai)} wins as ${winner === 'player1' ? 'Teal' : 'Violet'}!`;
 }
 
 function aiMatchup(context: PresentationContext): string {
@@ -57,14 +53,16 @@ function aiMatchup(context: PresentationContext): string {
 
 function finishedStatus(context: StatusPresentationContext): GamePresentation {
   const { winner } = context.gameState;
-  if (!winner) return { text: 'Draw!', icon: 'x-circle', tone: 'gray', matchup: null };
+  if (!winner) return { text: "It's a draw!", icon: 'x-circle', tone: 'gray', matchup: null };
 
   const isPlayer1 = winner === 'player1';
   return {
     text:
       context.gameMode === 'ai-vs-ai'
         ? aiWinnerText(context, winner)
-        : `${isPlayer1 ? 'Teal' : 'Violet'} Wins!`,
+        : isPlayer1
+          ? 'You win!'
+          : 'Your opponent wins',
     icon: isPlayer1 ? 'trophy' : 'zap',
     tone: isPlayer1 ? 'teal' : 'violet',
     matchup: null,
@@ -78,7 +76,7 @@ function playingStatus(context: StatusPresentationContext): GamePresentation {
 
   if (context.gameMode === 'ai-vs-ai') {
     const ai = aiForPlayer(context, player);
-    const turn = context.aiThinking ? ' thinking...' : "'s turn";
+    const turn = context.aiThinking ? ' is thinking…' : ' to move';
     return {
       text: `${getAITypeLabel(ai)} (${isPlayer1 ? 'Teal' : 'Violet'})${turn}`,
       icon: aiIcon(ai),
@@ -87,12 +85,12 @@ function playingStatus(context: StatusPresentationContext): GamePresentation {
     };
   }
 
-  if (!isPlayer1 && context.aiThinking) {
-    return { text: 'Violet thinking...', icon: 'zap', tone, matchup: null };
+  if (!isPlayer1) {
+    return { text: 'Your opponent is thinking…', icon: 'zap', tone, matchup: null };
   }
   return {
-    text: `${isPlayer1 ? 'Teal' : 'Violet'}'s turn`,
-    icon: isPlayer1 ? 'crown' : 'zap',
+    text: "Your turn — you're Teal",
+    icon: 'crown',
     tone,
     matchup: null,
   };
@@ -101,7 +99,7 @@ function playingStatus(context: StatusPresentationContext): GamePresentation {
 export function presentGameStatus(context: StatusPresentationContext): GamePresentation {
   if (context.gameState.gameStatus === 'not_started') {
     return {
-      text: 'Select AI and start game',
+      text: 'Choose an opponent to start',
       icon: 'crown',
       tone: 'gray',
       matchup: null,
@@ -115,8 +113,8 @@ export function presentGameCompletion(context: PresentationContext): CompletionP
   const { winner } = context.gameState;
   if (!winner) {
     return {
-      title: 'Draw!',
-      message: "The board is full. It's a tie!",
+      title: "It's a draw",
+      message: 'No spaces left—that was a close game.',
       icon: null,
       tone: 'gray',
       matchup: null,
@@ -126,12 +124,16 @@ export function presentGameCompletion(context: PresentationContext): CompletionP
   const isPlayer1 = winner === 'player1';
   const isWatchMode = context.gameMode === 'ai-vs-ai';
   return {
-    title: isWatchMode ? aiWinnerText(context, winner) : isPlayer1 ? 'You Win!' : 'AI Wins!',
-    message: isWatchMode
-      ? '🎉 AI Battle Complete! 🎉'
+    title: isWatchMode
+      ? aiWinnerText(context, winner)
       : isPlayer1
-        ? '🎉 Congratulations! 🎉'
-        : '💫 The AI won this round! 💫',
+        ? 'You win!'
+        : 'Your opponent wins',
+    message: isWatchMode
+      ? 'The match is complete.'
+      : isPlayer1
+        ? 'Great game—you made four in a row.'
+        : 'Close one—ready for another round?',
     icon: isWatchMode ? aiIcon(aiForPlayer(context, winner)) : isPlayer1 ? 'trophy' : 'zap',
     tone: isWatchMode ? (isPlayer1 ? 'teal' : 'violet') : isPlayer1 ? 'green' : 'pink',
     matchup: isWatchMode ? aiMatchup(context) : null,

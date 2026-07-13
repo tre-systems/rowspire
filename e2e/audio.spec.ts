@@ -91,7 +91,7 @@ test.describe('Audio', () => {
     await expect(page.getByTestId('game-board')).toBeVisible();
     await expect
       .poll(() => page.getByTestId('game-status-text').innerText(), { timeout: 15_000 })
-      .toBe("Teal's turn");
+      .toBe("Your turn — you're Teal");
 
     await resetAudioStarts(page);
     await page.getByTestId('column-3').click();

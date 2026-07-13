@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, ChevronDown, X } from 'lucide-react';
 import { useDismissOnEscape } from '@/hooks/useDismissOnEscape';
 import { MOTION } from '@/lib/visuals/motion';
 
@@ -38,9 +38,9 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
           >
             <header className="modal-header">
               <div>
-                <span className="modal-eyebrow modal-eyebrow--warning">AI interruption</span>
+                <span className="modal-eyebrow modal-eyebrow--warning">Game paused</span>
                 <h2 id="error-title">
-                  <AlertTriangle aria-hidden="true" /> Something went wrong
+                  <AlertTriangle aria-hidden="true" /> We hit a small snag
                 </h2>
               </div>
               <motion.button
@@ -56,9 +56,16 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
                 <X aria-hidden="true" />
               </motion.button>
             </header>
-            <p id="error-message" className="modal-message" data-testid="error-message">
-              {error}
+            <p id="error-message" className="modal-message">
+              No worries—close this message and keep playing. If it happens again, try a new game.
             </p>
+            <details className="technical-disclosure error-technical">
+              <summary data-testid="error-technical-details">
+                Technical details
+                <ChevronDown aria-hidden="true" />
+              </summary>
+              <p data-testid="error-message">{error}</p>
+            </details>
             <button
               type="button"
               className="primary-action"

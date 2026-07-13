@@ -79,7 +79,7 @@ export default function PWAInstallPrompt() {
           </div>
           <div className="install-prompt__content">
             <span className="modal-eyebrow">Play anywhere</span>
-            <h3 id="install-prompt-title">Install {APP_NAME}</h3>
+            <h3 id="install-prompt-title">Add {APP_NAME} to your device</h3>
             <p>Add it to your home screen for instant access and offline play.</p>
             <div className="install-prompt__actions">
               <motion.button
@@ -89,7 +89,7 @@ export default function PWAInstallPrompt() {
                 whileTap={{ scale: 0.97 }}
                 data-testid="install-pwa"
               >
-                Install
+                Add game
               </motion.button>
               <button
                 type="button"

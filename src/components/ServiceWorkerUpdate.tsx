@@ -56,7 +56,7 @@ export default function ServiceWorkerUpdate() {
 
   return (
     <aside className="update-prompt" role="status" data-testid="service-worker-update">
-      <p>A new version is available.</p>
+      <p>Rowspire has an update ready.</p>
       <div className="update-prompt__actions">
         <button
           type="button"
@@ -64,7 +64,7 @@ export default function ServiceWorkerUpdate() {
           onClick={applyUpdate}
           data-testid="service-worker-update-now"
         >
-          Update now
+          Restart and update
         </button>
         <button
           type="button"

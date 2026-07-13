@@ -1,4 +1,4 @@
-import { Github } from 'lucide-react';
+import { Github, Heart } from 'lucide-react';
 import { APP_NAME, REPOSITORY_URL, SUPPORT_URL } from '@/lib/brand';
 
 interface AppLinksProps {
@@ -21,10 +21,11 @@ export default function AppLinks({ mode }: AppLinksProps) {
         target="_blank"
         rel="noopener noreferrer"
         className={supportLinkClass}
+        aria-label="Support Rowspire on Ko-fi"
         data-testid={`ko-fi-link-${mode}`}
       >
-        <span aria-hidden="true">☕</span>
-        Buy me a coffee
+        <Heart className="h-4 w-4" aria-hidden="true" />
+        Support Rowspire
       </a>
 
       <a

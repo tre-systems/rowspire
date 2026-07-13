@@ -35,6 +35,7 @@ Dependencies point inward: the pure browser domain does not depend on React, Zus
 | Explicit state machine            | Centralize turn and transition predicates         | `game-state-machine.ts`                          | State-machine and store tests       |
 | Generation token                  | Reject stale asynchronous results                 | `gameGeneration`, `isSameTurn`                   | Async race tests                    |
 | Presentation model                | Derive display semantics outside React            | `game-presentation.ts`                           | Pure tests and Playwright           |
+| Progressive disclosure            | Lead with user intent; reveal technical detail    | Opponent, help, and error disclosures            | Semantic HTML and Playwright        |
 | Ports and adapters                | Construct effects explicitly                      | `GameStoreDependencies`, AI adapters             | Store factory tests                 |
 | Deterministic effects             | Inject clocks and randomness                      | Store dependencies and seeded Rust RNG           | Reproducibility tests               |
 | Purposeful motion                 | Animate state changes and respect user preference | `visuals/motion.ts`, transform-based transitions | Playwright and reduced-motion tests |
