@@ -4,7 +4,7 @@ digraph SystemOverview {
     bgcolor="#ffffff",
     pad="0.55",
     nodesep="0.55",
-    ranksep="0.85",
+    ranksep="0.82",
     splines=polyline,
     outputorder=edgesfirst,
     compound=true,
@@ -13,7 +13,8 @@ digraph SystemOverview {
     fontname="Avenir",
     label=<
       <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0">
-        <TR><TD><FONT POINT-SIZE="34"><B>Rowspire &mdash; System Overview</B></FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="34"><B>Rowspire &mdash; Runtime Architecture</B></FONT></TD></TR>
+        <TR><TD><FONT POINT-SIZE="14" COLOR="#5b6b80">Static delivery; gameplay, state, and AI execute entirely in the browser.</FONT></TD></TR>
       </TABLE>
     >,
     labelloc=t,
@@ -45,57 +46,18 @@ digraph SystemOverview {
     arrowsize=0.78
   ];
 
-  subgraph cluster_build {
-    graph [
-      label=<
-        <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#8a5f00"><B>BUILD / CODEGEN</B></FONT></TD></TR>
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#836b27">Runs in CI and locally; outputs are static assets and generated types.</FONT></TD></TR>
-        </TABLE>
-      >,
-      labelloc=t,
-      labeljust=l,
-      color="#f2cf78",
-      fillcolor="#fffaf0",
-      style="rounded,filled",
-      penwidth=1.8,
-      margin=22
-    ];
-
-    B1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>wasm-pack</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust &rarr; /public/wasm/*</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-    B2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ts-rs</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Rust types &rarr; src/lib/bindings.ts</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-    B3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Model assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">evolved.json &middot; ML weights &rarr; /public/ml</FONT></TD></TR></TABLE>>, fillcolor="#fff4d1:#fffaf0", color="#d39a00"];
-
-    B1 -> B2 [style=invis];
-    B2 -> B3 [style=invis];
-  }
-
-  subgraph cluster_cf {
-    graph [
-      label=<
-        <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#0f766e"><B>CLOUDFLARE (DEPLOY)</B></FONT></TD></TR>
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#357a74">Static assets served at the edge &mdash; no server code, no cold starts.</FONT></TD></TR>
-        </TABLE>
-      >,
-      labelloc=t,
-      labeljust=l,
-      color="#99d5cf",
-      fillcolor="#f0fdfa",
-      style="rounded,filled",
-      penwidth=1.8,
-      margin=22
-    ];
-
-    C2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Workers Static Assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; model JSON</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
-  }
+  CF [
+    label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Cloudflare Static Assets</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">HTML &middot; JS &middot; WASM &middot; model JSON</FONT></TD></TR></TABLE>>,
+    fillcolor="#e6fffb:#ffffff",
+    color="#0f766e"
+  ];
 
   subgraph cluster_browser {
     graph [
       label=<
         <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#1f5fbf"><B>BROWSER (CLIENT-ONLY)</B></FONT></TD></TR>
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#496f9f">React 19 SPA. All gameplay and AI run locally &mdash; no server round-trip.</FONT></TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#1f5fbf"><B>BROWSER</B></FONT></TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#496f9f">React renders projections; Zustand coordinates commands and effects.</FONT></TD></TR>
         </TABLE>
       >,
       labelloc=t,
@@ -107,27 +69,25 @@ digraph SystemOverview {
       margin=22
     ];
 
-    R1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>React UI</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">components &middot; data-testid &middot; framer-motion</FONT></TD></TR></TABLE>>, fillcolor="#edf7ff:#ffffff", color="#2f80ed"];
-    R2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>game-store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand + Immer &middot; persisted</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ui-store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand &middot; ephemeral UI state</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R4 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Pure core</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">game-logic + logic/* &middot; rules, win check</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
-    R7 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Presentation model</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">pure display projections</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
-    R5 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>WASM AI facade</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">WASMAIService singleton &middot; ACL</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R8 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML Web Worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated protocol &middot; timeout</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    R6 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>localStorage</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">current game state</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
+    UI [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>React UI</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">events, accessibility, animation</FONT></TD></TR></TABLE>>, fillcolor="#edf7ff:#ffffff", color="#2f80ed"];
+    STORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Game command store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Zustand + Immer &middot; race guards</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    UISTORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>UI store</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">ephemeral shared display state</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    PRESENT [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Presentation model</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">pure semantic projections</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
+    CORE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Game core</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">pure rules, transitions, win checks</FONT></TD></TR></TABLE>>, fillcolor="#f5f3ff:#ffffff", color="#7c3aed"];
+    FACADE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>WASM AI facade</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">strategy + anti-corruption layer</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    WORKER [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML Web Worker</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated protocol &middot; timeout</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    STORAGE [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>localStorage</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">validated versioned snapshot</FONT></TD></TR></TABLE>>, fillcolor="#e6fffb:#ffffff", color="#0f766e"];
 
-    R1 -> R2 [style=invis];
-    R2 -> R4 [style=invis];
-    R3 -> R5 [style=invis];
-    R4 -> R6 [style=invis];
+    { rank=same; STORE; UISTORE; PRESENT; }
+    { rank=same; CORE; FACADE; STORAGE; }
   }
 
   subgraph cluster_wasm {
     graph [
       label=<
         <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#1e6b43"><B>WASM AI ENGINE (RUST)</B></FONT></TD></TR>
-          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#4e7a61">Compiled to WebAssembly; instantiated and run inside the browser.</FONT></TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="17" COLOR="#1e6b43"><B>RUST / WEBASSEMBLY AI</B></FONT></TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="12" COLOR="#4e7a61">Typed boundary over deterministic search and guarded MCTS.</FONT></TD></TR>
         </TABLE>
       >,
       labelloc=t,
@@ -139,30 +99,22 @@ digraph SystemOverview {
       margin=22
     ];
 
-    G1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Bitboard solver</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">Negamax + &alpha;-&beta; pruning</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    G2 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML strategy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">tactical guard &middot; AlphaZero-style MCTS</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
-    G3 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Neural network</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">4&times;128 value + policy</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    SEARCH [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Search AI</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">bitboard negamax + &alpha;-&beta;</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    ML [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>ML strategy</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">win / block guard &rarr; MCTS</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
+    NETWORK [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0"><TR><TD><B>Value + policy network</B></TD></TR><TR><TD CELLPADDING="4"><FONT POINT-SIZE="15">4&times;128 model weights</FONT></TD></TR></TABLE>>, fillcolor="#eaf8ef:#ffffff", color="#22865a"];
 
-    G1 -> G2 [style=invis];
-    G2 -> G3 [style=invis];
+    { rank=same; SEARCH; ML; }
   }
 
-  B1 -> C2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">bundled into assets</FONT></TD></TR></TABLE>>];
-  B3 -> C2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">bundled into assets</FONT></TD></TR></TABLE>>];
-  B2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">generates bindings.ts</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
-  B1 -> G1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#dfe3e9" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#6b7280">compiles to WASM</FONT></TD></TR></TABLE>>, style=dashed, color="#6b7280", fontcolor="#6b7280", constraint=false];
-
-  C2 -> R1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">serves the static site</FONT></TD></TR></TABLE>>, lhead=cluster_browser];
-  C2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">fetch /wasm + /ml</FONT></TD></TR></TABLE>>, constraint=false];
-
-  R1 -> R2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">dispatch actions</FONT></TD></TR></TABLE>>, constraint=false];
-  R1 -> R3 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">toggle panels / errors</FONT></TD></TR></TABLE>>, constraint=false];
-  R1 -> R7 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">derive display</FONT></TD></TR></TABLE>>];
-  R2 -> R4 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">makeMove (pure)</FONT></TD></TR></TABLE>>, constraint=false];
-  R2 -> R6 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">persist</FONT></TD></TR></TABLE>>, constraint=false];
-  R2 -> R5 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">makeAIMove</FONT></TD></TR></TABLE>>];
-  R5 -> G1 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">get_best_move</FONT></TD></TR></TABLE>>, lhead=cluster_wasm];
-  R5 -> R8 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">validated request</FONT></TD></TR></TABLE>>];
-  R8 -> G2 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">get_ml_move</FONT></TD></TR></TABLE>>];
-  G2 -> G3 [label=<<TABLE BORDER="1" CELLBORDER="0" STYLE="ROUNDED" COLOR="#d7dee8" BGCOLOR="#ffffff" CELLSPACING="0" CELLPADDING="4"><TR><TD><FONT POINT-SIZE="13" COLOR="#3d4a5c">value / policy</FONT></TD></TR></TABLE>>, constraint=false];
+  CF -> UI [label="serves app"];
+  UI -> STORE [label="commands"];
+  UI -> UISTORE [label="display effects"];
+  UI -> PRESENT [label="derive display"];
+  STORE -> CORE [label="apply move"];
+  STORE -> FACADE [label="request AI move"];
+  STORE -> STORAGE [label="persist"];
+  FACADE -> SEARCH [label="search"];
+  FACADE -> WORKER [label="validated ML request"];
+  WORKER -> ML [label="run MCTS"];
+  ML -> NETWORK [label="value / policy"];
 }

@@ -20,6 +20,10 @@ flowchart LR
 
 Dependencies point inward toward the domain. Components may depend on stores, presentation models, and domain types. The domain never depends on React, Zustand, browser storage, workers, or generated WASM bindings.
 
+The compact Mermaid view shows dependency direction. The detailed Graphviz view shows runtime ownership and cross-boundary calls:
+
+![Rowspire runtime architecture](diagrams/system-overview.png)
+
 ## Required Pattern Catalog
 
 | Pattern                           | Rule                                                           | Primary implementation                                           | Enforcement                                               |
@@ -79,6 +83,19 @@ Transient display-only state stays local to a component unless several unrelated
 
 The state machine is intentionally represented by typed values and predicates rather than a framework. A generation token invalidates delayed AI work after reset or replacement. The result is committed only when the generation and turn identity still match.
 
+```mermaid
+stateDiagram-v2
+  [*] --> not_started
+  not_started --> playing: startGame
+  playing --> playing: complete legal move
+  playing --> finished: win or draw
+  playing --> not_started: reset
+  finished --> playing: startGame
+  finished --> not_started: reset
+```
+
+`pendingMove` and `aiThinking` are transient substates of `playing`, not persisted game statuses. The closed status set is `not_started`, `playing`, and `finished`; schema validation rejects every other value.
+
 ### Presentation model
 
 `game-presentation.ts` converts game and AI state into semantic display values. React maps those values to Lucide icons and Tailwind classes. This keeps copy and outcome rules consistent between status and completion views while allowing animation and markup to remain component concerns.
@@ -108,6 +125,8 @@ The same rule applies to local storage, fetched JSON, generated WASM responses, 
 4. User-visible error when no valid move exists.
 
 The Rust ML strategy checks immediate wins, then immediate blocks, before invoking MCTS. Assertion-based Rust tests protect both tactical guarantees independently of model weights.
+
+![AI strategy dispatch and fallback](diagrams/ai-move-flow.png)
 
 ### Versioned persistence
 
@@ -150,7 +169,9 @@ Introduce one of these only when its trigger appears: multiple implementations, 
 
 `npm run build:wasm-assets` compiles Rust to `public/wasm` and copies model assets to `public/ml`. `npm run build` generates the service worker, builds the static export in `out`, and runs the brand audit. Wrangler serves `out` through Workers Static Assets; there is no app server, database, or server-side AI call.
 
-Source diagrams live in `docs/diagrams/*.dot`. Run `npm run diagrams` after changing a diagram and `npm run check:diagrams` to verify rendered assets.
+![Build and deployment flow](diagrams/build-deploy-flow.png)
+
+Source diagrams live in `docs/diagrams/*.dot`; [the diagram standard](diagrams/README.md) defines when to use Mermaid or Graphviz and the shared visual language. Run `npm run diagrams` after changing a diagram and `npm run check:diagrams` to validate rendering and style.
 
 ## Architecture Fitness Functions
 

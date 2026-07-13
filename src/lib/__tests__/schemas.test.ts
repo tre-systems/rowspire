@@ -43,6 +43,19 @@ describe('Schemas', () => {
       expect(() => GameStateSchema.parse(invalidGameState)).toThrow('inconsistent');
     });
 
+    it('should reject unreachable game statuses', () => {
+      const gameState = {
+        board: Array.from({ length: 7 }, () => Array(6).fill(null)),
+        currentPlayer: 'player1',
+        gameStatus: 'waiting',
+        winner: null,
+        history: [],
+        winningLine: null,
+      };
+
+      expect(() => GameStateSchema.parse(gameState)).toThrow();
+    });
+
     it('should validate finished game state', () => {
       const finishedGameState = {
         board: Array.from({ length: 7 }, () => Array(6).fill(null)),
@@ -134,6 +147,21 @@ describe('Schemas', () => {
       expect(state.gameState.gameStatus).toBe('not_started');
       expect(state.gameState.board).toHaveLength(7);
       expect(state.gameMode).toBe('human-vs-ai');
+    });
+
+    it('migrates an unreachable waiting state to setup', () => {
+      const state = parsePersistedState({
+        gameState: {
+          board: Array.from({ length: 7 }, () => Array(6).fill(null)),
+          currentPlayer: 'player1',
+          gameStatus: 'waiting',
+          winner: null,
+          history: [],
+          winningLine: null,
+        },
+      });
+
+      expect(state.gameState.gameStatus).toBe('not_started');
     });
   });
 });

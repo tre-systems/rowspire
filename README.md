@@ -40,7 +40,7 @@ The dev server runs at [http://localhost:3000](http://localhost:3000). Requires 
 | `npm run test:coverage` | Run unit tests with enforced coverage thresholds                                    |
 | `npm run test:e2e`      | Run Playwright end-to-end tests                                                     |
 | `npm run test:rust`     | Run Rust tests                                                                      |
-| `npm run diagrams`      | Render architecture diagrams                                                        |
+| `npm run diagrams`      | Render standardized Graphviz architecture diagrams                                  |
 | `npm run train`         | Run model training under `caffeinate`                                               |
 | `npm run deploy`        | Build, commit-version the PWA cache, and deploy the static site with Wrangler       |
 
@@ -52,7 +52,7 @@ The dev server runs at [http://localhost:3000](http://localhost:3000). Requires 
 - Persistence: validated game state and opponent configuration in `localStorage` under `rowspire-game-storage`.
 - Hosting: static export served by Cloudflare Workers Static Assets.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md).
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/diagrams/README.md](docs/diagrams/README.md), and [docs/AI-SYSTEM.md](docs/AI-SYSTEM.md).
 
 ## Branding
 

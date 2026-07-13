@@ -9,7 +9,7 @@ import {
   type PersistedGameStore,
 } from './types';
 
-export const LATEST_VERSION = 3;
+export const LATEST_VERSION = 4;
 
 export const emptyGameState = (): GameState => ({
   board: Array.from({ length: 7 }, () => Array.from({ length: 6 }, () => null)),
