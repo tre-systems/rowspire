@@ -35,6 +35,8 @@ function hasHeaders(response, expected = {}) {
   });
 }
 
+const pause = () => new Promise(resolve => setTimeout(resolve, 3_000));
+
 async function waitFor(check) {
   let detail = 'No response';
   for (let attempt = 1; attempt <= 10; attempt += 1) {
@@ -58,9 +60,28 @@ async function waitFor(check) {
     } catch (error) {
       detail = String(error);
     }
-    await new Promise(resolve => setTimeout(resolve, 3_000));
+    await pause();
   }
   throw new Error(`Smoke check failed for ${check.path}: ${detail}`);
+}
+
+async function waitForCanonicalRedirect() {
+  for (let attempt = 1; attempt <= 10; attempt += 1) {
+    const response = await fetch('https://rowspire.net', {
+      redirect: 'manual',
+      signal: AbortSignal.timeout(requestTimeout),
+    });
+    if (
+      response.status === 301 &&
+      response.headers.get('location') === `${origin}/` &&
+      hasHeaders(response, { 'strict-transport-security': ['max-age=31536000'] })
+    ) {
+      console.log('Canonical host redirect smoke check passed');
+      return;
+    }
+    await pause();
+  }
+  throw new Error('Canonical host redirect smoke check failed');
 }
 
 for (const check of checks) await waitFor(check);
@@ -79,14 +100,4 @@ if (!hasHeaders(invalidUsage, { 'strict-transport-security': ['max-age=31536000'
 }
 console.log('Usage validation smoke check passed');
 
-const redirect = await fetch('https://rowspire.net', {
-  redirect: 'manual',
-  signal: AbortSignal.timeout(requestTimeout),
-});
-if (redirect.status !== 301 || redirect.headers.get('location') !== `${origin}/`) {
-  throw new Error('Canonical host redirect smoke check failed');
-}
-if (!hasHeaders(redirect, { 'strict-transport-security': ['max-age=31536000'] })) {
-  throw new Error('Canonical redirect security header smoke check failed');
-}
-console.log('Canonical host redirect smoke check passed');
+await waitForCanonicalRedirect();
