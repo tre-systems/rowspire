@@ -10,6 +10,7 @@ import {
   type GameStore,
 } from './game-store-state';
 import { useUIStore } from './ui-store';
+import { reportUsage } from './usage';
 import { initializeWASMAI } from './wasm-ai-service';
 
 export type { GameStoreDependencies } from './game-store-core';
@@ -20,6 +21,7 @@ function defaultDependencies(): GameStoreDependencies {
     wait: duration => new Promise(resolve => setTimeout(resolve, duration)),
     random: Math.random,
     reportError: message => useUIStore.getState().actions.showError(message),
+    reportUsage,
   };
 }
 

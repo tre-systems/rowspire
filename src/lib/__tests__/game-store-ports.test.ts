@@ -10,12 +10,14 @@ function dependencies(
   chooseMove: GameStoreDependencies['ai']['chooseMove'],
   reportError = vi.fn(),
   random = Math.random,
+  reportUsage = vi.fn(),
 ): GameStoreDependencies {
   return {
     ai: { initialize: vi.fn().mockResolvedValue(undefined), chooseMove },
     wait: vi.fn().mockResolvedValue(undefined),
     random,
     reportError,
+    reportUsage,
   };
 }
 
@@ -40,6 +42,33 @@ describe('game store ports', () => {
 
     expect(chooseMove).toHaveBeenCalledWith(expect.any(Object), 'search', random);
     expect(store.getState().pendingMove?.column).toBe(4);
+  });
+
+  it('reports game lifecycle milestones', () => {
+    const reportUsage = vi.fn();
+    const store = createGameStore(
+      dependencies(vi.fn().mockResolvedValue(3), vi.fn(), () => 0, reportUsage),
+    );
+
+    store.getState().actions.startGame();
+
+    const moves = [0, 6, 1, 6, 2, 5];
+    for (const column of moves) {
+      store.setState(state => {
+        state.pendingMove = {
+          column,
+          player: state.gameState.currentPlayer,
+          source: 'human',
+        };
+      });
+      store.getState().actions.completeMove();
+    }
+    store.setState(state => {
+      state.pendingMove = { column: 3, player: state.gameState.currentPlayer, source: 'human' };
+    });
+    store.getState().actions.completeMove();
+
+    expect(reportUsage.mock.calls).toEqual([['game_started'], ['game_completed']]);
   });
 
   it.each([

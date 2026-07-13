@@ -8,6 +8,10 @@ binding = "ASSETS"
 run_worker_first = true
 not_found_handling = "single-page-application"
 
+[[analytics_engine_datasets]]
+binding = "APP_USAGE"
+dataset = "app_usage"
+
 [[routes]]
 pattern = "rowspire.tre.systems"
 custom_domain = true

@@ -1,6 +1,6 @@
 # Architecture
 
-Rowspire is a browser-run game with no application API or server-side game state. Vite builds the React client; a small Cloudflare Worker canonicalizes hosts and serves Workers Static Assets. TypeScript owns the browser domain and application shell, while Rust/WebAssembly owns AI search and inference.
+Rowspire is a browser-run game with no server-side game state. Vite builds the React client; a small Cloudflare Worker canonicalizes hosts, accepts two anonymous product-usage events, and serves Workers Static Assets. TypeScript owns the browser domain and application shell, while Rust/WebAssembly owns AI search and inference.
 
 ## System Shape
 
@@ -54,7 +54,7 @@ Rust transport types are generated into `bindings.ts`. They are boundary contrac
 
 Pure functions own moves, wins, draws, transition predicates, and presentation decisions. The imperative shell owns storage, workers, timers, random sources, reporting, React events, and animation lifecycle. UI behavior is covered with Playwright; extracted decisions are covered with Vitest.
 
-`createGameStore` builds a vanilla Zustand store from four injected effects: AI, wait, random, and error reporting. Production supplies browser adapters; tests supply deterministic substitutes. Zustand persistence stores only the game aggregate, mode, and AI selections under `rowspire-game-storage`; actions and transient state are reconstructed.
+`createGameStore` builds a vanilla Zustand store from five injected effects: AI, wait, random, error reporting, and product-usage reporting. Production supplies browser adapters; tests supply deterministic substitutes. Zustand persistence stores only the game aggregate, mode, and AI selections under `rowspire-game-storage`; actions and transient state are reconstructed.
 
 ```mermaid
 stateDiagram-v2
@@ -111,6 +111,8 @@ Shared timings live in `visuals/motion.ts`; UI transitions use transforms and op
 
 Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables default PII, removes request bodies and cookies, filters authorization and common sensitive fields, and queues transport while offline. The React error boundary provides a local recovery surface whether reporting is configured or not.
 
+The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes anonymous counts to the account-level `app_usage` Analytics Engine dataset for Antenna. No board, move, player, browser, or user identifier is included.
+
 ## Code Ownership
 
 | Location                                                               | Responsibility                                          |
@@ -123,6 +125,7 @@ Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables de
 | `src/lib/*protocol.ts`, `*-boundary.ts`, `*-service.ts`, `*-client.ts` | External contracts and adapters                         |
 | `src/lib/visuals`                                                      | Pure motion constants and canvas behavior               |
 | `src/service-worker.ts`, `src/lib/service-worker-policy.ts`            | Offline runtime and cache policy                        |
+| `src/worker.ts`, `src/lib/usage.ts`                                    | Asset routing and anonymous usage counts                |
 | `worker/src/game.rs`, `rules.rs`, `bitboard.rs`                        | Rust game model and rules                               |
 | `worker/src/search_ai.rs`, `solver.rs`                                 | Search strategy                                         |
 | `worker/src/evaluation*.rs`, `feature*.rs`                             | Position evaluation and feature extraction              |
@@ -151,8 +154,8 @@ Graphviz owns complex architecture and branching flows; Mermaid stays inline for
 - A state-machine framework would duplicate the current closed types and predicates.
 - CQRS, event sourcing, and a domain event bus do not fit one local aggregate without audit requirements.
 - Repository abstractions are unnecessary for one versioned local snapshot.
-- A dependency-injection container would obscure four explicit effects.
-- Micro-frontends, an application API, and distributed-system patterns do not fit this static game.
+- A dependency-injection container would obscure five explicit effects.
+- Micro-frontends, a general-purpose application API, and distributed-system patterns do not fit this static game.
 - Preact or framework-free rendering would add migration risk without addressing a measured bottleneck.
 
 Introduce a larger pattern only when its trigger exists, and document the trigger and trade-off here.

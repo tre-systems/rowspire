@@ -44,6 +44,17 @@ async function waitFor(check) {
 
 for (const check of checks) await waitFor(check);
 
+const invalidUsage = await fetch(`${origin}/api/usage`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Origin: origin },
+  body: JSON.stringify({ event: 'page_view' }),
+  signal: AbortSignal.timeout(requestTimeout),
+});
+if (invalidUsage.status !== 400) {
+  throw new Error(`Usage validation smoke check failed: ${invalidUsage.status}`);
+}
+console.log('Usage validation smoke check passed');
+
 const redirect = await fetch('https://rowspire.net', {
   redirect: 'manual',
   signal: AbortSignal.timeout(requestTimeout),

@@ -5,6 +5,7 @@ import { isCurrentPendingMove, isHumanTurn } from './game-state-machine';
 import { createAIActions } from './game-store-ai-actions';
 import { emptyGameState, parsePersistedState, type GameStore } from './game-store-state';
 import { ColumnIndexSchema, type AIType, type GameMode, type GameState } from './types';
+import type { UsageEvent } from './usage';
 
 export type GameStoreDependencies = {
   ai: {
@@ -14,6 +15,7 @@ export type GameStoreDependencies = {
   wait: (duration: number) => Promise<void>;
   random: () => number;
   reportError: (message: string) => void;
+  reportUsage: (event: UsageEvent) => void;
 };
 
 export type StoreAccess = {
@@ -51,6 +53,7 @@ function createLifecycleActions(
         state.pendingMove = null;
         state.showWinnerModal = false;
       });
+      dependencies.reportUsage('game_started');
     },
     reset: () => {
       invalidate();
@@ -71,7 +74,10 @@ function createLifecycleActions(
 
 type MoveActions = Pick<GameStore['actions'], 'makeMove' | 'completeMove'>;
 
-function createMoveActions({ set, get }: StoreAccess): MoveActions {
+function createMoveActions(
+  { set, get }: StoreAccess,
+  dependencies: GameStoreDependencies,
+): MoveActions {
   return {
     makeMove: column => {
       const parsedColumn = ColumnIndexSchema.safeParse(column);
@@ -105,6 +111,9 @@ function createMoveActions({ set, get }: StoreAccess): MoveActions {
         state.pendingMove = null;
         state.showWinnerModal = nextGameState.gameStatus === 'finished' && !nextGameState.winner;
       });
+      if (nextGameState.gameStatus === 'finished') {
+        dependencies.reportUsage('game_completed');
+      }
     },
   };
 }
@@ -151,7 +160,7 @@ export function createGameStoreState(dependencies: GameStoreDependencies) {
       showWinnerModal: false,
       actions: {
         ...createLifecycleActions(access, dependencies, generation),
-        ...createMoveActions(access),
+        ...createMoveActions(access, dependencies),
         ...createAIActions(access, dependencies, generation),
         ...createSettingsActions(set),
       },
