@@ -28,31 +28,64 @@ async function playColumn(page: Page, column: number) {
 }
 
 test.describe('Core Game Functionality', () => {
-  test('presents friendly choices with optional technical details', async ({ page }) => {
+  test('presents a clear opponent and difficulty choice', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'Who would you like to play?' })).toBeVisible();
-    await expect(page.getByText('The Tactician', { exact: true })).toBeVisible();
-    await expect(page.getByText('The Neural Challenger', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Choose your opponent' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The Tactician' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The Neural Challenger' })).toBeVisible();
+    await expect(page.getByText('Plans ahead and plays a precise, tactical game.')).toBeVisible();
+    await expect(page.getByText('Plays a more varied, less predictable game.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Play the Tactician' })).toHaveText('Play');
+    await expect(page.getByRole('button', { name: 'Play the Neural Challenger' })).toHaveText(
+      'Play',
+    );
     await expect(page.getByTestId('ko-fi-link-floating')).toContainText('Support Rowspire');
     await expect(page.getByTestId('difficulty-relaxed')).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByTestId('difficulty-standard').click();
     await expect(page.getByTestId('difficulty-standard')).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByTestId('difficulty-description')).toContainText(
-      'A thoughtful challenge',
-    );
-    await page.getByTestId('difficulty-technical-details').click();
-    await expect(page.getByTestId('difficulty-technical-content')).toContainText('6-ply');
-    await expect(page.getByTestId('difficulty-technical-content')).toContainText('512');
+    await expect(page.getByTestId('difficulty-description')).toContainText('A fair challenge');
 
     await page.reload();
     await expect(page.getByTestId('difficulty-standard')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('How it works', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('difficulty-technical-details')).toHaveCount(0);
+  });
 
-    await page.getByTestId('ai-details-search').click();
-    await expect(page.getByTestId('ai-details-content-search')).toContainText(
-      'Minimax search with alpha–beta pruning',
+  test('opens substantial technical details and restores focus', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('difficulty-standard').click();
+
+    const searchInfo = page.getByTestId('ai-info-search');
+    await searchInfo.click();
+    const searchDialog = page.getByRole('dialog', { name: 'How The Tactician thinks' });
+    await expect(searchDialog).toBeVisible();
+    await expect(searchDialog).toContainText('Negamax search');
+    await expect(searchDialog).toContainText('alpha–beta pruning');
+    await expect(searchDialog).toContainText('2 ply');
+    await expect(searchDialog).toContainText('6 ply');
+    await expect(searchDialog).toContainText('14 ply');
+    await expect(searchDialog.locator('tr.is-selected')).toContainText('Standard');
+    expect(await searchDialog.evaluate(dialog => dialog.contains(document.activeElement))).toBe(
+      true,
     );
+
+    await page.keyboard.press('Escape');
+    await expect(searchDialog).not.toBeVisible();
+    await expect(searchInfo).toBeFocused();
+
+    const mlInfo = page.getByTestId('ai-info-ml');
+    await mlInfo.click();
+    const mlDialog = page.getByRole('dialog', { name: 'How The Neural Challenger thinks' });
+    await expect(mlDialog).toContainText('policy network');
+    await expect(mlDialog).toContainText('value network');
+    await expect(mlDialog).toContainText('Monte Carlo tree search');
+    await expect(mlDialog).toContainText('500,000');
+    await expect(mlDialog).toContainText('4,000 simulations');
+    await page.getByTestId('opponent-details-close').click();
+    await expect(mlDialog).not.toBeVisible();
+    await expect(mlInfo).toBeFocused();
   });
 
   test('can start a game and see initial state', async ({ page }) => {
@@ -134,10 +167,7 @@ test.describe('Game Interactions', () => {
     await expect(page.getByTestId('help-panel')).toBeVisible();
     await expect(page.getByTestId('help-close')).toBeVisible();
 
-    await page.getByTestId('help-technical-details').click();
-    await expect(page.getByTestId('help-technical-content')).toContainText(
-      'policy-and-value neural network',
-    );
+    await expect(page.getByRole('heading', { name: 'Play smarter' })).toBeVisible();
 
     await page.getByTestId('help-close').click();
     await expect(page.getByTestId('help-panel')).not.toBeVisible();
@@ -217,6 +247,15 @@ test.describe('Mobile Responsiveness', () => {
     await expect(page.getByTestId('difficulty-relaxed')).toBeVisible();
     await page.getByTestId('difficulty-expert').click();
     await expect(page.getByTestId('difficulty-expert')).toHaveAttribute('aria-pressed', 'true');
+
+    const info = page.getByTestId('ai-info-search');
+    await info.click();
+    const dialog = page.getByRole('dialog', { name: 'How The Tactician thinks' });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByTestId('opponent-details-close')).toBeVisible();
+    await page.getByTestId('opponent-details-close').click();
+    await expect(info).toBeFocused();
+
     await page.getByTestId('ai-selection-search').click();
 
     await expect(page.getByTestId('game-board')).toBeVisible();

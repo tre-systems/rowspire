@@ -10,19 +10,19 @@ export type DifficultyProfile = {
 export const DIFFICULTIES = {
   relaxed: {
     name: 'Relaxed',
-    description: 'A forgiving introduction with shorter plans and more chances to recover.',
+    description: 'Best for learning the game, with more chances to recover.',
     searchDepth: 2,
     mlSimulations: 32,
   },
   standard: {
     name: 'Standard',
-    description: 'A thoughtful challenge that spots tactics without seeing everything.',
+    description: 'A fair challenge once you know the basics.',
     searchDepth: 6,
     mlSimulations: 512,
   },
   expert: {
     name: 'Expert',
-    description: 'The strongest opponents—bring your best game.',
+    description: 'The strongest level—bring your best game.',
     searchDepth: 14,
     mlSimulations: 4_000,
   },

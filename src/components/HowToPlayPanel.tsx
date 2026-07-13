@@ -1,18 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  ArrowRight,
-  ChevronDown,
-  Circle,
-  Crown,
-  Star,
-  Trophy,
-  X,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowRight, Circle, Crown, Star, Trophy, X, Zap, type LucideIcon } from 'lucide-react';
 import { useDismissOnEscape } from '@/hooks/useDismissOnEscape';
 import { APP_NAME, LEGAL_DISCLAIMER } from '@/lib/brand';
-import { OPPONENT_ORDER, OPPONENTS } from '@/lib/opponents';
 import { MOTION } from '@/lib/visuals/motion';
 
 type GuideEntry = {
@@ -138,26 +127,6 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
                 </section>
               ))}
             </div>
-
-            <details className="technical-disclosure help-technical">
-              <summary data-testid="help-technical-details">
-                How do the opponents think?
-                <ChevronDown aria-hidden="true" />
-              </summary>
-              <div className="help-technical__content" data-testid="help-technical-content">
-                {OPPONENT_ORDER.map(aiType => {
-                  const opponent = OPPONENTS[aiType];
-                  return (
-                    <section key={aiType}>
-                      <strong>
-                        {opponent.name} · {opponent.technicalName}
-                      </strong>
-                      <p>{opponent.technicalSummary}</p>
-                    </section>
-                  );
-                })}
-              </div>
-            </details>
 
             <p className="modal-legal">{LEGAL_DISCLAIMER}</p>
             <button

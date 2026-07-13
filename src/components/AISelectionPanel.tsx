@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { Brain, Cpu, Eye, Sparkles, type LucideIcon } from 'lucide-react';
+import { Brain, Cpu, Eye, type LucideIcon } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useGameActions, useGameStore } from '@/lib/game-store';
 import { OPPONENT_ORDER, OPPONENTS } from '@/lib/opponents';
 import type { AIType } from '@/lib/types';
 import AISelectionCard from './AISelectionCard';
 import DifficultySelector from './DifficultySelector';
+import OpponentDetailsModal from './OpponentDetailsModal';
 
 const ICONS = { search: Cpu, ml: Brain } satisfies Record<AIType, LucideIcon>;
 
@@ -25,6 +27,8 @@ interface AISelectionPanelProps {
 export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps) {
   const actions = useGameActions();
   const difficulty = useGameStore(state => state.difficulty);
+  const [detailsOpponent, setDetailsOpponent] = useState<AIType | null>(null);
+  const detailsTrigger = useRef<HTMLButtonElement | null>(null);
 
   const launchGame = () => {
     actions.reset();
@@ -44,6 +48,16 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
     launchGame();
   };
 
+  const openDetails = (aiType: AIType, trigger: HTMLButtonElement) => {
+    detailsTrigger.current = trigger;
+    setDetailsOpponent(aiType);
+  };
+
+  const closeDetails = () => {
+    setDetailsOpponent(null);
+    requestAnimationFrame(() => detailsTrigger.current?.focus());
+  };
+
   return (
     <motion.div
       initial="hidden"
@@ -54,12 +68,8 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
       data-testid="ai-selection-panel"
     >
       <motion.div className="selection-heading" variants={ITEM_VARIANTS}>
-        <span className="selection-eyebrow">
-          <Sparkles aria-hidden="true" />
-          Choose your challenge
-        </span>
-        <h2>Who would you like to play?</h2>
-        <p>Pick the style that sounds fun. Open “How it works” for the technical details.</p>
+        <h2>Choose your opponent</h2>
+        <p>Pick a playing style and a level.</p>
       </motion.div>
 
       <motion.div variants={ITEM_VARIANTS}>
@@ -74,6 +84,8 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
             profile={OPPONENTS[aiType]}
             icon={ICONS[aiType]}
             onClick={() => handleAISelection(aiType)}
+            onInfo={trigger => openDetails(aiType, trigger)}
+            infoOpen={detailsOpponent === aiType}
             data-testid={`ai-selection-${aiType}`}
           />
         ))}
@@ -92,6 +104,12 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
           <span>Watch both opponents play</span>
         </motion.button>
       </motion.div>
+
+      <OpponentDetailsModal
+        opponent={detailsOpponent}
+        difficulty={difficulty}
+        onClose={closeDetails}
+      />
     </motion.div>
   );
 }

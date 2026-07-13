@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronDown, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Info, type LucideIcon } from 'lucide-react';
 import type { OpponentProfile } from '@/lib/opponents';
 import type { AIType } from '@/lib/types';
 import { MOTION } from '@/lib/visuals/motion';
@@ -13,6 +13,8 @@ interface AISelectionCardProps {
   aiType: AIType;
   profile: OpponentProfile;
   onClick: () => void;
+  onInfo: (trigger: HTMLButtonElement) => void;
+  infoOpen: boolean;
   icon: LucideIcon;
   'data-testid': string;
 }
@@ -21,6 +23,8 @@ export default function AISelectionCard({
   aiType,
   profile,
   onClick,
+  onInfo,
+  infoOpen,
   icon: Icon,
   'data-testid': dataTestId,
 }: AISelectionCardProps) {
@@ -32,34 +36,43 @@ export default function AISelectionCard({
       whileHover={{ y: -6, scale: 1.01 }}
     >
       <span className="ai-card__glow" aria-hidden="true" />
-      <span className="ai-card__icon">
-        <Icon aria-hidden="true" />
-      </span>
-      <span className="ai-card__content">
-        <span className="ai-card__eyebrow">Opponent</span>
-        <span className="ai-card__title">{profile.name}</span>
-        <span className="ai-card__description">{profile.description}</span>
+      <header className="ai-card__header">
+        <span className="ai-card__identity">
+          <span className="ai-card__icon">
+            <Icon aria-hidden="true" />
+          </span>
+          <h3 className="ai-card__title">{profile.name}</h3>
+        </span>
+        <motion.button
+          type="button"
+          className="ai-card__info"
+          onClick={event => onInfo(event.currentTarget)}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          aria-label={`Technical details about ${profile.name}`}
+          aria-haspopup="dialog"
+          aria-controls="opponent-details-dialog"
+          aria-expanded={infoOpen}
+          title={`Technical details about ${profile.name}`}
+          data-testid={`ai-info-${aiType}`}
+        >
+          <Info aria-hidden="true" />
+        </motion.button>
+      </header>
+      <p className="ai-card__description">{profile.description}</p>
+      <footer className="ai-card__footer">
         <motion.button
           type="button"
           onClick={onClick}
           className="ai-card__play"
           whileTap={{ scale: 0.97 }}
+          aria-label={profile.action}
           data-testid={dataTestId}
         >
-          {profile.action}
+          Play
           <ArrowRight aria-hidden="true" />
         </motion.button>
-        <details className="technical-disclosure ai-card__details">
-          <summary data-testid={`ai-details-${aiType}`}>
-            How it works
-            <ChevronDown aria-hidden="true" />
-          </summary>
-          <div data-testid={`ai-details-content-${aiType}`}>
-            <strong>{profile.technicalName}</strong>
-            <p>{profile.technicalSummary}</p>
-          </div>
-        </details>
-      </span>
+      </footer>
     </motion.article>
   );
 }

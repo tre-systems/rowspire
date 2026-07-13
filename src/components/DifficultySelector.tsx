@@ -1,4 +1,3 @@
-import { ChevronDown } from 'lucide-react';
 import { DIFFICULTIES, DIFFICULTY_ORDER } from '@/lib/difficulty';
 import type { Difficulty } from '@/lib/types';
 
@@ -13,11 +12,7 @@ export default function DifficultySelector({ difficulty, onChange }: DifficultyS
   return (
     <section className="difficulty-selector" aria-labelledby="difficulty-title">
       <div className="difficulty-selector__heading">
-        <div>
-          <span className="ai-card__eyebrow">Game level</span>
-          <h3 id="difficulty-title">How challenging?</h3>
-        </div>
-        <span className="difficulty-selector__choice">{selected.name}</span>
+        <h3 id="difficulty-title">Difficulty</h3>
       </div>
 
       <div className="difficulty-options" role="group" aria-label="Choose game difficulty">
@@ -41,17 +36,6 @@ export default function DifficultySelector({ difficulty, onChange }: DifficultyS
       <p className="difficulty-selector__description" data-testid="difficulty-description">
         {selected.description}
       </p>
-
-      <details className="technical-disclosure difficulty-technical">
-        <summary data-testid="difficulty-technical-details">
-          Strength details
-          <ChevronDown aria-hidden="true" />
-        </summary>
-        <p data-testid="difficulty-technical-content">
-          Tactician: {selected.searchDepth}-ply search horizon. Neural challenger:{' '}
-          {selected.mlSimulations.toLocaleString()} MCTS simulations per move.
-        </p>
-      </details>
     </section>
   );
 }

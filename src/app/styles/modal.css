@@ -35,6 +35,146 @@
   width: min(100%, 27rem);
 }
 
+.opponent-dialog {
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.opponent-dialog[open] {
+  display: grid;
+  place-items: center;
+}
+
+.opponent-dialog::backdrop {
+  background: rgba(0, 2, 8, 0.78);
+  backdrop-filter: blur(12px);
+}
+
+.opponent-modal {
+  --modal-rgb: var(--teal-rgb);
+  width: min(100%, 46rem);
+  max-height: calc(100dvh - 2rem);
+  border-color: rgba(var(--modal-rgb), 0.32);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(var(--modal-rgb), 0.15), transparent 22rem),
+    radial-gradient(circle at 100% 100%, rgba(var(--violet-rgb), 0.09), transparent 20rem),
+    rgba(8, 13, 24, 0.98);
+}
+
+.opponent-modal--ml {
+  --modal-rgb: var(--violet-rgb);
+}
+
+.opponent-modal .modal-eyebrow {
+  color: rgba(var(--modal-rgb), 0.85);
+}
+
+.opponent-modal__summary {
+  margin: -0.25rem 0 1.25rem;
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.opponent-modal__grid {
+  display: grid;
+  margin-bottom: 1rem;
+  gap: 0.8rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(12rem, 1fr);
+}
+
+.opponent-modal__section,
+.opponent-modal__levels {
+  padding: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 0.95rem;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.opponent-modal__section h3,
+.opponent-modal__levels h3 {
+  margin: 0 0 0.5rem;
+  color: #f8fafc;
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.opponent-modal__section h3:not(:first-child) {
+  margin-top: 1rem;
+}
+
+.opponent-modal__section p,
+.opponent-modal__levels > p {
+  margin: 0;
+  color: rgba(203, 213, 225, 0.76);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.opponent-modal__section p + p {
+  margin-top: 0.65rem;
+}
+
+.opponent-modal__levels {
+  margin-bottom: 1rem;
+}
+
+.opponent-modal__levels > p {
+  margin-bottom: 0.75rem;
+}
+
+.opponent-modal__levels table {
+  width: 100%;
+  overflow: hidden;
+  border-collapse: collapse;
+  border-radius: 0.7rem;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.76rem;
+}
+
+.opponent-modal__levels th,
+.opponent-modal__levels td {
+  padding: 0.55rem 0.65rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  text-align: left;
+}
+
+.opponent-modal__levels thead th {
+  border-top: 0;
+  color: rgba(148, 163, 184, 0.7);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.opponent-modal__levels tbody th {
+  color: rgba(248, 250, 252, 0.9);
+}
+
+.opponent-modal__levels tr.is-selected {
+  background: rgba(var(--modal-rgb), 0.1);
+}
+
+.opponent-modal__selected {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgb(var(--modal-rgb));
+  font-weight: 720;
+}
+
+.opponent-modal__selected svg {
+  width: 0.8rem;
+}
+
 .modal-header {
   display: flex;
   align-items: flex-start;
@@ -234,23 +374,26 @@
   margin: 0.22rem 0 0;
 }
 
-.help-technical {
-  margin: 0 0 1rem;
-}
-
-.help-technical__content {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .error-technical {
   margin: -0.45rem 0 1.35rem;
 }
 
 @media (max-width: 560px) {
   .help-grid,
-  .help-technical__content {
+  .opponent-modal__grid {
     grid-template-columns: 1fr;
+  }
+
+  .opponent-dialog {
+    padding: 0.65rem;
+  }
+
+  .opponent-modal {
+    max-height: calc(100dvh - 1.3rem);
+  }
+
+  .opponent-modal__levels th,
+  .opponent-modal__levels td {
+    padding: 0.5rem 0.4rem;
   }
 }
