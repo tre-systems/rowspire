@@ -95,7 +95,7 @@ describe('AI worker client', () => {
     FakeWorker.instance.emitMessage({ id: 2, type: 'search', response: searchResponse });
     await expect(search).resolves.toEqual(searchResponse);
 
-    const ml = client.ml(state);
+    const ml = client.ml(state, 512);
     FakeWorker.instance.emitMessage({ id: 3, type: 'ml', response: mlResponse });
     await expect(ml).resolves.toEqual(mlResponse);
 
@@ -105,12 +105,18 @@ describe('AI worker client', () => {
       state,
       depth: 5,
     });
+    expect(FakeWorker.instance.postMessage).toHaveBeenNthCalledWith(3, {
+      id: 3,
+      type: 'ml',
+      state,
+      simulations: 512,
+    });
   });
 
   it('rejects every pending request after a malformed response', async () => {
     const client = new AIWorkerClient();
     const search = client.search(state, 5);
-    const ml = client.ml(state);
+    const ml = client.ml(state, 32);
     const searchExpectation = expect(search).rejects.toThrow('invalid response');
     const mlExpectation = expect(ml).rejects.toThrow('invalid response');
 
@@ -146,7 +152,7 @@ describe('AI worker client', () => {
     await expectation;
     expect(failedWorker.terminate).toHaveBeenCalledOnce();
 
-    const nextRequest = client.ml(state);
+    const nextRequest = client.ml(state, 4_000);
     expect(FakeWorker.instance).not.toBe(failedWorker);
     FakeWorker.instance.emitMessage({ id: 2, type: 'ml', response: mlResponse });
     await expect(nextRequest).resolves.toEqual(mlResponse);

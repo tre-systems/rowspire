@@ -33,8 +33,8 @@ export class AIWorkerClient {
     throw new Error('AI worker returned an unexpected search response');
   }
 
-  async ml(state: GameState): Promise<WasmMLResponse> {
-    const result = await this.request({ type: 'ml', state });
+  async ml(state: GameState, simulations: number): Promise<WasmMLResponse> {
+    const result = await this.request({ type: 'ml', state, simulations });
     if ('response' in result && result.type === 'ml') return result.response;
     throw new Error('AI worker returned an unexpected ML response');
   }

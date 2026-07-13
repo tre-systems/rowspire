@@ -9,6 +9,7 @@ Rowspire is an independent browser strategy game with two Rust/WebAssembly AI op
 ## Capabilities
 
 - Tactical Search and neural MCTS strategies run off the main thread in one Web Worker.
+- Relaxed, Standard, and Expert levels tune both opponents for newcomers and experienced players.
 - Human-versus-AI play and a Search-versus-ML watch mode.
 - Responsive, accessible animation with reduced-motion support.
 - Validated local persistence and offline recovery after service-worker activation.

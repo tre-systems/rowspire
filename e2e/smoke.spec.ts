@@ -35,6 +35,19 @@ test.describe('Core Game Functionality', () => {
     await expect(page.getByText('The Tactician', { exact: true })).toBeVisible();
     await expect(page.getByText('The Neural Challenger', { exact: true })).toBeVisible();
     await expect(page.getByTestId('ko-fi-link-floating')).toContainText('Support Rowspire');
+    await expect(page.getByTestId('difficulty-relaxed')).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByTestId('difficulty-standard').click();
+    await expect(page.getByTestId('difficulty-standard')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('difficulty-description')).toContainText(
+      'A thoughtful challenge',
+    );
+    await page.getByTestId('difficulty-technical-details').click();
+    await expect(page.getByTestId('difficulty-technical-content')).toContainText('6-ply');
+    await expect(page.getByTestId('difficulty-technical-content')).toContainText('512');
+
+    await page.reload();
+    await expect(page.getByTestId('difficulty-standard')).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByTestId('ai-details-search').click();
     await expect(page.getByTestId('ai-details-content-search')).toContainText(
@@ -43,9 +56,12 @@ test.describe('Core Game Functionality', () => {
   });
 
   test('can start a game and see initial state', async ({ page }) => {
-    await startGame(page);
+    await page.goto('/');
+    await page.getByTestId('difficulty-standard').click();
+    await page.getByTestId('ai-selection-search').click();
     await expect(page.getByRole('heading', { name: 'Rowspire' })).toBeVisible();
     await expect(page.getByText('Drop counters. Plan ahead. Make four in a row.')).toBeVisible();
+    await expect(page.getByTestId('game-status-matchup')).toContainText('Standard · Tactician');
   });
 
   test('loads WebAssembly under the production security policy', async ({ page }) => {
@@ -73,8 +89,12 @@ test.describe('Core Game Functionality', () => {
 
   test('runs the ML strategy through the shared worker', async ({ page }) => {
     await page.goto('/');
+    await page.getByTestId('difficulty-standard').click();
     await page.getByTestId('ai-selection-ml').click();
     await expect(page.getByTestId('game-board')).toBeVisible();
+    await expect(page.getByTestId('game-status-matchup')).toContainText(
+      'Standard · Neural challenger',
+    );
     await expect(page.getByTestId('column-3')).toBeEnabled({ timeout: 20_000 });
 
     const pieces = page.locator('[data-testid^="piece-"]');
@@ -193,7 +213,11 @@ test.describe('Mobile Responsiveness', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
   test('game is fully functional on mobile', async ({ page }) => {
-    await startGame(page);
+    await page.goto('/');
+    await expect(page.getByTestId('difficulty-relaxed')).toBeVisible();
+    await page.getByTestId('difficulty-expert').click();
+    await expect(page.getByTestId('difficulty-expert')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('ai-selection-search').click();
 
     await expect(page.getByTestId('game-board')).toBeVisible();
     await expect(page.getByTestId('toggle-sound')).toBeVisible();

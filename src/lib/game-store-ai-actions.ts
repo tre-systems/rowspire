@@ -52,6 +52,7 @@ export function createAIActions(
         const selectedColumn = await dependencies.ai.chooseMove(
           current.gameState,
           aiType,
+          current.difficulty,
           dependencies.random,
         );
         const column = validateAIMove(current.gameState, selectedColumn);

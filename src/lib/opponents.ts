@@ -1,4 +1,3 @@
-import { SEARCH_AI_DEPTH } from './constants';
 import type { AIType } from './types';
 
 export type OpponentProfile = {
@@ -16,7 +15,8 @@ export const OPPONENTS = {
     shortName: 'Tactician',
     description: 'A focused opponent that plans ahead and looks for clever traps.',
     technicalName: 'Search AI',
-    technicalSummary: `Minimax search with alpha–beta pruning, looking ${SEARCH_AI_DEPTH} moves ahead.`,
+    technicalSummary:
+      'Minimax search with alpha–beta pruning; the selected game level controls its search horizon.',
     action: 'Play the Tactician',
   },
   ml: {

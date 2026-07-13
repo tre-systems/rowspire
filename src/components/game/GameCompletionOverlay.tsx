@@ -19,7 +19,14 @@ export default function GameCompletionOverlay({
 }: GameCompletionOverlayProps) {
   const player1AI = useGameStore(state => state.player1AI);
   const player2AI = useGameStore(state => state.player2AI);
-  const presentation = presentGameCompletion({ gameState, gameMode, player1AI, player2AI });
+  const difficulty = useGameStore(state => state.difficulty);
+  const presentation = presentGameCompletion({
+    gameState,
+    gameMode,
+    player1AI,
+    player2AI,
+    difficulty,
+  });
   const Icon = presentation.icon ? GAME_ICONS[presentation.icon] : Trophy;
 
   return (

@@ -43,10 +43,10 @@ export default class WASMAIService {
     return this.client.search(state, depth);
   }
 
-  async getMLMove(gameState: GameState): Promise<WasmMLResponse> {
+  async getMLMove(gameState: GameState, simulations: number): Promise<WasmMLResponse> {
     await this.initialize();
     const state = await this.convertGameState(gameState);
-    return this.client.ml(state);
+    return this.client.ml(state, simulations);
   }
 
   get isReady(): boolean {

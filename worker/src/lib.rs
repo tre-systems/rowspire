@@ -48,7 +48,7 @@ mod tests {
     fn search_returns_a_legal_move() {
         let state = GameState::new();
         let mut ai = AI::new();
-        let (best_move, _) = ai.get_best_move(&state, 3);
+        let (best_move, _) = ai.get_best_move(&state, 6);
 
         assert!(best_move.is_some_and(|column| state.get_valid_moves().contains(&column)));
         assert!(ai.nodes_evaluated > 0);

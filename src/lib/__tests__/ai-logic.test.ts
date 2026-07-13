@@ -54,7 +54,9 @@ describe('makeAIMove', () => {
   it('returns a Search AI move', async () => {
     service.getBestMove.mockResolvedValue(bestMoveResponse(3));
 
-    await expect(chooseAIMove(gameState(), 'search')).resolves.toBe(3);
+    const state = gameState();
+    await expect(chooseAIMove(state, 'search')).resolves.toBe(3);
+    expect(service.getBestMove).toHaveBeenCalledWith(state, 2);
   });
 
   it('initializes an unloaded service', async () => {
@@ -78,7 +80,9 @@ describe('makeAIMove', () => {
       },
     });
 
-    await expect(chooseAIMove(gameState(), 'ml')).resolves.toBe(4);
+    const state = gameState();
+    await expect(chooseAIMove(state, 'ml')).resolves.toBe(4);
+    expect(service.getMLMove).toHaveBeenCalledWith(state, 32);
   });
 
   it('falls back from an invalid engine response', async () => {
@@ -104,7 +108,7 @@ describe('makeAIMove', () => {
   it('uses a valid random move when both engine attempts fail', async () => {
     service.getBestMove.mockRejectedValue(new Error('Unavailable'));
 
-    await expect(chooseAIMove(gameState(), 'search', () => 1)).resolves.toBe(6);
+    await expect(chooseAIMove(gameState(), 'search', 'relaxed', () => 1)).resolves.toBe(6);
   });
 
   it('reports failure when the board has no valid move', async () => {

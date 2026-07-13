@@ -58,7 +58,7 @@ describe('WASM AI service', () => {
     const game = initializeGame();
 
     await service.getBestMove(game, 5);
-    await service.getMLMove(game);
+    await service.getMLMove(game, 512);
 
     expect(client.initialize).toHaveBeenCalledOnce();
     expect(fetchMock).toHaveBeenCalledOnce();
@@ -68,6 +68,7 @@ describe('WASM AI service', () => {
     );
     expect(client.ml).toHaveBeenCalledWith(
       expect.objectContaining({ genetic_params: geneticParams }),
+      512,
     );
   });
 

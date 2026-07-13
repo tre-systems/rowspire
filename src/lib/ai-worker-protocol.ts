@@ -13,7 +13,14 @@ export const AIWorkerRequestSchema = z.discriminatedUnion('type', [
       depth: z.number().int().min(1).max(20),
     })
     .strict(),
-  z.object({ id: RequestIdSchema, type: z.literal('ml'), state: WasmGameStateSchema }).strict(),
+  z
+    .object({
+      id: RequestIdSchema,
+      type: z.literal('ml'),
+      state: WasmGameStateSchema,
+      simulations: z.number().int().min(1).max(4_000),
+    })
+    .strict(),
 ]);
 
 export type AIWorkerRequest = z.infer<typeof AIWorkerRequestSchema>;

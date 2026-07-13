@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { Brain, Cpu, Eye, Sparkles, type LucideIcon } from 'lucide-react';
-import { useGameActions } from '@/lib/game-store';
+import { useGameActions, useGameStore } from '@/lib/game-store';
 import { OPPONENT_ORDER, OPPONENTS } from '@/lib/opponents';
 import type { AIType } from '@/lib/types';
 import AISelectionCard from './AISelectionCard';
+import DifficultySelector from './DifficultySelector';
 
 const ICONS = { search: Cpu, ml: Brain } satisfies Record<AIType, LucideIcon>;
 
@@ -23,6 +24,7 @@ interface AISelectionPanelProps {
 
 export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps) {
   const actions = useGameActions();
+  const difficulty = useGameStore(state => state.difficulty);
 
   const launchGame = () => {
     actions.reset();
@@ -58,6 +60,10 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
         </span>
         <h2>Who would you like to play?</h2>
         <p>Pick the style that sounds fun. Open “How it works” for the technical details.</p>
+      </motion.div>
+
+      <motion.div variants={ITEM_VARIANTS}>
+        <DifficultySelector difficulty={difficulty} onChange={actions.setDifficulty} />
       </motion.div>
 
       <div className="selection-grid">

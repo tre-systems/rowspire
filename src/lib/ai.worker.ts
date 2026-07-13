@@ -72,7 +72,9 @@ ctx.onmessage = async event => {
       ctx.postMessage({ id, type: 'search', response });
       return;
     }
-    const response = MLResponseSchema.parse(ai.get_ml_move(request.data.state));
+    const response = MLResponseSchema.parse(
+      ai.get_ml_move(request.data.state, request.data.simulations),
+    );
     ctx.postMessage({ id, type: 'ml', response });
   } catch (error) {
     ctx.postMessage({ id, error: error instanceof Error ? error.message : String(error) });

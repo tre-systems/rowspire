@@ -22,5 +22,3 @@ export const DEFAULT_GENETIC_PARAMS = {
   horizontal_control_weight: 1.344,
   defensive_weight: 1.372,
 } satisfies GeneticParams;
-
-export const SEARCH_AI_DEPTH = 5;

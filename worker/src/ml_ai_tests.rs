@@ -86,3 +86,13 @@ fn weight_loading_is_atomic() {
     assert!(ai.load_weights(&vec![0.0; value_count], &[0.0]).is_err());
     assert_eq!(ai.value_network.get_weights(), original);
 }
+
+#[test]
+fn validates_mcts_work_budget() {
+    let mut ai = MLAI::new_with_seed(42);
+
+    assert!(ai.set_simulation_budget(0).is_err());
+    assert!(ai.set_simulation_budget(1).is_ok());
+    assert!(ai.set_simulation_budget(4_000).is_ok());
+    assert!(ai.set_simulation_budget(4_001).is_err());
+}

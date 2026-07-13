@@ -72,6 +72,9 @@ export type GameState = z.infer<typeof GameStateSchema>;
 export const AITypeSchema = z.enum(['search', 'ml']);
 export type AIType = z.infer<typeof AITypeSchema>;
 
+export const DifficultySchema = z.enum(['relaxed', 'standard', 'expert']);
+export type Difficulty = z.infer<typeof DifficultySchema>;
+
 export const GameModeSchema = z.enum(['human-vs-human', 'human-vs-ai', 'ai-vs-ai']);
 export type GameMode = z.infer<typeof GameModeSchema>;
 
@@ -80,5 +83,6 @@ export type PersistedGameStore = {
   selectedAI: AIType;
   player1AI: AIType;
   player2AI: AIType;
+  difficulty: Difficulty;
   gameMode: GameMode;
 };

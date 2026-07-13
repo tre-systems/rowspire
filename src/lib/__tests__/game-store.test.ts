@@ -33,6 +33,7 @@ describe('Game Store', () => {
       selectedAI: 'search',
       player1AI: 'search',
       player2AI: 'search',
+      difficulty: 'relaxed',
       gameMode: 'human-vs-ai',
     }));
   });
@@ -160,12 +161,14 @@ describe('Game Store', () => {
     actions.setAI('ml');
     actions.setPlayer1AI('ml');
     actions.setPlayer2AI('search');
+    actions.setDifficulty('standard');
     actions.setGameMode('ai-vs-ai');
 
     const state = useGameStore.getState();
     expect(state.selectedAI).toBe('ml');
     expect(state.player1AI).toBe('ml');
     expect(state.player2AI).toBe('search');
+    expect(state.difficulty).toBe('standard');
     expect(state.gameMode).toBe('ai-vs-ai');
   });
 

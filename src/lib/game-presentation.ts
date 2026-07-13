@@ -1,5 +1,6 @@
-import type { AIType, GameMode, GameState, Player } from './types';
+import { DIFFICULTIES } from './difficulty';
 import { OPPONENTS } from './opponents';
+import type { AIType, Difficulty, GameMode, GameState, Player } from './types';
 
 export type GameIcon = 'brain' | 'cpu' | 'crown' | 'trophy' | 'x-circle' | 'zap';
 type GameTone = 'gray' | 'green' | 'pink' | 'teal' | 'violet';
@@ -9,6 +10,7 @@ type PresentationContext = {
   gameMode: GameMode;
   player1AI: AIType;
   player2AI: AIType;
+  difficulty: Difficulty;
 };
 
 type StatusPresentationContext = PresentationContext & {
@@ -48,12 +50,18 @@ function aiWinnerText(context: PresentationContext, winner: Player): string {
 }
 
 function aiMatchup(context: PresentationContext): string {
-  return `${getAITypeLabel(context.player1AI)} vs ${getAITypeLabel(context.player2AI)}`;
+  const opponents =
+    context.gameMode === 'ai-vs-ai'
+      ? `${getAITypeLabel(context.player1AI)} vs ${getAITypeLabel(context.player2AI)}`
+      : getAITypeLabel(context.player2AI);
+  return `${DIFFICULTIES[context.difficulty].name} · ${opponents}`;
 }
 
 function finishedStatus(context: StatusPresentationContext): GamePresentation {
   const { winner } = context.gameState;
-  if (!winner) return { text: "It's a draw!", icon: 'x-circle', tone: 'gray', matchup: null };
+  if (!winner) {
+    return { text: "It's a draw!", icon: 'x-circle', tone: 'gray', matchup: aiMatchup(context) };
+  }
 
   const isPlayer1 = winner === 'player1';
   return {
@@ -65,7 +73,7 @@ function finishedStatus(context: StatusPresentationContext): GamePresentation {
           : 'Your opponent wins',
     icon: isPlayer1 ? 'trophy' : 'zap',
     tone: isPlayer1 ? 'teal' : 'violet',
-    matchup: null,
+    matchup: aiMatchup(context),
   };
 }
 
@@ -86,13 +94,13 @@ function playingStatus(context: StatusPresentationContext): GamePresentation {
   }
 
   if (!isPlayer1) {
-    return { text: 'Your opponent is thinking…', icon: 'zap', tone, matchup: null };
+    return { text: 'Your opponent is thinking…', icon: 'zap', tone, matchup: aiMatchup(context) };
   }
   return {
     text: "Your turn — you're Teal",
     icon: 'crown',
     tone,
-    matchup: null,
+    matchup: aiMatchup(context),
   };
 }
 
@@ -102,7 +110,7 @@ export function presentGameStatus(context: StatusPresentationContext): GamePrese
       text: 'Choose an opponent to start',
       icon: 'crown',
       tone: 'gray',
-      matchup: null,
+      matchup: aiMatchup(context),
     };
   }
   if (context.gameState.gameStatus === 'finished') return finishedStatus(context);
@@ -117,7 +125,7 @@ export function presentGameCompletion(context: PresentationContext): CompletionP
       message: 'No spaces left—that was a close game.',
       icon: null,
       tone: 'gray',
-      matchup: null,
+      matchup: aiMatchup(context),
     };
   }
 
@@ -136,6 +144,6 @@ export function presentGameCompletion(context: PresentationContext): CompletionP
         : 'Close one—ready for another round?',
     icon: isWatchMode ? aiIcon(aiForPlayer(context, winner)) : isPlayer1 ? 'trophy' : 'zap',
     tone: isWatchMode ? (isPlayer1 ? 'teal' : 'violet') : isPlayer1 ? 'green' : 'pink',
-    matchup: isWatchMode ? aiMatchup(context) : null,
+    matchup: aiMatchup(context),
   };
 }

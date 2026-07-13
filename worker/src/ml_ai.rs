@@ -6,6 +6,8 @@ use super::{GameState, COLS};
 pub use crate::ml_types::{MLDiagnostics, MLResponse};
 use crate::MoveEvaluation;
 
+const MAX_MCTS_SIMULATIONS: u32 = 4_000;
+
 pub struct MLAI {
     pub value_network: NeuralNetwork,
     pub policy_network: NeuralNetwork,
@@ -146,6 +148,15 @@ impl MLAI {
                 policy_network_outputs: raw_policy.to_vec(),
             },
         }
+    }
+
+    pub fn set_simulation_budget(&mut self, simulations: u32) -> Result<(), &'static str> {
+        if !(1..=MAX_MCTS_SIMULATIONS).contains(&simulations) {
+            return Err("MCTS simulations must be between 1 and 4000");
+        }
+
+        self.mcts_simulations = simulations as usize;
+        Ok(())
     }
 
     pub fn evaluate_position(&self, state: &GameState) -> f32 {

@@ -72,7 +72,15 @@ impl RowspireAI {
         serde_wasm_bindgen::to_value(&response).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
-    pub fn get_ml_move(&mut self, board_state: &JsValue) -> Result<JsValue, JsValue> {
+    pub fn get_ml_move(
+        &mut self,
+        board_state: &JsValue,
+        simulations: u32,
+    ) -> Result<JsValue, JsValue> {
+        self.ml_ai
+            .set_simulation_budget(simulations)
+            .map_err(JsValue::from_str)?;
+
         let state: GameState = serde_wasm_bindgen::from_value(board_state.clone())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
@@ -140,7 +148,7 @@ mod tests {
     fn test_ml_move() {
         let mut ai = RowspireAI::new();
         let game_state = serde_wasm_bindgen::to_value(&GameState::new()).unwrap();
-        let result = ai.get_ml_move(&game_state).unwrap();
+        let result = ai.get_ml_move(&game_state, 32).unwrap();
         assert!(!result.is_undefined());
     }
 }

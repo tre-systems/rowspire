@@ -25,28 +25,29 @@ Dependencies point inward: the pure browser domain does not depend on React, Zus
 
 ## Pattern Catalog
 
-| Pattern                           | Rule                                              | Implementation                                   | Enforcement                         |
-| --------------------------------- | ------------------------------------------------- | ------------------------------------------------ | ----------------------------------- |
-| Schema-first domain model         | Define browser-domain values once                 | `schemas.ts`, `types.ts`                         | Zod, strict TypeScript, import lint |
-| Aggregate invariant               | Validate relationships, not only shape            | `game-state-invariants.ts`                       | Replay and malformed-state tests    |
-| Functional core, imperative shell | Keep decisions pure and effects at edges          | `game-logic.ts`, `logic/*`, stores and adapters  | Dependency lint and Vitest          |
-| Command store                     | Let UI issue named commands                       | `GameStore.actions`                              | Zustand + Immer                     |
-| Selector read model               | Subscribe only to rendered state                  | Named and inline selectors                       | Zero-argument store-hook lint       |
-| Explicit state machine            | Centralize turn and transition predicates         | `game-state-machine.ts`                          | State-machine and store tests       |
-| Generation token                  | Reject stale asynchronous results                 | `gameGeneration`, `isSameTurn`                   | Async race tests                    |
-| Presentation model                | Derive display semantics outside React            | `game-presentation.ts`                           | Pure tests and Playwright           |
-| Progressive disclosure            | Lead with user intent; reveal technical detail    | Opponent, help, and error disclosures            | Semantic HTML and Playwright        |
-| Ports and adapters                | Construct effects explicitly                      | `GameStoreDependencies`, AI adapters             | Store factory tests                 |
-| Deterministic effects             | Inject clocks and randomness                      | Store dependencies and seeded Rust RNG           | Reproducibility tests               |
-| Purposeful motion                 | Animate state changes and respect user preference | `visuals/motion.ts`, transform-based transitions | Playwright and reduced-motion tests |
-| Contract-first boundary           | Validate both sides of cross-runtime calls        | `ai-worker-protocol.ts`, `wasm-ai-boundary.ts`   | Strict Zod protocol tests           |
-| Strategy with fallback            | Degrade explicitly to another legal move source   | `ai-logic.ts`, Rust strategies                   | Exhaustive types and AI tests       |
-| Versioned snapshot                | Persist only stable validated state               | `game-store-state.ts`                            | Migration and aggregate tests       |
-| Privacy-filtered observability    | Make reporting optional and filter sensitive data | `observability.ts`, `AppErrorBoundary.tsx`       | Observability tests                 |
-| Executable conformance            | Keep TypeScript and Rust rules aligned            | Shared rule fixtures                             | Vitest and Cargo tests              |
-| Artifact promotion                | Test and deploy the same build output             | Vite/Cloudflare workflow                         | Production-preview Playwright       |
-| Least-privilege delivery          | Isolate secrets and pin executable dependencies   | GitHub Actions                                   | SHA policy and scoped step env      |
-| Fitness function                  | Turn architectural constraints into release gates | Lint, types, tests, audits, docs, bundle         | `npm run check`                     |
+| Pattern                           | Rule                                              | Implementation                                    | Enforcement                          |
+| --------------------------------- | ------------------------------------------------- | ------------------------------------------------- | ------------------------------------ |
+| Schema-first domain model         | Define browser-domain values once                 | `schemas.ts`, `types.ts`                          | Zod, strict TypeScript, import lint  |
+| Aggregate invariant               | Validate relationships, not only shape            | `game-state-invariants.ts`                        | Replay and malformed-state tests     |
+| Functional core, imperative shell | Keep decisions pure and effects at edges          | `game-logic.ts`, `logic/*`, stores and adapters   | Dependency lint and Vitest           |
+| Command store                     | Let UI issue named commands                       | `GameStore.actions`                               | Zustand + Immer                      |
+| Selector read model               | Subscribe only to rendered state                  | Named and inline selectors                        | Zero-argument store-hook lint        |
+| Explicit state machine            | Centralize turn and transition predicates         | `game-state-machine.ts`                           | State-machine and store tests        |
+| Generation token                  | Reject stale asynchronous results                 | `gameGeneration`, `isSameTurn`                    | Async race tests                     |
+| Presentation model                | Derive display semantics outside React            | `game-presentation.ts`                            | Pure tests and Playwright            |
+| Progressive disclosure            | Lead with user intent; reveal technical detail    | Opponent, difficulty, help, and error disclosures | Semantic HTML and Playwright         |
+| Ports and adapters                | Construct effects explicitly                      | `GameStoreDependencies`, AI adapters              | Store factory tests                  |
+| Deterministic effects             | Inject clocks and randomness                      | Store dependencies and seeded Rust RNG            | Reproducibility tests                |
+| Purposeful motion                 | Animate state changes and respect user preference | `visuals/motion.ts`, transform-based transitions  | Playwright and reduced-motion tests  |
+| Contract-first boundary           | Validate both sides of cross-runtime calls        | `ai-worker-protocol.ts`, `wasm-ai-boundary.ts`    | Strict Zod protocol tests            |
+| Typed policy table                | Express named strength levels as data             | `difficulty.ts`                                   | Monotonic profile and boundary tests |
+| Strategy with fallback            | Degrade explicitly to another legal move source   | `ai-logic.ts`, Rust strategies                    | Exhaustive types and AI tests        |
+| Versioned snapshot                | Persist only stable validated state               | `game-store-state.ts`                             | Migration and aggregate tests        |
+| Privacy-filtered observability    | Make reporting optional and filter sensitive data | `observability.ts`, `AppErrorBoundary.tsx`        | Observability tests                  |
+| Executable conformance            | Keep TypeScript and Rust rules aligned            | Shared rule fixtures                              | Vitest and Cargo tests               |
+| Artifact promotion                | Test and deploy the same build output             | Vite/Cloudflare workflow                          | Production-preview Playwright        |
+| Least-privilege delivery          | Isolate secrets and pin executable dependencies   | GitHub Actions                                    | SHA policy and scoped step env       |
+| Fitness function                  | Turn architectural constraints into release gates | Lint, types, tests, audits, docs, bundle          | `npm run check`                      |
 
 ## Domain and State
 
@@ -56,7 +57,7 @@ Rust transport types are generated into `bindings.ts`. They are boundary contrac
 
 Pure functions own moves, wins, draws, transition predicates, and presentation decisions. The imperative shell owns storage, workers, timers, random sources, reporting, React events, and animation lifecycle. UI behavior is covered with Playwright; extracted decisions are covered with Vitest.
 
-`createGameStore` builds a vanilla Zustand store from five injected effects: AI, wait, random, error reporting, and product-usage reporting. Production supplies browser adapters; tests supply deterministic substitutes. Zustand persistence stores only the game aggregate, mode, and AI selections under `rowspire-game-storage`; actions and transient state are reconstructed.
+`createGameStore` builds a vanilla Zustand store from five injected effects: AI, wait, random, error reporting, and product-usage reporting. Production supplies browser adapters; tests supply deterministic substitutes. Zustand persistence stores only the game aggregate, mode, AI selections, and shared difficulty under `rowspire-game-storage`; actions and transient state are reconstructed.
 
 ```mermaid
 stateDiagram-v2
@@ -87,9 +88,19 @@ Both strategies run in one `ai.worker.ts` instance off the React thread. The bou
 - `ai-worker-client.ts` correlates requests, enforces timeouts, and replaces a failed worker.
 - `wasm-ai-service.ts` translates domain state and caches genetic parameters.
 
+Difficulty is a typed policy rather than a separate strategy. One selected level applies to every AI in a match and is stored in the versioned snapshot.
+
+| Level    | Search depth | ML simulations per move |
+| -------- | -----------: | ----------------------: |
+| Relaxed  |        2 ply |                      32 |
+| Standard |        6 ply |                     512 |
+| Expert   |       14 ply |                   4,000 |
+
+The worker contract validates both budgets. The ML strategy checks immediate wins and blocks before MCTS at every level, so difficulty changes planning effort without allowing obvious one-move mistakes.
+
 The ML strategy loads separate value and policy networks with four 128-unit hidden layers. If stored weights cannot be loaded, it retains its initialized networks. Selected-strategy failure or an invalid result follows one fallback chain:
 
-1. Shallow Search.
+1. Search at the selected difficulty.
 2. An injected random legal column.
 3. A user-visible error when no legal move exists.
 
@@ -159,5 +170,6 @@ Graphviz owns complex architecture and branching flows; Mermaid stays inline for
 - A dependency-injection container would obscure five explicit effects.
 - Micro-frontends, a general-purpose application API, and distributed-system patterns do not fit this static game.
 - Preact or framework-free rendering would add migration risk without addressing a measured bottleneck.
+- An identity-based global leaderboard is deferred: without accounts, server-issued challenges, and replay verification it would be easy to forge; storing replays or stable aliases would expand the current privacy boundary.
 
 Introduce a larger pattern only when its trigger exists, and document the trigger and trade-off here.

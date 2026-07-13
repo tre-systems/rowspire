@@ -14,7 +14,15 @@ interface GameStatusProps {
 export default function GameStatus({ gameState, aiThinking, gameMode }: GameStatusProps) {
   const player1AI = useGameStore(state => state.player1AI);
   const player2AI = useGameStore(state => state.player2AI);
-  const status = presentGameStatus({ gameState, gameMode, aiThinking, player1AI, player2AI });
+  const difficulty = useGameStore(state => state.difficulty);
+  const status = presentGameStatus({
+    gameState,
+    gameMode,
+    aiThinking,
+    player1AI,
+    player2AI,
+    difficulty,
+  });
   const StatusIcon = GAME_ICONS[status.icon];
 
   return (

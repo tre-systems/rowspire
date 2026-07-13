@@ -47,7 +47,9 @@ describe('AI worker protocol', () => {
     expect(
       AIWorkerRequestSchema.safeParse({ id: 1, type: 'search', state, depth: 5 }).success,
     ).toBe(true);
-    expect(AIWorkerRequestSchema.safeParse({ id: 2, type: 'ml', state }).success).toBe(true);
+    expect(
+      AIWorkerRequestSchema.safeParse({ id: 2, type: 'ml', state, simulations: 512 }).success,
+    ).toBe(true);
     expect(AIWorkerRequestSchema.safeParse({ id: 3, type: 'initialize' }).success).toBe(true);
   });
 
@@ -61,6 +63,9 @@ describe('AI worker protocol', () => {
   it('bounds search work at the worker boundary', () => {
     expect(
       AIWorkerRequestSchema.safeParse({ id: 1, type: 'search', state, depth: 21 }).success,
+    ).toBe(false);
+    expect(
+      AIWorkerRequestSchema.safeParse({ id: 2, type: 'ml', state, simulations: 4_001 }).success,
     ).toBe(false);
   });
 

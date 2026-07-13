@@ -127,6 +127,7 @@ describe('Schemas', () => {
         selectedAI: 'search',
         player1AI: 'search',
         player2AI: 'search',
+        difficulty: 'relaxed',
         gameMode: 'human-vs-ai',
       });
     });
@@ -140,6 +141,12 @@ describe('Schemas', () => {
       expect(state.gameState.gameStatus).toBe('not_started');
       expect(state.gameState.board).toHaveLength(7);
       expect(state.gameMode).toBe('human-vs-ai');
+      expect(state.difficulty).toBe('relaxed');
+    });
+
+    it('retains a valid difficulty and defaults an invalid one', () => {
+      expect(parsePersistedState({ difficulty: 'expert' }).difficulty).toBe('expert');
+      expect(parsePersistedState({ difficulty: 'impossible' }).difficulty).toBe('relaxed');
     });
 
     it('migrates an unreachable waiting state to setup', () => {

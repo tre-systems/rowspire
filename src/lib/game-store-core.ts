@@ -4,13 +4,24 @@ import { initializeGame, makeMove } from './game-logic';
 import { isCurrentPendingMove, isHumanTurn } from './game-state-machine';
 import { createAIActions } from './game-store-ai-actions';
 import { emptyGameState, parsePersistedState, type GameStore } from './game-store-state';
-import { ColumnIndexSchema, type AIType, type GameMode, type GameState } from './types';
+import {
+  ColumnIndexSchema,
+  type AIType,
+  type Difficulty,
+  type GameMode,
+  type GameState,
+} from './types';
 import type { UsageEvent } from './usage';
 
 export type GameStoreDependencies = {
   ai: {
     initialize: () => Promise<void>;
-    chooseMove: (state: GameState, type: AIType, random: () => number) => Promise<number>;
+    chooseMove: (
+      state: GameState,
+      type: AIType,
+      difficulty: Difficulty,
+      random: () => number,
+    ) => Promise<number>;
   };
   wait: (duration: number) => Promise<void>;
   random: () => number;
@@ -120,7 +131,7 @@ function createMoveActions(
 
 type SettingsActions = Pick<
   GameStore['actions'],
-  'setAI' | 'setPlayer1AI' | 'setPlayer2AI' | 'setGameMode'
+  'setAI' | 'setPlayer1AI' | 'setPlayer2AI' | 'setDifficulty' | 'setGameMode'
 >;
 
 function createSettingsActions(set: StoreAccess['set']): SettingsActions {
@@ -144,6 +155,11 @@ function createSettingsActions(set: StoreAccess['set']): SettingsActions {
     },
     setPlayer1AI: aiType => setPlayerAI('player1AI', aiType),
     setPlayer2AI: aiType => setPlayerAI('player2AI', aiType),
+    setDifficulty: difficulty => {
+      set(state => {
+        state.difficulty = difficulty;
+      });
+    },
     setGameMode,
   };
 }

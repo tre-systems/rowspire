@@ -32,6 +32,7 @@ describe('game store ports', () => {
     const random = vi.fn(() => 0.25);
     const chooseMove = vi.fn().mockResolvedValue(4);
     const store = createGameStore(dependencies(chooseMove, vi.fn(), random));
+    store.getState().actions.setDifficulty('expert');
     store.getState().actions.startGame();
 
     expect(random).toHaveBeenCalledOnce();
@@ -40,7 +41,7 @@ describe('game store ports', () => {
     setAITurn(store);
     await store.getState().actions.makeAIMove();
 
-    expect(chooseMove).toHaveBeenCalledWith(expect.any(Object), 'search', random);
+    expect(chooseMove).toHaveBeenCalledWith(expect.any(Object), 'search', 'expert', random);
     expect(store.getState().pendingMove?.column).toBe(4);
   });
 

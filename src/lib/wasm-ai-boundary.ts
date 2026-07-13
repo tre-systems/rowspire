@@ -104,7 +104,7 @@ export const MLWeightsSchema = z
 export interface WASMAIInstance {
   clear_transposition_table: () => void;
   get_best_move: (state: WasmGameState, depth: number) => unknown;
-  get_ml_move: (state: WasmGameState) => unknown;
+  get_ml_move: (state: WasmGameState, simulations: number) => unknown;
   load_ml_weights: (value: number[], policy: number[]) => void;
 }
 

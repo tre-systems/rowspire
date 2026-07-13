@@ -1,8 +1,10 @@
 import {
   AITypeSchema,
+  DifficultySchema,
   GameModeSchema,
   GameStateSchema,
   type AIType,
+  type Difficulty,
   type GameMode,
   type GameState,
   type PendingMove,
@@ -10,7 +12,7 @@ import {
 } from './types';
 import { createEmptyBoard } from './logic/board-logic';
 
-export const LATEST_VERSION = 4;
+export const LATEST_VERSION = 5;
 
 export const emptyGameState = (): GameState => ({
   board: createEmptyBoard(),
@@ -26,6 +28,7 @@ const defaultPersistedState = (): PersistedGameStore => ({
   selectedAI: 'search',
   player1AI: 'search',
   player2AI: 'search',
+  difficulty: 'relaxed',
   gameMode: 'human-vs-ai',
 });
 
@@ -39,13 +42,14 @@ export function parsePersistedState(value: unknown): PersistedGameStore {
     selectedAI: AITypeSchema.safeParse(state['selectedAI']).data ?? defaults.selectedAI,
     player1AI: AITypeSchema.safeParse(state['player1AI']).data ?? defaults.player1AI,
     player2AI: AITypeSchema.safeParse(state['player2AI']).data ?? defaults.player2AI,
+    difficulty: DifficultySchema.safeParse(state['difficulty']).data ?? defaults.difficulty,
     gameMode: GameModeSchema.safeParse(state['gameMode']).data ?? defaults.gameMode,
   };
 }
 
 export function persistedStateFrom(store: GameStore): PersistedGameStore {
-  const { gameState, selectedAI, player1AI, player2AI, gameMode } = store;
-  return { gameState, selectedAI, player1AI, player2AI, gameMode };
+  const { gameState, selectedAI, player1AI, player2AI, difficulty, gameMode } = store;
+  return { gameState, selectedAI, player1AI, player2AI, difficulty, gameMode };
 }
 
 export type GameStore = {
@@ -56,6 +60,7 @@ export type GameStore = {
   selectedAI: AIType;
   player1AI: AIType;
   player2AI: AIType;
+  difficulty: Difficulty;
   gameMode: GameMode;
   actions: {
     initialize: () => void;
@@ -68,6 +73,7 @@ export type GameStore = {
     setAI: (aiType: AIType) => void;
     setPlayer1AI: (aiType: AIType) => void;
     setPlayer2AI: (aiType: AIType) => void;
+    setDifficulty: (difficulty: Difficulty) => void;
     setGameMode: (mode: GameMode) => void;
   };
 };

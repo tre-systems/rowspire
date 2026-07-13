@@ -8,6 +8,7 @@ export type {
   GameState,
   WinningLine,
   AIType,
+  Difficulty,
   GameMode,
   PersistedGameStore,
 } from './schemas';
@@ -20,5 +21,6 @@ export {
   GameStateSchema,
   WinningLineSchema,
   AITypeSchema,
+  DifficultySchema,
   GameModeSchema,
 } from './schemas';

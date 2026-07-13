@@ -32,15 +32,9 @@ impl AI {
         state: &GameState,
         depth: u8,
     ) -> (Option<u8>, Vec<MoveEvaluation>) {
-        let engine_depth = match depth {
-            1 => 6,
-            3 => 10,
-            5 => 14,
-            _ => depth.saturating_add(4).min(20),
-        };
         let (best_move, score) = self
             .solver
-            .analyze(&Bitboard::from_game_state(state), engine_depth);
+            .analyze(&Bitboard::from_game_state(state), depth.min(20));
 
         self.nodes_evaluated = self.solver.get_nodes_count().try_into().unwrap_or(u32::MAX);
         self.transposition_hits = self
