@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { makeBrowserOfflineTransport } from '@sentry/browser';
 
 import { beforeSend, tracesSampleRate } from './sentry.shared.config';
 
@@ -10,6 +11,7 @@ if (dsn) {
     environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? process.env.NODE_ENV,
     release: process.env.NEXT_PUBLIC_SENTRY_RELEASE,
     sendDefaultPii: false,
+    transport: makeBrowserOfflineTransport(),
     tracesSampleRate: tracesSampleRate(),
     beforeSend,
     replaysSessionSampleRate: 0,
