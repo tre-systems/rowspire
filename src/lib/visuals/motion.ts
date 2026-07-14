@@ -8,3 +8,9 @@ export const MOTION = {
 
 export const PIECE_DROP_DURATION_MS = 560;
 export const WIN_REVEAL_DURATION_MS = 2600;
+
+// Minimum time the status banner holds a state before showing the next one.
+// Fast engines (especially watch mode) can change turns many times a second;
+// coalescing to at most one change per interval keeps the banner from
+// flashing, staying within WCAG 2.3.1.
+export const STATUS_MIN_INTERVAL_MS = 650;
