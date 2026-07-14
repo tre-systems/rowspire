@@ -73,7 +73,7 @@ jobs:
         run: npm run build:app && npm run brand:audit
         env:
           GITHUB_SHA: ${{ github.sha }}
-          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN || vars.NEXT_PUBLIC_SENTRY_DSN }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
           VITE_SENTRY_ENVIRONMENT: production
           VITE_SENTRY_RELEASE: ${{ github.sha }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

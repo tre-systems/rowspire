@@ -1,7 +1,7 @@
 {
   "name": "rowspire",
   "version": "1.0.0",
-  "description": "Rowspire - Browser strategy game with AI opponents",
+  "description": "Open-source browser strategy game with tactical-search and neural-network AI opponents",
   "license": "MIT",
   "private": true,
   "type": "module",
