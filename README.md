@@ -1,6 +1,6 @@
 # Rowspire
 
-Rowspire is an independent browser strategy game with two Rust/WebAssembly AI opponents. The React application runs entirely in the browser and is delivered through Cloudflare Workers Static Assets. Anonymous product metrics count only games started and completed; no board, move, browser, or user identifiers are collected.
+Rowspire is an independent browser strategy game with two Rust/WebAssembly AI opponents. The React application runs entirely in the browser and is delivered through Cloudflare Workers Static Assets. Anonymous product metrics count game starts and completions by opponent, difficulty, mode, starting side, result, and move count; no board state, move sequence, browser, or user identifier is collected.
 
 [Play Rowspire](https://rowspire.com)
 

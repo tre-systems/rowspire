@@ -20,18 +20,27 @@ function usageRequest(body: string, headers: Record<string, string> = {}) {
   });
 }
 
+const startedEvent = {
+  event: 'game_started',
+  mode: 'human-vs-ai',
+  difficulty: 'standard',
+  player1: 'human',
+  player2: 'search',
+  startedBy: 'player2',
+};
+
 describe('Rowspire Worker', () => {
   it('records known same-origin usage events', async () => {
     const writeDataPoint = vi.fn();
-    const request = usageRequest(JSON.stringify({ event: 'game_started' }));
+    const request = usageRequest(JSON.stringify(startedEvent));
 
     const result = await worker.fetch(request, environment(writeDataPoint));
 
     expect(result.status).toBe(202);
     expect(writeDataPoint).toHaveBeenCalledWith({
       indexes: ['rowspire'],
-      blobs: ['game_started'],
-      doubles: [1],
+      blobs: ['game_started', 'human-vs-ai', 'standard', 'human', 'search', 'player2', ''],
+      doubles: [1, 0],
     });
   });
 
@@ -39,7 +48,7 @@ describe('Rowspire Worker', () => {
     { body: '{', origin: 'https://rowspire.com' },
     { body: JSON.stringify({ event: 'page_view' }), origin: 'https://rowspire.com' },
     {
-      body: JSON.stringify({ event: 'game_started', user: 'someone' }),
+      body: JSON.stringify({ ...startedEvent, user: 'someone' }),
       origin: 'https://rowspire.com',
     },
   ])('rejects invalid usage payloads', async ({ body, origin }) => {
@@ -79,7 +88,12 @@ describe('Rowspire Worker', () => {
     const request = new Request('https://rowspire.com/api/usage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Origin: 'https://example.com' },
-      body: JSON.stringify({ event: 'game_completed' }),
+      body: JSON.stringify({
+        ...startedEvent,
+        event: 'game_completed',
+        result: 'player1',
+        moves: 9,
+      }),
     });
 
     const result = await worker.fetch(request, environment(writeDataPoint));
@@ -91,7 +105,7 @@ describe('Rowspire Worker', () => {
 
   it('reports unavailable instrumentation without affecting asset requests', async () => {
     const assets = { fetch: vi.fn().mockResolvedValue(new Response('asset')) };
-    const request = usageRequest(JSON.stringify({ event: 'game_started' }));
+    const request = usageRequest(JSON.stringify(startedEvent));
 
     expect((await worker.fetch(request, { ASSETS: assets })).status).toBe(503);
 

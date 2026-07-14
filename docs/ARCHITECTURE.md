@@ -128,7 +128,14 @@ Shared timings live in `visuals/motion.ts`; UI transitions use transforms and op
 
 Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables default PII, removes users, request bodies, cookies, and URL queries, recursively filters common sensitive fields, and queues transport while offline. The React error boundary provides a local recovery surface whether reporting is configured or not.
 
-The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes anonymous counts to the account-level `app_usage` Analytics Engine dataset for Antenna. No board, move, player, browser, or user identifier is included.
+The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes anonymous aggregates to the account-level `app_usage` Analytics Engine dataset for Antenna. Dimensions cover mode, difficulty, participant types, starting side, result, and total move count. No board state, move sequence, browser, or user identifier is included. [Analytics Engine retains data for three months](https://developers.cloudflare.com/analytics/analytics-engine/limits/); longer-lived reporting belongs in Antenna rather than the game runtime.
+
+| Analytics Engine slot | Value                                                |
+| --------------------- | ---------------------------------------------------- |
+| `index1`              | `rowspire`                                           |
+| `blob1`–`blob7`       | Event, mode, difficulty, both sides, starter, result |
+| `double1`             | Event count (`1`)                                    |
+| `double2`             | Completed-game move count (`0` for starts)           |
 
 ## Code Ownership
 

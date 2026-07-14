@@ -46,7 +46,8 @@ export default function OpponentTechnicalContent({
           <h3>Runs on your device</h3>
           <p>
             Rust and WebAssembly run in a background worker. Board positions and moves stay in your
-            browser; product metrics count only anonymous game starts and completions.
+            browser; product metrics count only anonymous game starts and completions, grouped by
+            opponent, difficulty, mode, starting side, and result.
           </p>
         </section>
       </div>

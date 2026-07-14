@@ -11,7 +11,7 @@ import {
   type GameMode,
   type GameState,
 } from './types';
-import type { UsageEvent } from './usage';
+import { gameCompletedUsage, gameStartedUsage, type UsageEvent } from './usage';
 
 export type GameStoreDependencies = {
   ai: {
@@ -42,7 +42,7 @@ type LifecycleActions = Pick<
 >;
 
 function createLifecycleActions(
-  { set }: StoreAccess,
+  { set, get }: StoreAccess,
   dependencies: GameStoreDependencies,
   generation: GameGeneration,
 ): LifecycleActions {
@@ -64,7 +64,8 @@ function createLifecycleActions(
         state.pendingMove = null;
         state.showWinnerModal = false;
       });
-      dependencies.reportUsage('game_started');
+      const current = get();
+      dependencies.reportUsage(gameStartedUsage(current, current.gameState.currentPlayer));
     },
     reset: () => {
       invalidate();
@@ -106,7 +107,8 @@ function createMoveActions(
       });
     },
     completeMove: () => {
-      const { gameState, pendingMove } = get();
+      const currentStore = get();
+      const { gameState, pendingMove } = currentStore;
       if (!pendingMove) return;
 
       if (!isCurrentPendingMove(gameState, pendingMove)) {
@@ -123,7 +125,7 @@ function createMoveActions(
         state.showWinnerModal = nextGameState.gameStatus === 'finished' && !nextGameState.winner;
       });
       if (nextGameState.gameStatus === 'finished') {
-        dependencies.reportUsage('game_completed');
+        dependencies.reportUsage(gameCompletedUsage(currentStore, nextGameState));
       }
     },
   };

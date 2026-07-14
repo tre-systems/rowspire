@@ -69,7 +69,30 @@ describe('game store ports', () => {
     });
     store.getState().actions.completeMove();
 
-    expect(reportUsage.mock.calls).toEqual([['game_started'], ['game_completed']]);
+    expect(reportUsage.mock.calls).toEqual([
+      [
+        {
+          event: 'game_started',
+          mode: 'human-vs-ai',
+          difficulty: 'relaxed',
+          player1: 'human',
+          player2: 'search',
+          startedBy: 'player1',
+        },
+      ],
+      [
+        {
+          event: 'game_completed',
+          mode: 'human-vs-ai',
+          difficulty: 'relaxed',
+          player1: 'human',
+          player2: 'search',
+          startedBy: 'player1',
+          result: 'player1',
+          moves: 7,
+        },
+      ],
+    ]);
   });
 
   it.each([
