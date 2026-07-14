@@ -1,38 +1,48 @@
 @media (max-width: 700px) {
   .app-stage {
     align-items: flex-start;
-    padding-top: max(1.2rem, env(safe-area-inset-top));
-  }
-
-  .selection-stage .brand-header {
-    margin-bottom: 1.8rem;
+    padding-top: max(1.1rem, env(safe-area-inset-top));
   }
 
   .brand-mark {
-    width: 1.55rem;
-    height: 1.55rem;
+    width: 1.6rem;
+    height: 1.6rem;
   }
 
   .selection-panel {
     padding: 0;
-  }
-
-  .selection-heading {
-    margin-bottom: 1.35rem;
+    gap: 1.1rem;
   }
 
   .selection-grid {
     grid-template-columns: 1fr;
   }
 
+  /* Stack the difficulty control on narrow screens */
+  .difficulty-selector {
+    gap: 0.55rem;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'label'
+      'options'
+      'desc';
+  }
+
+  .difficulty-selector__description {
+    min-height: 2.4rem;
+  }
+
   .ai-card {
-    min-height: 14rem;
-    padding: 1.1rem;
+    padding: 1.15rem;
     border-radius: 1.15rem;
   }
 
   .ai-card__description {
-    margin-top: 0.45rem;
+    margin-top: 0.7rem;
+  }
+
+  .ai-card__footer {
+    padding-top: 0.95rem;
   }
 
   .watch-button {

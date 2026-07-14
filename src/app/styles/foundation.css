@@ -64,9 +64,9 @@ summary:focus-visible {
   display: flex;
   min-height: 100svh;
   width: 100%;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
-  padding: clamp(1.25rem, 4vh, 3rem) 1rem max(5.5rem, env(safe-area-inset-bottom));
+  padding: clamp(1.1rem, 3.5vh, 2.5rem) 1rem max(1.75rem, env(safe-area-inset-bottom));
 }
 
 .app-stage::before {
@@ -88,6 +88,13 @@ summary:focus-visible {
   width: min(100%, 28rem);
 }
 
+/* Clear the fixed footer that persists on the game screen (desktop). */
+@media (min-width: 641px) {
+  .game-stage {
+    padding-bottom: 3.25rem;
+  }
+}
+
 .brand-header {
   position: relative;
   z-index: 2;
@@ -96,7 +103,7 @@ summary:focus-visible {
 }
 
 .selection-stage .brand-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2.5vh, 1.4rem);
 }
 
 .brand-mark {
@@ -126,7 +133,7 @@ summary:focus-visible {
   background: linear-gradient(120deg, #fff 14%, #ccfbf1 46%, #ddd6fe 82%);
   background-clip: text;
   color: transparent;
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-size: clamp(2.1rem, 5.2vw, 2.9rem);
   font-weight: 850;
   letter-spacing: -0.055em;
   line-height: 0.98;

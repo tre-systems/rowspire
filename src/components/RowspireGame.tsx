@@ -107,7 +107,6 @@ export default function RowspireGame() {
 
   return (
     <>
-      <AppLinks mode="floating" />
       <AnimatedBackground />
       <div className="app-stage" data-testid="rowspire-game">
         {!isStandalone && (
@@ -139,7 +138,7 @@ export default function RowspireGame() {
             >
               <BrandHeader tagline="A quick strategy game with two very different opponents." />
               <AISelectionPanel onStartGame={handleStartGame} />
-              <AppLinks mode="inline" />
+              <AppLinks mode="footer" />
             </motion.section>
           ) : (
             <motion.section
@@ -162,6 +161,7 @@ export default function RowspireGame() {
                 watchMode={gameMode === 'ai-vs-ai'}
                 gameMode={gameMode}
               />
+              <AppLinks mode="floating" />
               <AppLinks mode="inline" />
             </motion.section>
           )}

@@ -1,4 +1,3 @@
-.watch-button,
 .primary-action {
   position: relative;
   display: inline-flex;
@@ -19,7 +18,6 @@
   font-weight: 760;
 }
 
-.watch-button::before,
 .primary-action::before {
   position: absolute;
   inset: 0;
@@ -32,10 +30,41 @@
     transform 500ms ease;
 }
 
-.watch-button:hover::before,
 .primary-action:hover::before {
   opacity: 1;
   transform: translateX(70%);
+}
+
+/* Watch mode — a quiet, secondary action that yields to the two Play CTAs */
+.watch-button {
+  display: inline-flex;
+  min-height: 2.85rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.35rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.9rem;
+  background: rgba(12, 17, 29, 0.55);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 0.86rem;
+  font-weight: 680;
+  backdrop-filter: blur(16px);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.watch-button:hover {
+  border-color: rgba(var(--teal-rgb), 0.45);
+  background: rgba(var(--teal-rgb), 0.08);
+  color: #fff;
+}
+
+.watch-button svg {
+  color: rgb(var(--teal-rgb));
 }
 
 .compact-button {

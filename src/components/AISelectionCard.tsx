@@ -60,6 +60,13 @@ export default function AISelectionCard({
         </motion.button>
       </header>
       <p className="ai-card__description">{profile.description}</p>
+      <ul className="ai-card__tags" aria-hidden="true">
+        {profile.tags.map(tag => (
+          <li key={tag} className="ai-card__tag">
+            {tag}
+          </li>
+        ))}
+      </ul>
       <footer className="ai-card__footer">
         <motion.button
           type="button"
@@ -69,7 +76,7 @@ export default function AISelectionCard({
           aria-label={profile.action}
           data-testid={dataTestId}
         >
-          Play
+          <span>Play</span>
           <ArrowRight aria-hidden="true" />
         </motion.button>
       </footer>

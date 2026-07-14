@@ -6,6 +6,7 @@ export type OpponentProfile = {
   description: string;
   technicalName: string;
   action: string;
+  tags: readonly string[];
   technical: {
     summary: string;
     decision: readonly string[];
@@ -21,6 +22,7 @@ export const OPPONENTS: Record<AIType, OpponentProfile> = {
     description: 'Plans ahead and plays a precise, tactical game.',
     technicalName: 'Deterministic search AI',
     action: 'Play the Tactician',
+    tags: ['Deterministic', 'Tactical'],
     technical: {
       summary:
         'A deterministic opponent that is strongest at concrete tactics and makes the same choice whenever it sees the same position.',
@@ -38,6 +40,7 @@ export const OPPONENTS: Record<AIType, OpponentProfile> = {
     description: 'Plays a more varied, less predictable game.',
     technicalName: 'Neural-guided search AI',
     action: 'Play the Neural Challenger',
+    tags: ['Neural network', 'Exploratory'],
     technical: {
       summary:
         'A neural-guided opponent that explores promising futures instead of following one fixed tactical calculation.',

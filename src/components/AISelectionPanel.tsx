@@ -67,13 +67,12 @@ export default function AISelectionPanel({ onStartGame }: AISelectionPanelProps)
       className="selection-panel"
       data-testid="ai-selection-panel"
     >
-      <motion.div className="selection-heading" variants={ITEM_VARIANTS}>
-        <h2>Choose your opponent</h2>
-        <p>Pick a playing style and a level.</p>
-      </motion.div>
-
       <motion.div variants={ITEM_VARIANTS}>
         <DifficultySelector difficulty={difficulty} onChange={actions.setDifficulty} />
+      </motion.div>
+
+      <motion.div className="selection-heading" variants={ITEM_VARIANTS}>
+        <h2>Choose your opponent</h2>
       </motion.div>
 
       <div className="selection-grid">
