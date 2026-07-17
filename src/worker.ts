@@ -91,6 +91,14 @@ async function recordUsage(request: Request, env: Env): Promise<Response> {
   }
 }
 
+function assetRequest(request: Request): Request {
+  const url = new URL(request.url);
+  if (url.pathname !== '/offline') return request;
+
+  url.pathname = '/';
+  return new Request(url, request);
+}
+
 export default {
   fetch(request: Request, env: Env): Response | Promise<Response> {
     const redirectUrl = getCanonicalRedirectUrl(request.url);
@@ -103,6 +111,6 @@ export default {
       return recordUsage(request, env);
     }
 
-    return env.ASSETS.fetch(request);
+    return env.ASSETS.fetch(assetRequest(request));
   },
 };

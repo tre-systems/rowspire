@@ -100,4 +100,13 @@ if (!hasHeaders(invalidUsage, { 'strict-transport-security': ['max-age=31536000'
 }
 console.log('Usage validation smoke check passed');
 
+const missingAsset = await fetch(`${origin}/.env`, {
+  redirect: 'manual',
+  signal: AbortSignal.timeout(requestTimeout),
+});
+if (missingAsset.status !== 404) {
+  throw new Error(`Missing asset smoke check failed: ${missingAsset.status}`);
+}
+console.log('Missing asset smoke check passed');
+
 await waitForCanonicalRedirect();

@@ -116,6 +116,15 @@ describe('Rowspire Worker', () => {
     expect(await assetResponse.text()).toBe('asset');
   });
 
+  it('serves the offline app shell without enabling a global SPA fallback', async () => {
+    const assets = { fetch: vi.fn().mockResolvedValue(new Response('asset')) };
+
+    await worker.fetch(new Request('https://rowspire.com/offline'), { ASSETS: assets });
+
+    expect(assets.fetch).toHaveBeenCalledOnce();
+    expect(assets.fetch.mock.calls[0]?.[0].url).toBe('https://rowspire.com/');
+  });
+
   it('hardens canonical redirects', async () => {
     const result = await worker.fetch(
       new Request('https://rowspire.net/play?mode=ml'),
