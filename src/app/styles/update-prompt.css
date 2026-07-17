@@ -38,3 +38,19 @@
   padding: 0.5rem 0.9rem;
   font-size: 0.78rem;
 }
+
+.update-ready-chip {
+  position: fixed;
+  z-index: 100;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  min-height: 2.5rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(var(--teal-rgb), 0.45);
+  border-radius: 999px;
+  background: rgba(8, 13, 24, 0.96);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
