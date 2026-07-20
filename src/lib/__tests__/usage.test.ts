@@ -4,9 +4,11 @@ import {
   gameStartedUsage,
   isUsageEvent,
   parseUsageEvent,
+  parseUsagePayload,
   reportUsage,
   usageDataPoint,
   type UsageEvent,
+  type UsagePayload,
 } from '../usage';
 import { makeMove, initializeGame } from '../game-logic';
 
@@ -44,9 +46,26 @@ describe('usage reporting', () => {
       result: 'player1',
       moves: 15,
     } satisfies UsageEvent;
-    expect(usageDataPoint(completedEvent)).toEqual({
+    const payload = {
+      ...completedEvent,
+      deviceId: '00000000-0000-4000-8000-000000000001',
+      sessionId: '00000000-0000-4000-8000-000000000002',
+    } satisfies UsagePayload;
+    expect(parseUsagePayload(payload)).toEqual(payload);
+    expect(usageDataPoint(payload)).toEqual({
       indexes: ['rowspire'],
-      blobs: ['game_completed', 'human-vs-ai', 'standard', 'human', 'ml', 'player1', 'player1'],
+      blobs: [
+        'game_completed',
+        'human-vs-ai',
+        'standard',
+        'human',
+        'ml',
+        'player1',
+        'player1',
+        payload.deviceId,
+        payload.sessionId,
+        '2',
+      ],
       doubles: [1, 15],
     });
   });
@@ -76,7 +95,7 @@ describe('usage reporting', () => {
   it('uses sendBeacon when the browser accepts the event', () => {
     const sendBeacon = vi.fn(() => true);
     const fetchMock = vi.fn();
-    vi.stubGlobal('navigator', { sendBeacon });
+    vi.stubGlobal('navigator', { sendBeacon, userAgent: 'Mozilla/5.0', webdriver: false });
     vi.stubGlobal('fetch', fetchMock);
 
     reportUsage(startedEvent);
@@ -86,17 +105,23 @@ describe('usage reporting', () => {
   });
 
   it('falls back to a keepalive request when sendBeacon declines', () => {
-    vi.stubGlobal('navigator', { sendBeacon: vi.fn(() => false) });
+    vi.stubGlobal('navigator', {
+      sendBeacon: vi.fn(() => false),
+      userAgent: 'Mozilla/5.0',
+      webdriver: false,
+    });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 202 }));
     vi.stubGlobal('fetch', fetchMock);
 
     reportUsage(startedEvent);
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/usage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(startedEvent),
-      keepalive: true,
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/usage',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+      }),
+    );
   });
 });

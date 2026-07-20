@@ -128,14 +128,37 @@ Shared timings live in `visuals/motion.ts`; UI transitions use transforms and op
 
 Sentry initializes only when `VITE_SENTRY_DSN` is present. Reporting disables default PII, removes users, request bodies, cookies, and URL queries, recursively filters common sensitive fields, and queues transport while offline. The React error boundary provides a local recovery surface whether reporting is configured or not.
 
-The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes anonymous aggregates to the account-level `app_usage` Analytics Engine dataset for Antenna. Dimensions cover mode, difficulty, participant types, starting side, result, and total move count. No board state, move sequence, browser, or user identifier is included. [Analytics Engine retains data for three months](https://developers.cloudflare.com/analytics/analytics-engine/limits/); longer-lived reporting belongs in Antenna rather than the game runtime.
+The store reports only `game_started` and `game_completed` to the same-origin `/api/usage` endpoint. The Worker validates this closed event set and writes privacy-minimised events to the account-level `app_usage` Analytics Engine dataset for Antenna. Dimensions cover mode, difficulty, participant types, starting side, result, total move count, and random anonymous device/session ids. The device id supports directional repeat-use measurement; the rolling 30-minute session id supports start-to-completion measurement. No board state, move sequence, browser fingerprint, account, name, email, or user content is included. Automated browsers are rejected. Visiting with `?telemetry=off` opts the browser out; `?telemetry=on` opts it back in. [Analytics Engine retains data for three months](https://developers.cloudflare.com/analytics/analytics-engine/limits/); longer-lived reporting belongs in Antenna rather than the game runtime.
 
 | Analytics Engine slot | Value                                                |
 | --------------------- | ---------------------------------------------------- |
 | `index1`              | `rowspire`                                           |
 | `blob1`–`blob7`       | Event, mode, difficulty, both sides, starter, result |
+| `blob8`–`blob10`      | Anonymous device id, session id, schema version      |
 | `double1`             | Event count (`1`)                                    |
 | `double2`             | Completed-game move count (`0` for starts)           |
+
+For a directional seven-day start-to-completion measure, query schema `2`
+sessions and aggregate before reporting:
+
+```sql
+WITH sessions AS (
+  SELECT blob9 AS session_id,
+         SUM(IF(blob1 = 'game_started', _sample_interval, 0)) AS starts,
+         SUM(IF(blob1 = 'game_completed', _sample_interval, 0)) AS completions
+  FROM app_usage
+  WHERE timestamp > NOW() - INTERVAL '7' DAY
+    AND index1 = 'rowspire' AND blob10 = '2'
+  GROUP BY session_id
+)
+SELECT countIf(starts > 0) AS started_sessions,
+       countIf(completions > 0) AS completed_sessions
+FROM sessions
+```
+
+Daily distinct `blob8` values provide directional anonymous return evidence.
+Never print or export raw ids in a report, and do not use Analytics Engine
+sampling for billing or exact financial counts.
 
 ## Code Ownership
 

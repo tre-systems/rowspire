@@ -14,6 +14,7 @@ function usageRequest(body: string, headers: Record<string, string> = {}) {
     headers: {
       'Content-Type': 'application/json',
       Origin: 'https://rowspire.com',
+      'User-Agent': 'Mozilla/5.0',
       ...headers,
     },
     body,
@@ -27,6 +28,8 @@ const startedEvent = {
   player1: 'human',
   player2: 'search',
   startedBy: 'player2',
+  deviceId: '00000000-0000-4000-8000-000000000001',
+  sessionId: '00000000-0000-4000-8000-000000000002',
 };
 
 describe('Rowspire Worker', () => {
@@ -39,7 +42,18 @@ describe('Rowspire Worker', () => {
     expect(result.status).toBe(202);
     expect(writeDataPoint).toHaveBeenCalledWith({
       indexes: ['rowspire'],
-      blobs: ['game_started', 'human-vs-ai', 'standard', 'human', 'search', 'player2', ''],
+      blobs: [
+        'game_started',
+        'human-vs-ai',
+        'standard',
+        'human',
+        'search',
+        'player2',
+        '',
+        startedEvent.deviceId,
+        startedEvent.sessionId,
+        '2',
+      ],
       doubles: [1, 0],
     });
   });
@@ -55,7 +69,11 @@ describe('Rowspire Worker', () => {
     const writeDataPoint = vi.fn();
     const request = new Request('https://rowspire.com/api/usage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: origin },
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+        'User-Agent': 'Mozilla/5.0',
+      },
       body,
     });
 
@@ -70,7 +88,7 @@ describe('Rowspire Worker', () => {
     const requests = [
       usageRequest('{}', { Origin: '' }),
       usageRequest('{}', { 'Content-Type': 'text/plain' }),
-      usageRequest('x'.repeat(257)),
+      usageRequest('x'.repeat(513)),
     ];
 
     const statuses = await Promise.all(
@@ -87,7 +105,11 @@ describe('Rowspire Worker', () => {
     const writeDataPoint = vi.fn();
     const request = new Request('https://rowspire.com/api/usage', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'https://example.com' },
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://example.com',
+        'User-Agent': 'Mozilla/5.0',
+      },
       body: JSON.stringify({
         ...startedEvent,
         event: 'game_completed',

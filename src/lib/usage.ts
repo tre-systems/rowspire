@@ -13,6 +13,13 @@ import {
 
 const ParticipantSchema = z.enum(['human', ...AITypeSchema.options]);
 const ResultSchema = z.enum(['player1', 'player2', 'draw']);
+const AnonymousIdSchema = z.string().uuid();
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+const DEVICE_ID_KEY = 'rowspire-analytics-device';
+const SESSION_KEY = 'rowspire-analytics-session';
+const OPT_OUT_KEY = 'rowspire-analytics-optout';
+const AUTOMATED_USER_AGENT =
+  /bot|crawler|spider|headlesschrome|lighthouse|pagespeed|claude|electron/i;
 const UsageContextSchema = z.object({
   mode: GameModeSchema,
   difficulty: DifficultySchema,
@@ -31,8 +38,21 @@ const UsageEventUnion = z.discriminatedUnion('event', [
 ]);
 
 export type UsageEvent = z.infer<typeof UsageEventUnion>;
+export type UsagePayload = UsageEvent & { deviceId: string; sessionId: string };
 type Participant = z.infer<typeof ParticipantSchema>;
 const UsageEventSchema = UsageEventUnion.refine(hasValidParticipants);
+const UsagePayloadSchema = z
+  .object({ deviceId: AnonymousIdSchema, sessionId: AnonymousIdSchema })
+  .passthrough()
+  .superRefine((value, context) => {
+    const event = Object.fromEntries(
+      Object.entries(value).filter(([key]) => key !== 'deviceId' && key !== 'sessionId'),
+    );
+    if (!UsageEventSchema.safeParse(event).success) {
+      context.addIssue({ code: 'custom', message: 'Invalid usage event' });
+    }
+  })
+  .transform(value => value as UsagePayload);
 
 export interface GameUsageContext {
   gameMode: GameMode;
@@ -86,7 +106,11 @@ export function parseUsageEvent(value: unknown): UsageEvent | null {
   return UsageEventSchema.safeParse(value).data ?? null;
 }
 
-export function usageDataPoint(event: UsageEvent) {
+export function parseUsagePayload(value: unknown): UsagePayload | null {
+  return UsagePayloadSchema.safeParse(value).data ?? null;
+}
+
+export function usageDataPoint(event: UsagePayload) {
   return {
     indexes: ['rowspire'],
     blobs: [
@@ -97,13 +121,67 @@ export function usageDataPoint(event: UsageEvent) {
       event.player2,
       event.startedBy,
       event.event === 'game_completed' ? event.result : '',
+      event.deviceId,
+      event.sessionId,
+      '2',
     ],
     doubles: [1, event.event === 'game_completed' ? event.moves : 0],
   };
 }
 
+function analyticsEnabled(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  try {
+    const preference = new URLSearchParams(window.location.search).get('telemetry');
+    if (preference === 'off') localStorage.setItem(OPT_OUT_KEY, '1');
+    if (preference === 'on') localStorage.removeItem(OPT_OUT_KEY);
+    return (
+      localStorage.getItem(OPT_OUT_KEY) !== '1' &&
+      !navigator.webdriver &&
+      !AUTOMATED_USER_AGENT.test(navigator.userAgent)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function anonymousId(key: string): string {
+  const existing = localStorage.getItem(key);
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  localStorage.setItem(key, id);
+  return id;
+}
+
+function currentSessionId(): string {
+  const now = Date.now();
+  const stored = localStorage.getItem(SESSION_KEY);
+  const session = stored
+    ? (JSON.parse(stored) as { id?: unknown; lastSeenAt?: unknown })
+    : undefined;
+  const id =
+    typeof session?.id === 'string' &&
+    typeof session.lastSeenAt === 'number' &&
+    now - session.lastSeenAt < SESSION_TIMEOUT_MS
+      ? session.id
+      : crypto.randomUUID();
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ id, lastSeenAt: now }));
+  return id;
+}
+
 export function reportUsage(event: UsageEvent): void {
-  const body = JSON.stringify(event);
+  if (!analyticsEnabled()) return;
+
+  let body: string;
+  try {
+    body = JSON.stringify({
+      ...event,
+      deviceId: anonymousId(DEVICE_ID_KEY),
+      sessionId: currentSessionId(),
+    } satisfies UsagePayload);
+  } catch {
+    return;
+  }
 
   if (
     typeof navigator !== 'undefined' &&

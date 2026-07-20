@@ -1,7 +1,9 @@
 import { getCanonicalRedirectUrl } from './lib/canonical-host';
-import { parseUsageEvent, usageDataPoint } from './lib/usage';
+import { parseUsagePayload, usageDataPoint } from './lib/usage';
 
-const MAX_USAGE_BODY_BYTES = 256;
+const MAX_USAGE_BODY_BYTES = 512;
+const AUTOMATED_USER_AGENT =
+  /bot|crawler|spider|headlesschrome|lighthouse|pagespeed|claude|electron/i;
 const RESPONSE_SECURITY_HEADERS = {
   'Cross-Origin-Resource-Policy': 'same-origin',
   'Referrer-Policy': 'no-referrer',
@@ -64,6 +66,8 @@ async function recordUsage(request: Request, env: Env): Promise<Response> {
 
   const origin = request.headers.get('Origin');
   if (origin !== new URL(request.url).origin) return response(403, 'Forbidden');
+  const userAgent = request.headers.get('User-Agent');
+  if (!userAgent || AUTOMATED_USER_AGENT.test(userAgent)) return response(202, 'Accepted');
 
   const contentType = request.headers.get('Content-Type')?.split(';', 1)[0];
   if (contentType !== 'application/json') return response(415, 'Unsupported media type');
@@ -79,7 +83,7 @@ async function recordUsage(request: Request, env: Env): Promise<Response> {
     return response(400, 'Invalid request');
   }
 
-  const event = parseUsageEvent(body);
+  const event = parseUsagePayload(body);
   if (!event) return response(400, 'Invalid request');
   if (!env.APP_USAGE) return response(503, 'Usage reporting unavailable');
 
