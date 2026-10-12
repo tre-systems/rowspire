@@ -48,7 +48,7 @@
     "train": "cd worker && caffeinate -dimsu cargo run --release --bin train --features training"
   },
   "dependencies": {
-    "@sentry/browser": "^10.75.3",
+    "@sentry/browser": "^10.76.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "immer": "^11.1.21",
@@ -60,15 +60,15 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.62.0",
+    "@cloudflare/vite-plugin": "^1.62.5",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.63.0",
-    "@sentry/vite-plugin": "^5.4.0",
+    "@sentry/vite-plugin": "^5.4.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^25",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^9",
     "eslint-plugin-react": "^7.37.5",
@@ -81,8 +81,8 @@
     "prettier": "^3.9.9",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "typescript-eslint": "^8.71.0",
-    "vite": "^8.3.1",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^8.3.4",
     "vitest": "^4.1.11",
     "wrangler": "^4.110.0"
   },
