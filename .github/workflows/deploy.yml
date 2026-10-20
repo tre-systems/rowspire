@@ -40,7 +40,7 @@ jobs:
           toolchain: 1.96.0
 
       - name: Install Rust tools
-        uses: taiki-e/install-action@26e9283f268b880168bdbd2c545dfcd60ec2c6ab # v2.87.13
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2.83.2
         with:
           tool: cargo-audit@0.22.2,wasm-pack@0.15.0,wasm-bindgen-cli@0.2.122
 
