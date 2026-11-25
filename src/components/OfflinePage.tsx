@@ -2,12 +2,10 @@ import { motion } from 'framer-motion';
 import { RotateCw, Wifi, WifiOff } from 'lucide-react';
 import { APP_NAME, SHORT_DESCRIPTION } from '@/lib/brand';
 import { MOTION } from '@/lib/visuals/motion';
-import AnimatedBackground from './AnimatedBackground';
 
 export default function OfflinePage() {
   return (
     <>
-      <AnimatedBackground />
       <main className="offline-stage" data-testid="offline-page">
         <motion.section
           className="offline-card"
@@ -31,7 +29,6 @@ export default function OfflinePage() {
             type="button"
             className="primary-action"
             onClick={() => window.location.reload()}
-            whileHover={{ y: -2, scale: 1.01 }}
             whileTap={{ scale: 0.97 }}
             transition={MOTION.spring}
             data-testid="offline-retry"

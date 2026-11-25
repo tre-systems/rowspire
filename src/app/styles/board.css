@@ -1,40 +1,18 @@
 .game-board-shell {
   position: relative;
   padding: 1rem;
-  overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 1.45rem;
-  background:
-    linear-gradient(145deg, rgba(var(--teal-rgb), 0.055), transparent 38%),
-    linear-gradient(325deg, rgba(var(--violet-rgb), 0.055), transparent 42%), var(--surface);
-  box-shadow:
-    0 30px 80px rgba(0, 0, 0, 0.5),
-    0 0 60px rgba(var(--teal-rgb), 0.09),
-    inset 0 1px rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(28px) saturate(125%);
-}
-
-.game-board-shell::before {
-  position: absolute;
-  top: 0;
-  right: 12%;
-  left: 12%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(153, 246, 228, 0.7), transparent);
-  content: '';
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  background: var(--surface);
 }
 
 .game-grid {
   position: relative;
   padding: 0.6rem;
-  border: 1px solid rgba(148, 163, 184, 0.13);
-  border-radius: 1.1rem;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(var(--teal-rgb), 0.08), transparent 48%),
-    rgba(3, 7, 14, 0.76);
-  box-shadow:
-    inset 0 18px 45px rgba(0, 0, 0, 0.42),
-    0 1px rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rule);
+  border-radius: 0.75rem;
+  background: var(--well);
+  box-shadow: inset 0 18px 45px rgba(0, 0, 0, 0.42);
 }
 
 .game-grid__columns,

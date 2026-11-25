@@ -1,18 +1,42 @@
+/* System sans-serifs scaled to the display face's narrow set width, so headings
+   hold their layout before the web font arrives or when it cannot load. */
+@font-face {
+  font-family: 'Big Shoulders Fallback';
+  src:
+    local('Arial'), local('Helvetica Neue'), local('Roboto'), local('Liberation Sans'),
+    local('Noto Sans');
+  font-weight: 100 900;
+  size-adjust: 72%;
+}
+
 :root {
-  --background: #02040a;
-  --foreground: #f8fafc;
+  --ink: #0a0e16;
+  --well: #05080d;
+  --surface: #121825;
+  --surface-raised: #1a2232;
+  --rule: #263042;
+  --rule-strong: #3b4760;
+  --paper: #f1eee6;
+  --paper-dim: #b8bfcb;
+  --paper-faint: #8a94a6;
   --teal: #2dd4bf;
+  --teal-bright: #5eead4;
   --teal-rgb: 45, 212, 191;
   --violet: #a78bfa;
+  --violet-bright: #c4b5fd;
   --violet-rgb: 167, 139, 250;
-  --surface: rgba(12, 17, 29, 0.82);
+  --amber: #f5b83d;
+  --green: #4ade80;
+  --scrim: rgba(3, 5, 9, 0.82);
+  --font-display: 'Big Shoulders Variable', 'Big Shoulders Fallback', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --color-background: var(--ink);
+  --color-foreground: var(--paper);
+  --font-sans: var(--font-body);
 }
 
 * {
@@ -26,17 +50,17 @@ body,
 }
 
 html {
-  background: var(--background);
+  background: var(--ink);
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
     env(safe-area-inset-left);
 }
 
 body {
   margin: 0;
-  overflow-x: hidden;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: clip;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -46,6 +70,10 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+button {
+  font-family: inherit;
+}
+
 button:not(:disabled) {
   cursor: pointer;
 }
@@ -53,101 +81,131 @@ button:not(:disabled) {
 button:focus-visible,
 a:focus-visible,
 summary:focus-visible {
-  outline: 2px solid rgba(var(--teal-rgb), 0.95);
+  outline: 2px solid var(--teal);
   outline-offset: 3px;
 }
 
 .app-stage {
   position: relative;
-  z-index: 1;
-  isolation: isolate;
   display: flex;
   min-height: 100svh;
   width: 100%;
   align-items: safe center;
   justify-content: center;
-  padding: clamp(1.1rem, 3.5vh, 2.5rem) 1rem max(1.75rem, env(safe-area-inset-bottom));
-}
-
-.app-stage::before {
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(var(--teal-rgb), 0.1), transparent 28rem),
-    radial-gradient(circle at 64% 62%, rgba(var(--violet-rgb), 0.07), transparent 32rem);
-  content: '';
-  pointer-events: none;
+  padding: clamp(1.1rem, 3.5vh, 2.5rem) 1rem max(1.5rem, env(safe-area-inset-bottom));
 }
 
 .selection-stage {
-  width: 100%;
+  width: min(100%, 44rem);
 }
 
+/* The board narrows in a short window so the whole game stays on one screen. */
 .game-stage {
-  width: min(100%, 28rem);
-}
-
-/* Clear the fixed footer that persists on the game screen (desktop). */
-@media (min-width: 641px) {
-  .game-stage {
-    padding-bottom: 3.25rem;
-  }
+  width: min(100%, 28rem, max(17rem, (100svh - 20.5rem) * 1.16));
 }
 
 .brand-header {
-  position: relative;
-  z-index: 2;
-  margin: 0 auto 1rem;
-  text-align: center;
-}
-
-.selection-stage .brand-header {
-  margin-bottom: clamp(1rem, 2.5vh, 1.4rem);
-}
-
-.brand-mark {
   display: grid;
-  width: 1.8rem;
-  height: 1.8rem;
-  margin: 0 auto 0.55rem;
+  align-items: center;
+  column-gap: 0.7rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  margin: 0 0 0.9rem;
+}
+
+/* Turned 45 degrees the mark overhangs its box, so the margin brings its edge back to the text. */
+.brand-mark {
+  --mark-size: 1.5rem;
+  display: grid;
+  width: var(--mark-size);
+  height: var(--mark-size);
+  margin-left: calc(var(--mark-size) * 0.16);
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.2rem;
+  gap: calc(var(--mark-size) * 0.11);
   transform: rotate(45deg);
-  filter: drop-shadow(0 0 12px rgba(var(--teal-rgb), 0.45));
 }
 
 .brand-mark span {
-  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
-  background: linear-gradient(145deg, var(--teal), #0f766e);
+  background: var(--teal);
 }
 
 .brand-mark span:nth-child(2),
 .brand-mark span:nth-child(3) {
-  background: linear-gradient(145deg, var(--violet), #6d28d9);
+  background: var(--violet);
 }
 
 .brand-title {
   margin: 0;
-  background: linear-gradient(120deg, #fff 14%, #ccfbf1 46%, #ddd6fe 82%);
-  background-clip: text;
-  color: transparent;
-  font-size: clamp(2.1rem, 5.2vw, 2.9rem);
-  font-weight: 850;
-  letter-spacing: -0.055em;
-  line-height: 0.98;
-  filter: drop-shadow(0 8px 26px rgba(var(--teal-rgb), 0.2));
-}
-
-.game-stage .brand-title {
-  font-size: clamp(2.25rem, 7vw, 2.85rem);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  text-transform: uppercase;
 }
 
 .brand-tagline {
-  max-width: 36rem;
-  margin: 0.75rem auto 0;
-  color: rgba(226, 232, 240, 0.76);
-  font-size: clamp(0.84rem, 2vw, 0.95rem);
-  line-height: 1.55;
+  margin: 0.45rem 0 0;
+  color: var(--paper-dim);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  grid-column: 1 / -1;
+}
+
+.selection-stage .brand-header {
+  column-gap: clamp(0.85rem, 2.6vw, 1.4rem);
+  margin-bottom: clamp(1.4rem, 3.6vh, 2rem);
+}
+
+.selection-stage .brand-mark {
+  --mark-size: clamp(1.9rem, 6vw, 3rem);
+}
+
+.selection-stage .brand-title {
+  font-size: clamp(3.4rem, 12.5vw, 6rem);
+  font-weight: 900;
+  line-height: 0.82;
+}
+
+.selection-stage .brand-tagline {
+  margin-top: clamp(0.6rem, 1.6vh, 0.85rem);
+  font-size: 1rem;
+}
+
+.app-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.82rem;
+}
+
+.app-links a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--paper-faint);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 0.25em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.app-links a:hover {
+  color: var(--paper);
+  text-decoration-color: var(--paper-faint);
+}
+
+.app-links svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.game-stage .app-links {
+  justify-content: center;
+  margin-top: 0.5rem;
 }

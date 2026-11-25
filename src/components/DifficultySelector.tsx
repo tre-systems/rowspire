@@ -12,7 +12,9 @@ export default function DifficultySelector({ difficulty, onChange }: DifficultyS
   return (
     <section className="difficulty-selector" aria-labelledby="difficulty-title">
       <div className="difficulty-selector__heading">
-        <h3 id="difficulty-title">Difficulty</h3>
+        <h2 id="difficulty-title" className="section-label">
+          Difficulty
+        </h2>
       </div>
 
       <div className="difficulty-options" role="group" aria-label="Choose game difficulty">

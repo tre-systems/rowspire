@@ -52,6 +52,8 @@ const binaryExtensions = new Set([
   '.safetensors',
   '.wasm',
   '.webp',
+  '.woff',
+  '.woff2',
   '.zip',
 ]);
 

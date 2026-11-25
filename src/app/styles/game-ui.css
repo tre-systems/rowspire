@@ -55,6 +55,25 @@
   transform: rotate(-28deg);
 }
 
+/* The same counter drawn small beside text, in the menu and the help panel */
+.counter-glyph {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  flex: none;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.28);
+}
+
+.counter-glyph .game-piece__mark {
+  border-width: 1.5px;
+}
+
+.counter-glyph .game-piece__shine {
+  filter: blur(1px);
+}
+
 .game-piece--winning {
   z-index: 1;
   border-width: 3px;
@@ -75,7 +94,7 @@
 
 .game-status {
   min-height: 3.9rem;
-  color: #94a3b8;
+  color: var(--paper-faint);
 }
 
 .game-status__message {
@@ -83,28 +102,27 @@
   min-height: 2.15rem;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   border: 1px solid currentColor;
   border-radius: 999px;
-  background: rgba(3, 7, 14, 0.52);
-  box-shadow: 0 0 22px color-mix(in srgb, currentColor 12%, transparent);
+  background: var(--well);
   font-size: 0.92rem;
-  font-weight: 780;
+  font-weight: 700;
 }
 
 .game-status--teal {
-  color: #5eead4;
+  color: var(--teal-bright);
 }
 
 .game-status--violet {
-  color: #c4b5fd;
+  color: var(--violet-bright);
 }
 
 .game-status__matchup {
-  min-height: 1rem;
-  margin-top: 0.25rem;
-  color: rgba(203, 213, 225, 0.5);
-  font-size: 0.68rem;
+  min-height: 1.1rem;
+  margin-top: 0.3rem;
+  color: var(--paper-faint);
+  font-size: 0.75rem;
 }
 
 .thinking-dots {
@@ -147,26 +165,23 @@
   justify-content: space-between;
   margin-top: 0.85rem;
   padding-top: 0.85rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  border-top: 1px solid var(--rule);
 }
 
 .control-button {
   display: inline-flex;
-  width: 2.65rem;
-  height: 2.65rem;
+  width: 2.75rem;
+  height: 2.75rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(148, 163, 184, 0.17);
-  border-radius: 0.82rem;
-  background: rgba(5, 9, 17, 0.58);
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.22),
-    inset 0 1px rgba(255, 255, 255, 0.05);
-  color: rgba(226, 232, 240, 0.68);
+  border: 1px solid var(--rule-strong);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--paper-dim);
   transition:
-    border-color 180ms ease,
-    color 180ms ease,
-    background 180ms ease;
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease;
 }
 
 .control-button svg {
@@ -174,15 +189,19 @@
 }
 
 .control-button:hover {
-  border-color: rgba(var(--teal-rgb), 0.42);
-  background: rgba(var(--teal-rgb), 0.08);
-  color: #fff;
+  border-color: var(--paper-faint);
+  background: var(--surface-raised);
+  color: var(--paper);
+}
+
+.control-button:active {
+  transform: translateY(1px);
 }
 
 .control-button--labelled {
   width: auto;
   gap: 0.45rem;
   padding: 0 0.85rem;
-  font-size: 0.76rem;
-  font-weight: 720;
+  font-size: 0.8rem;
+  font-weight: 600;
 }

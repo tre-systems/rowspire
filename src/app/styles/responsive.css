@@ -4,23 +4,7 @@
     padding-top: max(1.1rem, env(safe-area-inset-top));
   }
 
-  .brand-mark {
-    width: 1.6rem;
-    height: 1.6rem;
-  }
-
-  .selection-panel {
-    padding: 0;
-    gap: 1.1rem;
-  }
-
-  .selection-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* Stack the difficulty control on narrow screens */
   .difficulty-selector {
-    gap: 0.55rem;
     grid-template-columns: 1fr;
     grid-template-areas:
       'label'
@@ -28,30 +12,26 @@
       'desc';
   }
 
-  .difficulty-selector__description {
-    min-height: 2.4rem;
+  .fixture {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'title'
+      'body'
+      'action';
+    padding: 1.1rem 0 1.25rem;
   }
 
-  .ai-card {
-    padding: 1.15rem;
-    border-radius: 1.15rem;
+  /* Each side of the match takes its own line, so every row reads the same way. */
+  .fixture__title > .fixture__side:last-child {
+    flex-basis: 100%;
   }
 
-  .ai-card__description {
-    margin-top: 0.7rem;
-  }
-
-  .ai-card__footer {
-    padding-top: 0.95rem;
-  }
-
-  .watch-button {
-    width: 100%;
+  .fixture__action {
+    margin-top: 0.9rem;
   }
 
   .game-board-shell {
     padding: 0.8rem;
-    border-radius: 1.25rem;
   }
 
   .game-controls {
@@ -60,7 +40,7 @@
 
   .control-button--labelled {
     padding: 0 0.68rem;
-    font-size: 0.71rem;
+    font-size: 0.75rem;
   }
 
   .game-grid,

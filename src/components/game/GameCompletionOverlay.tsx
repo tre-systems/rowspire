@@ -74,7 +74,6 @@ export default function GameCompletionOverlay({
           autoFocus
           onClick={onResetGame}
           className="primary-action"
-          whileHover={{ y: -3, scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           transition={MOTION.spring}
           data-testid="reset-game-button"

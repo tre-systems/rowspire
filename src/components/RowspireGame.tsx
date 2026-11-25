@@ -6,7 +6,6 @@ import { soundEffects } from '@/lib/sound-effects';
 import { useUIStore } from '@/lib/ui-store';
 import { APP_TAGLINE } from '@/lib/brand';
 import GameBoard from './GameBoard';
-import AnimatedBackground from './AnimatedBackground';
 import HowToPlayPanel from './HowToPlayPanel';
 import ErrorModal from './ErrorModal';
 import AISelectionPanel from './AISelectionPanel';
@@ -107,7 +106,6 @@ export default function RowspireGame() {
 
   return (
     <>
-      <AnimatedBackground />
       <div className="app-stage" data-testid="rowspire-game">
         {!isStandalone && (
           <div className="hidden md:block absolute top-4 right-4 z-50">
@@ -138,7 +136,7 @@ export default function RowspireGame() {
             >
               <BrandHeader tagline="A quick strategy game with two very different opponents." />
               <AISelectionPanel onStartGame={handleStartGame} />
-              <AppLinks mode="footer" />
+              <AppLinks />
             </motion.section>
           ) : (
             <motion.section
@@ -161,8 +159,7 @@ export default function RowspireGame() {
                 watchMode={gameMode === 'ai-vs-ai'}
                 gameMode={gameMode}
               />
-              <AppLinks mode="floating" />
-              <AppLinks mode="inline" />
+              <AppLinks />
             </motion.section>
           )}
         </AnimatePresence>

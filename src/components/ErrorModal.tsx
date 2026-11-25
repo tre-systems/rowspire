@@ -48,8 +48,6 @@ export default function ErrorModal({ isOpen, onClose, error }: ErrorModalProps) 
                 autoFocus
                 className="modal-close"
                 onClick={onClose}
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
                 aria-label="Close error"
                 data-testid="error-close"
               >

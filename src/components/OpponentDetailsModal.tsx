@@ -64,8 +64,6 @@ export default function OpponentDetailsModal({
               type="button"
               className="modal-close"
               onClick={onClose}
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.94 }}
               aria-label="Close technical details"
               data-testid="opponent-details-close"
             >

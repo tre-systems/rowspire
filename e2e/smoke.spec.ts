@@ -90,7 +90,7 @@ test.describe('Core Game Functionality', () => {
     await expect(page.getByRole('button', { name: 'Play the Neural Challenger' })).toHaveText(
       'Play',
     );
-    await expect(page.getByTestId('ko-fi-link-floating')).toContainText('Support Rowspire');
+    await expect(page.getByTestId('ko-fi-link')).toContainText('Support Rowspire');
     await expect(page.getByTestId('difficulty-relaxed')).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByTestId('difficulty-standard').click();
@@ -329,23 +329,45 @@ test.describe('Mobile Responsiveness', () => {
   });
 });
 
+test.describe('Layout', () => {
+  test('keeps the footer links off the board in a short window', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 609 });
+    await startGame(page);
+
+    const board = await page.getByTestId('game-board').boundingBox();
+    const links = await page.getByTestId('app-links').boundingBox();
+    if (!board || !links) throw new Error('Expected the board and the footer links');
+
+    expect(links.y).toBeGreaterThanOrEqual(board.y + board.height);
+    expect(board.y + board.height).toBeLessThanOrEqual(609);
+    await playColumn(page, 3);
+  });
+
+  for (const webFont of ['loaded', 'blocked'] as const) {
+    test(`fits a narrow phone without sideways scrolling, web font ${webFont}`, async ({
+      page,
+    }) => {
+      if (webFont === 'blocked') await page.route('**/*.woff2', route => route.abort());
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.goto('/');
+      await expect(page.getByTestId('ai-selection-ml')).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+
+      const overflow = () =>
+        page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(await overflow()).toBe(0);
+
+      await page.getByTestId('ai-selection-search').click();
+      await expect(page.getByTestId('game-board')).toBeVisible();
+      expect(await overflow()).toBe(0);
+    });
+  }
+});
+
 test.describe('Motion Accessibility', () => {
-  test('keeps ambient motion static while preserving gameplay', async ({ page }) => {
+  test('preserves gameplay when reduced motion is requested', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
-    const background = page.getByTestId('animated-background');
-    await expect(background).toBeVisible();
-
-    const firstFrame = await background.evaluate(canvas =>
-      (canvas as HTMLCanvasElement).toDataURL(),
-    );
-    await page.waitForTimeout(150);
-    const secondFrame = await background.evaluate(canvas =>
-      (canvas as HTMLCanvasElement).toDataURL(),
-    );
-
-    expect(secondFrame).toBe(firstFrame);
-    await page.getByTestId('ai-selection-search').click();
-    await expect(page.getByTestId('game-board')).toBeVisible();
+    await startGame(page);
+    await playColumn(page, 3);
   });
 });

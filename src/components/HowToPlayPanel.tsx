@@ -1,32 +1,31 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Circle, Crown, Star, Trophy, X, Zap, type LucideIcon } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useDismissOnEscape } from '@/hooks/useDismissOnEscape';
 import { APP_NAME, LEGAL_DISCLAIMER } from '@/lib/brand';
+import type { Player } from '@/lib/types';
 import { MOTION } from '@/lib/visuals/motion';
+import CounterGlyph from './CounterGlyph';
 
-type GuideEntry = {
-  title: string;
-  icon: LucideIcon;
-  tone: 'amber' | 'green' | 'teal' | 'violet';
-} & ({ body: string; items?: never } | { body?: never; items: readonly string[] });
+type GuideItem = string | { text: string; counter: Player };
+
+type GuideEntry = { title: string } & (
+  { body: string; items?: never } | { body?: never; items: readonly GuideItem[] }
+);
 
 const GUIDE = [
   {
     title: 'Objective',
-    icon: Crown,
-    tone: 'amber',
     body: 'Drop counters into columns and make four in a row horizontally, vertically or diagonally.',
   },
   {
     title: 'Counters',
-    icon: Circle,
-    tone: 'teal',
-    items: ['You play the teal ring counters', 'Your opponent plays the violet diamond counters'],
+    items: [
+      { text: 'You play the teal ring counters', counter: 'player1' },
+      { text: 'Your opponent plays the violet diamond counters', counter: 'player2' },
+    ],
   },
   {
     title: 'Taking turns',
-    icon: ArrowRight,
-    tone: 'green',
     items: [
       'Choose a column to drop your counter',
       'Counters settle in the lowest open space',
@@ -35,27 +34,32 @@ const GUIDE = [
   },
   {
     title: 'Winning',
-    icon: Zap,
-    tone: 'violet',
     body: 'Line up four counters across, up, or diagonally before your opponent does.',
   },
   {
     title: 'Play smarter',
-    icon: Star,
-    tone: 'amber',
     items: [
-      'Control the center for more winning lines',
+      'Control the centre for more winning lines',
       'Block immediate threats before building your own',
       'Create two threats at once when you can',
     ],
   },
   {
     title: 'Game end',
-    icon: Trophy,
-    tone: 'violet',
     body: 'A four-counter line wins. A full grid without a winner is a draw.',
   },
 ] satisfies readonly GuideEntry[];
+
+function GuideListItem({ item }: { item: GuideItem }) {
+  if (typeof item === 'string') return <li>{item}</li>;
+
+  return (
+    <li className="has-counter">
+      <CounterGlyph player={item.counter} />
+      {item.text}
+    </li>
+  );
+}
 
 interface HowToPlayPanelProps {
   isOpen: boolean;
@@ -98,8 +102,6 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
                 autoFocus
                 className="modal-close"
                 onClick={onClose}
-                whileHover={{ scale: 1.06 }}
-                whileTap={{ scale: 0.94 }}
                 aria-label="Close how to play"
                 data-testid="help-close"
               >
@@ -108,19 +110,17 @@ export default function HowToPlayPanel({ isOpen, onClose }: HowToPlayPanelProps)
             </header>
 
             <div className="help-grid">
-              {GUIDE.map(({ title, icon: Icon, tone, body, items }) => (
-                <section className="help-section" key={title} data-testid={`help-${tone}-${title}`}>
-                  <h3>
-                    <span className={`help-section__icon help-section__icon--${tone}`}>
-                      <Icon aria-hidden="true" />
-                    </span>
-                    {title}
-                  </h3>
+              {GUIDE.map(({ title, body, items }) => (
+                <section className="help-section" key={title}>
+                  <h3>{title}</h3>
                   {body && <p>{body}</p>}
                   {items && (
                     <ul>
                       {items.map(item => (
-                        <li key={item}>{item}</li>
+                        <GuideListItem
+                          key={typeof item === 'string' ? item : item.text}
+                          item={item}
+                        />
                       ))}
                     </ul>
                   )}

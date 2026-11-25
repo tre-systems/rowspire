@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Download, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { APP_NAME } from '@/lib/brand';
 import { MOTION } from '@/lib/visuals/motion';
 
@@ -74,9 +74,6 @@ export default function PWAInstallPrompt() {
           transition={MOTION.spring}
           data-testid="pwa-install-prompt"
         >
-          <div className="install-prompt__icon">
-            <Download aria-hidden="true" />
-          </div>
           <div className="install-prompt__content">
             <span className="modal-eyebrow">Play anywhere</span>
             <h3 id="install-prompt-title">Add {APP_NAME} to your device</h3>

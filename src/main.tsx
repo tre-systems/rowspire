@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { initializeObservability } from './lib/observability';
+import '@fontsource-variable/big-shoulders/wght.css';
 import './app/globals.css';
 
 initializeObservability();

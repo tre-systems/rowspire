@@ -48,6 +48,7 @@
     "train": "cd worker && caffeinate -dimsu cargo run --release --bin train --features training"
   },
   "dependencies": {
+    "@fontsource-variable/big-shoulders": "^5.3.0",
     "@sentry/browser": "^10.75.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",

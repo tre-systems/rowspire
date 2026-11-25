@@ -114,7 +114,9 @@ Source parameters and weights live in `resources/ai/`; builds stage runtime copi
 
 ### Selection
 
-Opponent selection keeps the primary path limited to difficulty, playing style, and a single Play action. Algorithm, training, work-budget, runtime, and privacy details live in one native modal opened by the card's information button. The dialog provides focus containment and background inertness; closing it returns focus to its trigger.
+Opponent selection keeps the primary path limited to difficulty, playing style, and a single Play action. It is a list of matches: each row names both sides beside the counter that side plays, drawn with the board's own counter styles, so the menu shows which counter is yours before the game starts. Algorithm, training, work-budget, runtime, and privacy details live in one native modal opened by the row's "How it thinks" button. The dialog provides focus containment and background inertness; closing it returns focus to its trigger.
+
+Colours, type, and surfaces are tokens in `styles/foundation.css`. Headings and buttons use Big Shoulders, self-hosted from the `@fontsource-variable/big-shoulders` package so the content security policy keeps `font-src 'self'`; body text uses the system font. Teal and violet mean the two players and nothing else, so teal also marks the player's own actions. Page furniture stays in the document flow: the game screen narrows the board in a short window instead of letting anything overlap it.
 
 ### Offline
 
@@ -122,7 +124,7 @@ Opponent selection keeps the primary path limited to difficulty, playing style, 
 
 ### Motion
 
-Shared timings live in `visuals/motion.ts`; UI transitions use transforms and opacity. The ambient canvas uses frame-rate-independent steps, pauses in hidden tabs, and renders a static frame when reduced motion is requested. Counter drops and win effects communicate state changes rather than decorating idle board elements. A win first mutes unrelated counters, highlights every winning counter, and connects their centres using geometry derived by a pure presentation function; only then does the completion dialog appear.
+Shared timings live in `visuals/motion.ts`; UI transitions use transforms and opacity, and nothing moves while the game is idle. Counter drops and win effects communicate state changes rather than decorating idle board elements. A win first mutes unrelated counters, highlights every winning counter, and connects their centres using geometry derived by a pure presentation function; only then does the completion dialog appear.
 
 ### Observability
 
@@ -170,7 +172,7 @@ sampling for billing or exact financial counts.
 | `src/lib/game-store-core.ts`, `game-store-ai-actions.ts`               | Application commands over injected effects              |
 | `src/lib/game-store.ts`, `game-store-state.ts`, `ui-store.ts`          | Store construction, persistence, and ephemeral UI state |
 | `src/lib/*protocol.ts`, `*-boundary.ts`, `*-service.ts`, `*-client.ts` | External contracts and adapters                         |
-| `src/lib/visuals`                                                      | Pure motion constants and canvas behavior               |
+| `src/lib/visuals`                                                      | Shared motion constants                                 |
 | `src/service-worker.ts`, `src/lib/service-worker-policy.ts`            | Offline runtime and cache policy                        |
 | `src/worker.ts`, `src/lib/usage.ts`                                    | Asset routing and anonymous usage counts                |
 | `worker/src/game.rs`, `rules.rs`, `bitboard.rs`                        | Rust game model and rules                               |

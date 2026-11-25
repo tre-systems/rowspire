@@ -21,7 +21,6 @@ export default function GameControls({
         type="button"
         onClick={onResetGame}
         className="control-button control-button--labelled"
-        whileHover={{ y: -2 }}
         whileTap={{ scale: 0.96 }}
         transition={MOTION.spring}
         aria-label="Start a new game"
@@ -37,7 +36,6 @@ export default function GameControls({
           type="button"
           onClick={onToggleSound}
           className="control-button control-button--labelled"
-          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.94 }}
           transition={MOTION.spring}
           aria-label={soundEnabled ? 'Mute sound' : 'Unmute sound'}
@@ -52,7 +50,6 @@ export default function GameControls({
           type="button"
           onClick={onShowHowToPlay}
           className="control-button control-button--labelled"
-          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.94 }}
           transition={MOTION.spring}
           aria-label="How to play"
